@@ -1,0 +1,34 @@
+{
+	"schemaVersion": 1,
+	"id": "nuker",
+	"version": "${version}",
+	"name": "Nuker",
+	"description": "Epic nuking mod for nuking terrain",
+	"authors": [
+		"Beanbag"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/nuker/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"me.beanbag.Nuker"
+		]
+	},
+	"mixins": [
+		"nuker.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.15.10",
+		"minecraft": "~1.20.4",
+		"java": ">=17",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
