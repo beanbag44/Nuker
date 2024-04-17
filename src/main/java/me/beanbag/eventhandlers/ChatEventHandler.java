@@ -1,4 +1,4 @@
-package me.beanbag.eventHandlers;
+package me.beanbag.eventhandlers;
 
 public class ChatEventHandler {
     public ChatEventHandler() {
