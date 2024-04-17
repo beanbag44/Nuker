@@ -4,6 +4,7 @@ import baritone.api.BaritoneAPI;
 import baritone.api.selection.ISelection;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import me.beanbag.eventhandlers.ChatEventHandler;
 import me.beanbag.events.Render3DCallback;
 import me.beanbag.utils.Timer;
 import me.beanbag.events.PacketReceiveCallback;
@@ -39,6 +40,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import static me.beanbag.utils.BlockUtils.getBlockBreakingTimeMS;
 
 public class Nuker implements ModInitializer {
+
+	public static Nuker nuker;
+
     public static final Logger LOGGER = LoggerFactory.getLogger("nuker");
 	public static MinecraftClient mc = MinecraftClient.getInstance();
 
@@ -61,26 +65,31 @@ public class Nuker implements ModInitializer {
 	 * Nuker Settings
 	 */
 
-	private MineSort mineSort = MineSort.CLOSEST;
-	private FlattenMode flattenMode = FlattenMode.STANDARD;
-	private boolean avoidLiquids = true;
-	private int packetLimit = 10;
-	private boolean clientBreak = true;
-	private int radius = 5;
-	private boolean baritoneSelection = false;
-	private double clientBreakGhostBlockTimeout = 1000;
-	private double blockTimeoutDelay = 300;
-	private int instaMineThreshold = 67;
-	private boolean onGround = true;
+	public MineSort mineSort = MineSort.CLOSEST;
+	public FlattenMode flattenMode = FlattenMode.STANDARD;
+	public boolean avoidLiquids = true;
+	public int packetLimit = 10;
+	public boolean clientBreak = true;
+	public int radius = 5;
+	public boolean baritoneSelection = false;
+	public double clientBreakGhostBlockTimeout = 1000;
+	public double blockTimeoutDelay = 300;
+	public int instaMineThreshold = 67;
+	public boolean onGround = true;
 
 	@Override
 	public void onInitialize() {
+
+		nuker = new Nuker();
 
 		/**
 		 * On player dig packet send
 		 */
 
 		PacketReceiveCallback.EVENT.register(packet -> {
+
+			ChatEventHandler chatCommands = new ChatEventHandler();
+
 			if (packet instanceof BlockUpdateS2CPacket p) {
 
 				// --------------- SOUNDS ---------------------------------------------------------------------------------
