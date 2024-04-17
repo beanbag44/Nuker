@@ -67,7 +67,7 @@ public class Nuker implements ModInitializer {
 	private int packetLimit = 10;
 	private boolean clientBreak = true;
 	private int radius = 5;
-	private boolean baritoneSelection = true;
+	private boolean baritoneSelection = false;
 	private double clientBreakGhostBlockTimeout = 1000;
 	private double blockTimeoutDelay = 300;
 	private int instaMineThreshold = 67;
