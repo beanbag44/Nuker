@@ -1,4 +1,4 @@
-A simple nuking mod for removing larg amounts of terrian.
+A simple nuking mod for removing large amounts of terrian.
 
 To use the mod, type "&&enable" into chat and it should respond with a message.
 
