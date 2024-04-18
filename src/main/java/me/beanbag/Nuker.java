@@ -250,6 +250,7 @@ public class Nuker implements ModInitializer {
 					int bestTool = InventoryUtils.getBestToolSlot(b);
 					if (mc.player.getInventory().selectedSlot != bestTool) {
 						mc.player.getInventory().selectedSlot = bestTool;
+						packetCounter++;
 					}
 
 					mineBlock(b);
