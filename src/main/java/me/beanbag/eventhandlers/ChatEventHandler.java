@@ -131,7 +131,7 @@ public class ChatEventHandler {
                     if (message.isEmpty()) {
                         sendClientMessages(String.valueOf(Nuker.radius));
                     } else if (isIntable(message)) {
-                        Nuker.radius = Integer.valueOf(message);
+                        Nuker.radius = Integer.parseInt(message);
                         sendClientMessages(prefix + "Radius = " + message);
                     }
 
@@ -163,14 +163,14 @@ public class ChatEventHandler {
                         sendClientMessage(prefix + "Block Timeout Delay = " + message);
                     }
 
-                } else if (message.equals("&&instaminethreshold")) {
+                } else if (message.startsWith("&&instaminethreshold")) {
                     message = message.replace("&&instaminethreshold", "");
                     if (isIntable(message)) {
                         Nuker.instaMineThreshold = Integer.parseInt(message);
                         sendClientMessage(prefix + "InstaMine Threshold = " + message);
                     }
 
-                } else if (message.equals("&&onground")) {
+                } else if (message.startsWith("&&onground")) {
                     message = message.replace("&&onground", "");
                     switch (message) {
                         case "" -> sendClientMessages(String.valueOf(Nuker.onGround));
