@@ -75,15 +75,15 @@ public class ChatEventHandler {
                             Nuker.mineSort = Nuker.MineSort.FARTHEST;
                             sendClientMessages(prefix + "Sorting Mode = " + message);
                         }
-                        case "TOP_DOWN" -> {
+                        case "top_down" -> {
                             Nuker.mineSort = Nuker.MineSort.TOP_DOWN;
                             sendClientMessages(prefix + "Sorting Mode = " + message);
                         }
-                        case "BOTTOM_UP" -> {
+                        case "bottom_up" -> {
                             Nuker.mineSort = Nuker.MineSort.BOTTOM_UP;
                             sendClientMessages(prefix + "Sorting Mode = " + message);
                         }
-                        case "RANDOM" -> {
+                        case "random" -> {
                             Nuker.mineSort = Nuker.MineSort.RANDOM;
                             sendClientMessages(prefix + "Sorting Mode = " + message);
                         }
