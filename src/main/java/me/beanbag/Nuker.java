@@ -3,7 +3,6 @@ package me.beanbag;
 import baritone.api.BaritoneAPI;
 import baritone.api.selection.ISelection;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import me.beanbag.eventhandlers.ChatEventHandler;
 import me.beanbag.events.Render3DCallback;
 import me.beanbag.utils.Timer;
@@ -41,8 +40,6 @@ import static me.beanbag.utils.BlockUtils.getBlockBreakingTimeMS;
 
 public class Nuker implements ModInitializer {
 
-	public static Nuker nuker;
-
     public static final Logger LOGGER = LoggerFactory.getLogger("nuker");
 	public static MinecraftClient mc = MinecraftClient.getInstance();
 
@@ -65,22 +62,21 @@ public class Nuker implements ModInitializer {
 	 * Nuker Settings
 	 */
 
-	public MineSort mineSort = MineSort.CLOSEST;
-	public FlattenMode flattenMode = FlattenMode.STANDARD;
-	public boolean avoidLiquids = true;
-	public int packetLimit = 10;
-	public boolean clientBreak = true;
-	public int radius = 5;
-	public boolean baritoneSelection = false;
-	public double clientBreakGhostBlockTimeout = 1000;
-	public double blockTimeoutDelay = 300;
-	public int instaMineThreshold = 67;
-	public boolean onGround = true;
+	public static boolean enabled = false;
+	public static MineSort mineSort = MineSort.CLOSEST;
+	public static FlattenMode flattenMode = FlattenMode.STANDARD;
+	public static boolean avoidLiquids = true;
+	public static int packetLimit = 10;
+	public static boolean clientBreak = true;
+	public static int radius = 5;
+	public static boolean baritoneSelection = false;
+	public static double clientBreakGhostBlockTimeout = 1000;
+	public static double blockTimeoutDelay = 300;
+	public static int instaMineThreshold = 67;
+	public static boolean onGround = true;
 
 	@Override
 	public void onInitialize() {
-
-		nuker = new Nuker();
 
 		/**
 		 * On player dig packet send
@@ -203,6 +199,7 @@ public class Nuker implements ModInitializer {
 
 			if (mc.world == null
 					|| mc.player == null
+					|| !enabled
 					|| onGround
 					&& !mc.player.isOnGround()) {
 				return;
@@ -615,7 +612,7 @@ public class Nuker implements ModInitializer {
 		private boolean serverMine;
 		private int tool;
 	}
-	private enum MineSort {
+	public enum MineSort {
 		CLOSEST,
 		FARTHEST,
 		TOP_DOWN,
@@ -628,8 +625,7 @@ public class Nuker implements ModInitializer {
 		public BlockPos pos;
 		public Timer timer;
 	}
-	@Getter
-	private enum FlattenMode {
+	public enum FlattenMode {
 		NONE("None"),
 		STANDARD("Standard"),
 		SMART("Smart"),
