@@ -78,13 +78,13 @@ public class Nuker implements ModInitializer {
 	@Override
 	public void onInitialize() {
 
+		ChatEventHandler chatCommands = new ChatEventHandler();
+
 		/**
 		 * On player dig packet send
 		 */
 
 		PacketReceiveCallback.EVENT.register(packet -> {
-
-			ChatEventHandler chatCommands = new ChatEventHandler();
 
 			if (packet instanceof BlockUpdateS2CPacket p) {
 

@@ -2,8 +2,6 @@ package me.beanbag.events;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.network.packet.Packet;
 import net.minecraft.util.ActionResult;
 
 public interface Render3DCallback {
