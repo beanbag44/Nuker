@@ -3,7 +3,8 @@
   "package": "me.beanbag.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "MixinClientConnection"
+    "MixinClientConnection",
+    "litematica.ISchematicVerifierAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
