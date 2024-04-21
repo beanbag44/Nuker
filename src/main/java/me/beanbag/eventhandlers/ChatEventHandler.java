@@ -6,7 +6,6 @@ import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 
-import static me.beanbag.Nuker.litematica;
 import static me.beanbag.Nuker.mc;
 
 public class ChatEventHandler {
@@ -32,6 +31,7 @@ public class ChatEventHandler {
                             , prefix + "Block Timeout Delay: " + Nuker.blockTimeoutDelay
                             , prefix + "InstaMine Threshold: " + Nuker.instaMineThreshold
                             , prefix + "On Ground: " + Nuker.onGround
+                            , prefix + "Litematica " + Nuker.litematica
                     );
 
                 } else if (message.startsWith("&&litematica")) {
@@ -39,11 +39,11 @@ public class ChatEventHandler {
                     switch (message) {
                         case "" -> sendClientMessages(String.valueOf(Nuker.litematica));
                         case "true" -> {
-                            litematica = true;
+                            Nuker.litematica = true;
                             sendClientMessages(prefix + "Litematica = true");
                         }
                         case "false" -> {
-                            litematica = false;
+                            Nuker.litematica = false;
                             sendClientMessages(prefix + "litematica = false");
                         }
                     }
