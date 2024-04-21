@@ -6,6 +6,7 @@ import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 
+import static me.beanbag.Nuker.litematica;
 import static me.beanbag.Nuker.mc;
 
 public class ChatEventHandler {
@@ -32,6 +33,20 @@ public class ChatEventHandler {
                             , prefix + "InstaMine Threshold: " + Nuker.instaMineThreshold
                             , prefix + "On Ground: " + Nuker.onGround
                     );
+
+                } else if (message.startsWith("&&litematica")) {
+                    message = message.replace("&&litematica", "").trim();
+                    switch (message) {
+                        case "" -> sendClientMessages(String.valueOf(Nuker.litematica));
+                        case "true" -> {
+                            litematica = true;
+                            sendClientMessages(prefix + "Litematica = true");
+                        }
+                        case "false" -> {
+                            litematica = false;
+                            sendClientMessages(prefix + "litematica = false");
+                        }
+                    }
 
                 } else if (message.equals("&&disable")) {
                     Nuker.enabled = false;

@@ -8,6 +8,7 @@ import me.beanbag.events.Render3DCallback;
 import me.beanbag.utils.Timer;
 import me.beanbag.events.PacketReceiveCallback;
 import me.beanbag.utils.InventoryUtils;
+import me.beanbag.utils.litematica.LitematicaHelper;
 import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -57,11 +58,13 @@ public class Nuker implements ModInitializer {
 	private final Set<Runnable> renderRunnables = Collections.synchronizedSet(new HashSet<>());
 	private final Map<PosAndState, Timer> blockTimeout = new HashMap<>();
 	private final Set<ISelection> baritoneSelections = new HashSet<>();
+	private Set<BlockPos> schematicMismatches = Collections.synchronizedSet(new HashSet<>());
 
 	/**
 	 * Nuker Settings
 	 */
 
+	public static boolean litematica = false;
 	public static boolean enabled = false;
 	public static MineSort mineSort = MineSort.CLOSEST;
 	public static FlattenMode flattenMode = FlattenMode.STANDARD;
@@ -194,6 +197,16 @@ public class Nuker implements ModInitializer {
 			});
 			sQueue.removeAll(sQueueRemove);
 			sQueueRemove.clear();
+
+			// --------------- LITEMATICA -------------------------------------------------------------------------------------------
+
+			if (litematica) {
+				if (!LitematicaHelper.isLitematicaLoaded()) {
+					litematica = false;
+					return;
+				}
+				schematicMismatches = LitematicaHelper.INSTANCE.getMismatches();
+			}
 
 			// --------------- MINE CHECKING -------------------------------------------------------------------------------------------
 
@@ -492,6 +505,14 @@ public class Nuker implements ModInitializer {
 				}
 			}
 		}
+
+		// ---------------- LITEMATICA ---------------------------------------------------------------------
+
+		if (litematica
+				&& !schematicMismatches.contains(pos)) {
+			return false;
+		}
+
 		// ---------------- BARITONE SELECTIONS ---------------------------------------------------------------------
 
 		if (baritoneSelection) {
