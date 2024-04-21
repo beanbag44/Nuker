@@ -151,7 +151,7 @@ public class ChatEventHandler {
                     }
 
                 } else if (message.startsWith("&&baritoneselectionmode")) {
-                    message = message.replace("&&baritoneselectionmode", "");
+                    message = message.replace("&&baritoneselectionmode", "").trim();
                     switch (message) {
                         case "" -> sendClientMessages(String.valueOf(Nuker.baritoneSelection));
                         case "true" -> {
@@ -186,7 +186,7 @@ public class ChatEventHandler {
                     }
 
                 } else if (message.startsWith("&&onground")) {
-                    message = message.replace("&&onground", "");
+                    message = message.replace("&&onground", "").trim();
                     switch (message) {
                         case "" -> sendClientMessages(String.valueOf(Nuker.onGround));
                         case "true" -> {
