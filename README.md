@@ -1,4 +1,4 @@
-A simple nuking mod for removing large amounts of terrian. Built for use mainly on 2b2t.org
+A simple nuking mod for removing large amounts of terrian. Built for use mainly on 2b2t.org.
 
 Required dependencies: Baritone, Litematica
 
