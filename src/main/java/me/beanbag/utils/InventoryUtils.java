@@ -1,8 +1,5 @@
 package me.beanbag.utils;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.enchantment.EnchantmentHelper;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 
 import static me.beanbag.Nuker.mc;
