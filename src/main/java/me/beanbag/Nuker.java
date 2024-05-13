@@ -21,6 +21,7 @@ import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
+import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket;
 import net.minecraft.registry.tag.FluidTags;
@@ -262,6 +263,7 @@ public class Nuker implements ModInitializer {
 					int bestTool = InventoryUtils.getBestToolSlot(b);
 					if (mc.player.getInventory().selectedSlot != bestTool) {
 						mc.player.getInventory().selectedSlot = bestTool;
+						mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(bestTool));
 						packetCounter++;
 					}
 
