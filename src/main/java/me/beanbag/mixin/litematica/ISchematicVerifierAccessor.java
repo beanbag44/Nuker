@@ -13,11 +13,5 @@ import java.util.List;
 @Mixin(SchematicVerifier.class)
 public interface ISchematicVerifierAccessor {
     @Accessor
-    List<BlockPos> getMismatchedBlocksPositionsClosest();
-
-    @Accessor
     ArrayListMultimap<Pair<BlockState, BlockState>, BlockPos> getWrongBlocksPositions();
-
-    @Accessor
-    ArrayListMultimap<Pair<BlockState, BlockState>, BlockPos> getMissingBlocksPositions();
 }
