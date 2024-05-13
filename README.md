@@ -1,6 +1,6 @@
 A simple nuking mod for removing large amounts of terrian. Built for use mainly on 2b2t.org.
 
-Required dependencies: Baritone, Litematica
+Required dependencies: Baritone
 
 To use the mod, type "&&enable" into chat and it should respond with a message.
 
