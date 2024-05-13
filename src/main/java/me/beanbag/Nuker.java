@@ -60,7 +60,7 @@ public class Nuker implements ModInitializer {
 	private final Set<ISelection> baritoneSelections = new HashSet<>();
 	private Set<BlockPos> schematicMismatches = Collections.synchronizedSet(new HashSet<>());
 
-	/**
+	/*
 	 * Nuker Settings
 	 */
 
@@ -83,8 +83,8 @@ public class Nuker implements ModInitializer {
 
 		ChatEventHandler chatCommands = new ChatEventHandler();
 
-		/**
-		 * On player dig packet send
+		/*
+		  On player dig packet send
 		 */
 
 		PacketReceiveCallback.EVENT.register(packet -> {
@@ -158,8 +158,8 @@ public class Nuker implements ModInitializer {
 		});
 
 
-		/**
-		 * On tick
+		/*
+		  On tick
 		 */
 
 		ClientTickEvents.START_CLIENT_TICK.register((mc) -> {
@@ -272,7 +272,7 @@ public class Nuker implements ModInitializer {
 		});
 
 
-		/**
+		/*
 		 * On frame render
 		 */
 
@@ -372,7 +372,7 @@ public class Nuker implements ModInitializer {
 							|| (blockVector.getZ() > -1 && playerDirection == Direction.SOUTH)) {
 						return false;
 					}
-					// without this, you sometimes get grim issues when walking backwards down a staircase with smart flatten on
+					// without this, you sometimes get grim issues when walking down a staircase with smart flatten on
 					if (mc.player.supportingBlockPos.isPresent()
 							&& mc.player.supportingBlockPos.get().equals(pos)) {
 						return false;
@@ -393,7 +393,7 @@ public class Nuker implements ModInitializer {
 							|| (blockVector.getZ() < 1 && playerDirection == Direction.SOUTH)) {
 						return false;
 					}
-					// without this, you sometimes get grim issues when walking backwards down a staircase with smart flatten on
+					// without this, you sometimes get grim issues when walking down a staircase with smart flatten on
 					if (mc.player.supportingBlockPos.isPresent()
 							&& mc.player.supportingBlockPos.get().equals(pos)) {
 						return false;
@@ -615,15 +615,6 @@ public class Nuker implements ModInitializer {
 				iterator.remove();
 			}
 		}
-	}
-	private boolean rayCast(BlockPos blockPos) {
-		BlockHitResult rayCastResult = mc.world.raycast(new RaycastContext(mc.player.getEyePos()
-				, blockPos.toCenterPos()
-				, RaycastContext.ShapeType.OUTLINE
-				, RaycastContext.FluidHandling.NONE
-				, mc.player
-		));
-		return (rayCastResult.getBlockPos().equals(blockPos));
 	}
 	@AllArgsConstructor
 	private class MBlock {
