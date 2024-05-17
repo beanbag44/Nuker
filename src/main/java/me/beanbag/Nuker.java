@@ -89,7 +89,10 @@ public class Nuker implements ModInitializer {
 
 		PacketReceiveCallback.EVENT.register(packet -> {
 
-			if (mc.world == null) return ActionResult.PASS;
+			if (mc.world == null
+					|| mc.interactionManager == null) {
+				return ActionResult.PASS;
+			}
 
 			if (packet instanceof BlockUpdateS2CPacket p) {
 
@@ -101,7 +104,7 @@ public class Nuker implements ModInitializer {
                         BlockState state = mc.world.getBlockState(sqb.pos);
                         renderRunnables.add(() -> {
                             mc.world.setBlockState(sqb.pos, state);
-                            mc.world.breakBlock(sqb.pos, false);
+							mc.interactionManager.breakBlock(sqb.pos);
                         });
                         sQueueRemove.add(sqb);
                     }
@@ -367,7 +370,8 @@ public class Nuker implements ModInitializer {
 	private boolean canMine(BlockPos pos) {
 
 		if (mc.world == null
-				|| mc.player == null) {
+				|| mc.player == null
+				|| mc.interactionManager == null) {
 			return false;
 		}
 
@@ -435,7 +439,7 @@ public class Nuker implements ModInitializer {
 						|| mc.world.getBlockState(b.pos).getBlock() != b.block) {
 					if (clientBreak
 							&& isWithinRadius(mc.player.getEyePos(), b.pos, radius)) {
-						mc.world.breakBlock(b.pos, false);
+						mc.interactionManager.breakBlock(b.pos);
 						ghostBlockCheckSet.put(b, new Timer().reset());
 					}
 					iterator.remove();
@@ -445,7 +449,7 @@ public class Nuker implements ModInitializer {
 						|| mc.world.getBlockState(b.pos).getBlock() != b.block) {
 					if (clientBreak
 							&& isWithinRadius(mc.player.getEyePos(), b.pos, radius)) {
-						mc.world.breakBlock(b.pos, false);
+						mc.interactionManager.breakBlock(b.pos);
 						ghostBlockCheckSet.put(b, new Timer().reset());
 					}
 					iterator.remove();
