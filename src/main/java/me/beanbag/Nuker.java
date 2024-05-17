@@ -161,7 +161,6 @@ public class Nuker implements ModInitializer {
 			return ActionResult.PASS;
 		});
 
-
 		/*
 		  On tick
 		 */
@@ -307,6 +306,13 @@ public class Nuker implements ModInitializer {
 
 		double breakingTime = getBlockBreakingTimeMS(mc.player.getInventory().getMainHandStack(), blockPos, mc.player, mc.world);
 		blockTimeout.put(new PosAndState(blockPos, breakingTime), new Timer().reset());
+		MBlock mBlock = new MBlock(blockPos
+				, mc.world.getBlockState(blockPos).getBlock()
+				, breakingTime
+				, new Timer().reset()
+				, false
+				, InventoryUtils.getBestToolSlot(blockPos)
+		);
 
 		// ---------- DOUBLE BLOCK ----------------------------------------------
 
@@ -315,13 +321,7 @@ public class Nuker implements ModInitializer {
 		}
 
 		if (breakingTime > instaMineThreshold) {
-			mBlocks.add(new MBlock(blockPos
-					, mc.world.getBlockState(blockPos).getBlock()
-					, breakingTime
-					, new Timer().reset()
-					, false
-					, InventoryUtils.getBestToolSlot(blockPos))
-			);
+			mBlocks.add(mBlock);
 		}
 
 		// ---------- DIFFERENT MINE PACKETS FOR HARDNESS'S ---------------------
@@ -332,7 +332,11 @@ public class Nuker implements ModInitializer {
 				startDestroy(blockPos);
 				stopDestroy(blockPos);
 			} else {
-				mc.interactionManager.attackBlock(blockPos, Direction.UP);
+				startDestroy(blockPos);
+			}
+			if (clientBreak) {
+				mc.interactionManager.breakBlock(blockPos);
+				ghostBlockCheckSet.put(mBlock, new Timer().reset());
 			}
 		} else if (breakingTime > instaMineThreshold) {
 			startDestroy(blockPos);
