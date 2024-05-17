@@ -81,7 +81,7 @@ public class Nuker implements ModInitializer {
 	@Override
 	public void onInitialize() {
 
-		ChatEventHandler chatCommands = new ChatEventHandler();
+		new ChatEventHandler();
 
 		/*
 		  On player dig packet send
@@ -89,60 +89,64 @@ public class Nuker implements ModInitializer {
 
 		PacketReceiveCallback.EVENT.register(packet -> {
 
+			if (mc.world == null) return ActionResult.PASS;
+
 			if (packet instanceof BlockUpdateS2CPacket p) {
 
 				// --------------- SOUNDS ---------------------------------------------------------------------------------
 
-				sQueue.forEach(b -> {
-					if (b.pos.equals(p.getPos())
-							&& p.getState().isAir()) {
-						BlockState state = mc.world.getBlockState(b.pos);
-						renderRunnables.add(() -> {
-							mc.world.setBlockState(b.pos, state);
-							mc.world.breakBlock(b.pos, false);
-						});
-						sQueueRemove.add(b);
-					}
-				});
+                for (SQB sqb : sQueue) {
+                    if (sqb.pos.equals(p.getPos())
+                            && p.getState().isAir()) {
+                        BlockState state = mc.world.getBlockState(sqb.pos);
+                        renderRunnables.add(() -> {
+                            mc.world.setBlockState(sqb.pos, state);
+                            mc.world.breakBlock(sqb.pos, false);
+                        });
+                        sQueueRemove.add(sqb);
+                    }
+                }
 
-				// --------------- GHOST BLOCK CHECKS ---------------------------------------------------------------------------------
+                // --------------- GHOST BLOCK CHECKS ---------------------------------------------------------------------------------
 
-				ghostBlockCheckSet.forEach((b, t) -> {
-					if (b.pos.equals(p.getPos())
-							&& p.getState().isAir()) {
-						ghostBlockCheckSetRemove.add(b);
-					}
-				});
+                for (MBlock b : ghostBlockCheckSet.keySet()) {
+                    if (b.pos.equals(p.getPos())
+                            && p.getState().isAir()) {
+                        ghostBlockCheckSetRemove.add(b);
+                    }
+                }
 
-				// --------------------------------------------------------------------------------------------------------
+                // --------------------------------------------------------------------------------------------------------
 
 			} else if (packet instanceof ChunkDeltaUpdateS2CPacket p) {
 
 				// --------------- SOUNDS ---------------------------------------------------------------------------------
 
-				sQueue.forEach(b -> p.visitUpdates((pos, state) -> {
-					if (b.pos.equals(pos)
-							&& state.isAir()) {
-						BlockState oldState = mc.world.getBlockState(pos);
-						renderRunnables.add(() -> {
-							mc.world.setBlockState(b.pos, oldState);
-							mc.world.breakBlock(b.pos, false);
-						});
-						sQueueRemove.add(b);
-					}
-				}));
+                for (SQB sqb : sQueue) {
+                    p.visitUpdates((pos, state) -> {
+                        if (sqb.pos.equals(pos)
+                                && state.isAir()) {
+                            BlockState oldState = mc.world.getBlockState(pos);
+                            renderRunnables.add(() -> {
+                                mc.world.setBlockState(sqb.pos, oldState);
+                                mc.world.breakBlock(sqb.pos, false);
+                            });
+                            sQueueRemove.add(sqb);
+                        }
+                    });
+                }
 
-				// --------------- GHOST BLOCK CHECKS ---------------------------------------------------------------------------------
+                // --------------- GHOST BLOCK CHECKS ---------------------------------------------------------------------------------
 
-				ghostBlockCheckSet.forEach((b, t) -> {
-					p.visitUpdates((pos, state) -> {
-						if (b.pos.equals(pos)
-								&& state.isAir()) {
-							ghostBlockCheckSetRemove.add(b);
-						}
-					});
-				});
-			}
+                for (MBlock b : ghostBlockCheckSet.keySet()) {
+                    p.visitUpdates((pos, state) -> {
+                        if (b.pos.equals(pos)
+                                && state.isAir()) {
+                            ghostBlockCheckSetRemove.add(b);
+                        }
+                    });
+                }
+            }
 
 			// --------------------------------------------------------------------------------------------------------
 
@@ -163,6 +167,11 @@ public class Nuker implements ModInitializer {
 		 */
 
 		ClientTickEvents.START_CLIENT_TICK.register((mc) -> {
+
+			if (mc.world == null
+					|| mc.getNetworkHandler() == null) {
+				return;
+			}
 
 			// --------------- GHOST BLOCK CHECK TIMEOUT ---------------------------------------------------------------------------------
 
@@ -210,11 +219,9 @@ public class Nuker implements ModInitializer {
 
 			// --------------- MINE CHECKING -------------------------------------------------------------------------------------------
 
-			if (mc.world == null
-					|| mc.player == null
+			if (mc.player == null
 					|| !enabled
-					|| onGround
-					&& !mc.player.isOnGround()) {
+					|| onGround && !mc.player.isOnGround()) {
 				return;
 			}
 
@@ -292,6 +299,12 @@ public class Nuker implements ModInitializer {
 	}
 	private void mineBlock(BlockPos blockPos) {
 
+		if (mc.player == null
+				|| mc.world == null
+				|| mc.interactionManager == null) {
+			return;
+		}
+
 		double breakingTime = getBlockBreakingTimeMS(mc.player.getInventory().getMainHandStack(), blockPos, mc.player, mc.world);
 		blockTimeout.put(new PosAndState(blockPos, breakingTime), new Timer().reset());
 
@@ -348,6 +361,11 @@ public class Nuker implements ModInitializer {
 		}
 	}
 	private boolean canMine(BlockPos pos) {
+
+		if (mc.world == null
+				|| mc.player == null) {
+			return false;
+		}
 
 		ItemStack stack= mc.player.getInventory().getStack(InventoryUtils.getBestToolSlot(pos));
 
@@ -543,19 +561,20 @@ public class Nuker implements ModInitializer {
 					}
 				}
 			}
-			if (!withinBaritoneSelection) {
-				return false;
-			}
+            return withinBaritoneSelection;
 		}
 		return true;
 	}
 	private void startDestroy(BlockPos blockPos) {
+		if (mc.getNetworkHandler() == null) return;
 		mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.START_DESTROY_BLOCK, blockPos, Direction.UP));
 	}
 	private void abortDestroy(BlockPos blockPos) {
+		if (mc.getNetworkHandler() == null) return;
 		mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.ABORT_DESTROY_BLOCK, blockPos, Direction.UP));
 	}
 	private void stopDestroy(BlockPos blockPos) {
+		if (mc.getNetworkHandler() == null) return;
 		mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK, blockPos, Direction.UP));
 	}
 	private List<BlockPos> getPlayerBlockSphere(Vec3d playerPos, int r) {
@@ -584,7 +603,11 @@ public class Nuker implements ModInitializer {
 	}
 	private List<BlockPos> sortBlocks(List<BlockPos> list) {
 
-		List<BlockPos> sortedList = new ArrayList<>(list.stream()
+		List<BlockPos> sortedList = new ArrayList<>();
+
+		if (mc.player == null) return sortedList;
+
+		sortedList.addAll(list.stream()
 				.sorted(Comparator.comparingDouble(a -> mc.player.getEyePos().distanceTo(a.toCenterPos()))).toList());
 
 		switch (mineSort) {
@@ -597,6 +620,9 @@ public class Nuker implements ModInitializer {
 		return sortedList;
 	}
 	private void filterBlocks(List<BlockPos> positions) {
+
+		if (mc.world == null) return;
+
 		Iterator<BlockPos> iterator = positions.iterator();
 		while(iterator.hasNext()) {
 
@@ -640,14 +666,10 @@ public class Nuker implements ModInitializer {
 		public Timer timer;
 	}
 	public enum FlattenMode {
-		NONE("None"),
-		STANDARD("Standard"),
-		SMART("Smart"),
-		REVERSE_SMART("Reverse Smart");
-		private final String name;
-		FlattenMode(String name) {
-			this.name = name;
-		}
+		NONE,
+		STANDARD,
+		SMART,
+		REVERSE_SMART
 	}
 	@AllArgsConstructor
 	private class PosAndState {
