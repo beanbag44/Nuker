@@ -52,12 +52,12 @@ public class Nuker implements ModInitializer {
 	private List<BlockPos> spherePosList = Collections.synchronizedList(new ArrayList<>());
 	private final List<SQB> sQueue = Collections.synchronizedList(new ArrayList<>());
 	private final List<SQB> sQueueRemove = Collections.synchronizedList(new ArrayList<>());
-	private final List<MBlock> mBlocks = new ArrayList<>();
+	private final List<MBlock> mBlocks = Collections.synchronizedList(new ArrayList<>());
 	private final ConcurrentHashMap<MBlock, Timer> ghostBlockCheckSet = new ConcurrentHashMap<>();
-	private final Set<MBlock> ghostBlockCheckSetRemove = new HashSet<>();
+	private final Set<MBlock> ghostBlockCheckSetRemove = Collections.synchronizedSet(new HashSet<>());
 	private final Set<Runnable> renderRunnables = Collections.synchronizedSet(new HashSet<>());
-	private final Map<PosAndState, Timer> blockTimeout = new HashMap<>();
-	private final Set<ISelection> baritoneSelections = new HashSet<>();
+	private final Map<PosAndState, Timer> blockTimeout = new ConcurrentHashMap<>();
+	private final Set<ISelection> baritoneSelections = Collections.synchronizedSet(new HashSet<>());
 	private Set<BlockPos> schematicMismatches = Collections.synchronizedSet(new HashSet<>());
 
 	/*
@@ -84,7 +84,7 @@ public class Nuker implements ModInitializer {
 		new ChatEventHandler();
 
 		/*
-		  On player dig packet send
+		  On packet receive
 		 */
 
 		PacketReceiveCallback.EVENT.register(packet -> {
@@ -95,72 +95,49 @@ public class Nuker implements ModInitializer {
 			}
 
 			if (packet instanceof BlockUpdateS2CPacket p) {
-
-				// --------------- SOUNDS ---------------------------------------------------------------------------------
-
+				// Sounds
                 for (SQB sqb : sQueue) {
                     if (sqb.pos.equals(p.getPos())
-                            && p.getState().isAir()) {
-                        BlockState state = mc.world.getBlockState(sqb.pos);
-                        renderRunnables.add(() -> {
-                            mc.world.setBlockState(sqb.pos, state);
-							mc.interactionManager.breakBlock(sqb.pos);
-                        });
+                            && (p.getState().isAir() || p.getState().getBlock().equals(Blocks.WATER))) {
+                        renderRunnables.add(() -> mc.interactionManager.breakBlock(sqb.pos));
                         sQueueRemove.add(sqb);
                     }
                 }
 
-                // --------------- GHOST BLOCK CHECKS ---------------------------------------------------------------------------------
-
+				// Ghost block checks
                 for (MBlock b : ghostBlockCheckSet.keySet()) {
                     if (b.pos.equals(p.getPos())
-                            && p.getState().isAir()) {
+                            && (p.getState().isAir() || p.getState().getBlock().equals(Blocks.WATER))) {
                         ghostBlockCheckSetRemove.add(b);
                     }
                 }
-
-                // --------------------------------------------------------------------------------------------------------
-
 			} else if (packet instanceof ChunkDeltaUpdateS2CPacket p) {
-
-				// --------------- SOUNDS ---------------------------------------------------------------------------------
-
+				// Sounds
                 for (SQB sqb : sQueue) {
                     p.visitUpdates((pos, state) -> {
                         if (sqb.pos.equals(pos)
-                                && state.isAir()) {
-                            BlockState oldState = mc.world.getBlockState(pos);
-                            renderRunnables.add(() -> {
-                                mc.world.setBlockState(sqb.pos, oldState);
-                                mc.world.breakBlock(sqb.pos, false);
-                            });
+                                && (state.isAir() || state.getBlock().equals(Blocks.WATER))) {
+                            renderRunnables.add(() -> mc.interactionManager.breakBlock(sqb.pos));
                             sQueueRemove.add(sqb);
                         }
                     });
                 }
 
-                // --------------- GHOST BLOCK CHECKS ---------------------------------------------------------------------------------
-
+				// Ghost block checks
                 for (MBlock b : ghostBlockCheckSet.keySet()) {
                     p.visitUpdates((pos, state) -> {
                         if (b.pos.equals(pos)
-                                && state.isAir()) {
+                                && (state.isAir() || state.getBlock().equals(Blocks.WATER))) {
                             ghostBlockCheckSetRemove.add(b);
                         }
                     });
                 }
             }
-
-			// --------------------------------------------------------------------------------------------------------
-
 			ghostBlockCheckSetRemove.forEach(ghostBlockCheckSet::remove);
 			ghostBlockCheckSetRemove.clear();
 
 			sQueue.removeAll(sQueueRemove);
 			sQueueRemove.clear();
-
-			// --------------------------------------------------------------------------------------------------------
-
 			return ActionResult.PASS;
 		});
 
@@ -175,8 +152,7 @@ public class Nuker implements ModInitializer {
 				return;
 			}
 
-			// --------------- GHOST BLOCK CHECK TIMEOUT ---------------------------------------------------------------------------------
-
+			// Ghost block timeout check
 			ghostBlockCheckSet.forEach((b, t) -> {
 				if (ghostBlockCheckSet.get(b).getPassedTimeMs() > clientBreakGhostBlockTimeout) {
 					mc.world.setBlockState(b.pos, b.block.getDefaultState());
@@ -194,13 +170,11 @@ public class Nuker implements ModInitializer {
 			ghostBlockCheckSetRemove.forEach(ghostBlockCheckSet::remove);
 			ghostBlockCheckSetRemove.clear();
 
-			// --------------- BLOCK TIMEOUT CHECK ---------------------------------------------------------------------------------
-
+			// Block timeout check
 			blockTimeout.keySet().removeIf(
 					next -> blockTimeout.get(next).getPassedTimeMs() > blockTimeoutDelay + next.ttm);
 
-			// --------------- SOUNDS TIMEOUT CHECK ---------------------------------------------------------------------------------
-
+			// Sounds timeout check
 			sQueue.forEach(b -> {
 				if (b.timer.getPassedTimeMs() > b.ttm) {
 					sQueueRemove.add(b);
@@ -209,8 +183,7 @@ public class Nuker implements ModInitializer {
 			sQueue.removeAll(sQueueRemove);
 			sQueueRemove.clear();
 
-			// --------------- LITEMATICA -------------------------------------------------------------------------------------------
-
+			// Litematica
 			if (litematica) {
 				if (!LitematicaHelper.isLitematicaLoaded()) {
 					litematica = false;
@@ -219,15 +192,14 @@ public class Nuker implements ModInitializer {
 				schematicMismatches = LitematicaHelper.INSTANCE.getMismatches();
 			}
 
-			// --------------- MINE CHECKING -------------------------------------------------------------------------------------------
-
+			// Mine checking
 			if (mc.player == null
 					|| !enabled
 					|| onGround && !mc.player.isOnGround()) {
 				return;
 			}
 
-			// reset the block interaction limit counter. This is done here because the player could have to switch back
+			// Reset the block interaction limit counter. This is done here because the player could have to switch back
 			// to a currently mining blocks best tool and if a module like autoeat is on you could get kicked for packet spam
 			packetCounter = 0;
 
@@ -242,21 +214,20 @@ public class Nuker implements ModInitializer {
 				}
 			}
 
-			// ---------------------------------------------------------------------------------------------------------------------------------
+			// Get a list of blocks around the player
+			spherePosList.clear();
+			spherePosList.addAll(getPlayerBlockSphere(mc.player.getEyePos(), radius + 1));
 
-			// get a list of blocks around the player
-			spherePosList = getPlayerBlockSphere(mc.player.getEyePos(), radius + 1);
-
-			// remove impossible to mine blocks like bedrock, water, etc...
+			// Remove impossible to mine blocks like bedrock, water, etc...
 			filterBlocks(spherePosList);
 
-			// sort the blocks
+			// Sort the blocks
 			spherePosList = sortBlocks(spherePosList);
 
-			// iterate through the list
+			// Iterate through the list
 			for (BlockPos b : spherePosList) {
 
-				// if possible, mine / start mining the block
+				// If possible, mine / start mining the block
 				if (canMine(b)) {
 
 					// Top down gravity block checks to shift the block position to the top of the column
@@ -268,19 +239,18 @@ public class Nuker implements ModInitializer {
 						}
 					}
 
-					// swaps to the right tool
+					// Swaps to the right tool
 					int bestTool = InventoryUtils.getBestToolSlot(b);
 					if (mc.player.getInventory().selectedSlot != bestTool) {
 						mc.player.getInventory().selectedSlot = bestTool;
 						mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(bestTool));
 						packetCounter++;
 					}
-
+					// Mine block
 					mineBlock(b);
 				}
 			}
 		});
-
 
 		/*
 		 * On frame render
@@ -316,9 +286,7 @@ public class Nuker implements ModInitializer {
 				, false
 				, InventoryUtils.getBestToolSlot(blockPos)
 		);
-
-		// ---------- DOUBLE BLOCK ----------------------------------------------
-
+		// Double block
 		if (mBlocks.size() == 1) {
 			mBlocks.get(0).serverMine = true;
 		}
@@ -326,9 +294,7 @@ public class Nuker implements ModInitializer {
 		if (breakingTime > instaMineThreshold) {
 			mBlocks.add(mBlock);
 		}
-
-		// ---------- DIFFERENT MINE PACKETS FOR HARDNESS'S ---------------------
-
+		// Different mine packets for hardness values
 		if (breakingTime <= instaMineThreshold) {
 			if (breakingTime > 50) {
 				stopDestroy(blockPos);
@@ -346,9 +312,7 @@ public class Nuker implements ModInitializer {
 			abortDestroy(blockPos);
 			stopDestroy(blockPos);
 		}
-
-		// ---------- PACKET LIMITER ---------------------
-
+		// Packet limiter
 		if (packetLimit != -1) {
 			if (breakingTime > 50) {
 				packetCounter += 3;
@@ -356,9 +320,7 @@ public class Nuker implements ModInitializer {
 				packetCounter++;
 			}
 		}
-
-		// ---------- SOUNDS ---------------------
-
+		// Sounds
 		if (breakingTime > 50) {
 			sQueue.add(new SQB(
 					breakingTime * 3 + 500
@@ -376,9 +338,7 @@ public class Nuker implements ModInitializer {
 		}
 
 		ItemStack stack= mc.player.getInventory().getStack(InventoryUtils.getBestToolSlot(pos));
-
-		// ---------------- FLATTEN MODES ---------------------------------------------------------------------
-
+		// Flatten modes
 		switch (flattenMode) {
 			case STANDARD -> {
 				if (pos.getY() < mc.player.getBlockY()) {
@@ -428,9 +388,7 @@ public class Nuker implements ModInitializer {
 				}
 			}
 		}
-
-		// ---------------- DOUBLE BLOCK ---------------------------------------------------------------------
-
+		// Double block
 		Iterator<MBlock> iterator = mBlocks.iterator();
 		while (iterator.hasNext()) {
 			MBlock b = iterator.next();
@@ -469,23 +427,17 @@ public class Nuker implements ModInitializer {
 			}
 		}
 
-		// ----------------------------------------------------------------------------------------------------
-
 		double timeToMine = getBlockBreakingTimeMS(
 				stack
 				, pos
 				, mc.player
 				, mc.world
 		);
-
-		// ---------------- BLOCK MINE TIME LIMIT ---------------------------------------------------------------------
-
+		// Block mine time limit
 		if (timeToMine > 10000) {
 			return false;
 		}
-
-		// ---------------- PACKET LIMIT ---------------------------------------------------------------------
-
+		// Packet limit
 		int packets = 1;
 		if (timeToMine > 50) {
 			packets = 3;
@@ -494,17 +446,13 @@ public class Nuker implements ModInitializer {
 				|| packetCounter + packets >= packetLimit) {
 			return false;
 		}
-
-		// ---------------- BLOCK TIMEOUT ---------------------------------------------------------------------
-
+		// Block timeout
 		for (PosAndState pas : blockTimeout.keySet()) {
 			if (pos.equals(pas.pos)) {
 				return false;
 			}
 		}
-
-		// ---------------- AVOID LIQUIDS ---------------------------------------------------------------------
-
+		// Avoid liquids
 		if (avoidLiquids) {
 			for (final Direction direction : Direction.values()) {
 				BlockPos newPos = pos.offset(direction);
@@ -532,16 +480,12 @@ public class Nuker implements ModInitializer {
 				}
 			}
 		}
-
-		// ---------------- LITEMATICA ---------------------------------------------------------------------
-
+		// Litematica
 		if (litematica
 				&& !schematicMismatches.contains(pos)) {
 			return false;
 		}
-
-		// ---------------- BARITONE SELECTIONS ---------------------------------------------------------------------
-
+		// baritone selection mode
 		if (baritoneSelection) {
 			if (packetCounter == 0) {
 				baritoneSelections.clear();
@@ -592,7 +536,6 @@ public class Nuker implements ModInitializer {
 	}
 	private List<BlockPos> getPlayerBlockCube(Vec3d playerPos, int r) {
 		List<BlockPos> posList = new ArrayList<>();
-
 		for (int x = -r; x <= r; x++) {
 			for (int y = -r; y <= r; y++) {
 				for (int z = -r; z <= r; z++) {
@@ -643,9 +586,9 @@ public class Nuker implements ModInitializer {
 					|| block.getHardness() == 600
 					|| block.getHardness() == -1
 					|| block.equals(Blocks.BARRIER)
-					|| state.getFluidState().getFluid().equals(Fluids.WATER)
+					|| state.getBlock().equals(Blocks.WATER)
 					|| state.getFluidState().getFluid().equals(Fluids.FLOWING_WATER)
-					|| state.getFluidState().getFluid().equals(Fluids.LAVA)
+					|| state.getBlock().equals(Blocks.WATER)
 					|| state.getFluidState().getFluid().equals(Fluids.FLOWING_LAVA)) {
 				iterator.remove();
 			}
