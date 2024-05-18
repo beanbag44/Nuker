@@ -41,11 +41,6 @@ public class MovementHandler {
                     return;
                 }
 
-                // Relative to player facing
-                float errorDeltaYaw = (resultDirection.getYaw() - resultPlayerYaw) % 360;
-                if (errorDeltaYaw < -180) errorDeltaYaw += 360;
-                if (errorDeltaYaw > 180) errorDeltaYaw -= 360;
-
                 mc.options.forwardKey.setPressed(false);
                 mc.options.backKey.setPressed(false);
                 mc.options.leftKey.setPressed(false);
