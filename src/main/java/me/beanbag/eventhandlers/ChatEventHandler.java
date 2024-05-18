@@ -10,6 +10,7 @@ import static me.beanbag.Nuker.mc;
 
 public class ChatEventHandler {
     private final String prefix = "Nuker: ";
+    private final ChatEventHandler INSTANCE = new ChatEventHandler();
     public ChatEventHandler() {
         PacketSendCallback.EVENT.register(packet -> {
             if (packet instanceof ChatMessageC2SPacket p) {

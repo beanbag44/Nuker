@@ -5,6 +5,8 @@ import baritone.api.selection.ISelection;
 import lombok.AllArgsConstructor;
 import me.beanbag.eventhandlers.ChatEventHandler;
 import me.beanbag.events.Render3DCallback;
+import me.beanbag.utils.FreeLook;
+import me.beanbag.utils.MovementHandler;
 import me.beanbag.utils.Timer;
 import me.beanbag.events.PacketReceiveCallback;
 import me.beanbag.utils.InventoryUtils;
@@ -81,7 +83,11 @@ public class Nuker implements ModInitializer {
 	@Override
 	public void onInitialize() {
 
-		new ChatEventHandler();
+		/*
+		  Initialize the movement handlers on tick event
+		 */
+
+		MovementHandler.initEventHandler();
 
 		/*
 		  On packet receive
@@ -195,7 +201,7 @@ public class Nuker implements ModInitializer {
 			// Mine checking
 			if (mc.player == null
 					|| !enabled
-					|| onGround && !mc.player.isOnGround()) {
+					|| (onGround && !mc.player.isOnGround())) {
 				return;
 			}
 
