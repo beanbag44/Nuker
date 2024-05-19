@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -32,16 +33,22 @@ public class RotationsManager {
         });
     }
     public static void rotate(int yaw, int pitch) {
-        if (mc.player != null) {
+        if (mc.player != null
+                && mc.getNetworkHandler() != null) {
             onRotate();
             mc.player.setYaw(yaw);
             mc.player.setPitch(pitch);
+            mc.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(mc.player.getYaw(), mc.player.getPitch(), mc.player.isOnGround()));
         }
     }
     public static void lookAt(Vec3d vec) {
-        if (mc.player != null) {
+        if (mc.player != null
+                && mc.getNetworkHandler() != null) {
             onRotate();
-            mc.player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, vec);
+            float[] yawPitch = getNeededRotations(mc.player, vec);
+            mc.player.setYaw(yawPitch[0]);
+            mc.player.setPitch(yawPitch[1]);
+            mc.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(yawPitch[0], yawPitch[1], mc.player.isOnGround()));
         }
     }
     public static float[] getNeededRotations(ClientPlayerEntity player, Vec3d vec) {
