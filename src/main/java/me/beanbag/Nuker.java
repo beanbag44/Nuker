@@ -5,11 +5,9 @@ import baritone.api.selection.ISelection;
 import lombok.AllArgsConstructor;
 import me.beanbag.eventhandlers.ChatEventHandler;
 import me.beanbag.events.Render3DCallback;
-import me.beanbag.utils.FreeLook;
-import me.beanbag.utils.MovementHandler;
-import me.beanbag.utils.Timer;
+import me.beanbag.utils.*;
 import me.beanbag.events.PacketReceiveCallback;
-import me.beanbag.utils.InventoryUtils;
+import me.beanbag.utils.Timer;
 import me.beanbag.utils.litematica.LitematicaHelper;
 import net.fabricmc.api.ModInitializer;
 
@@ -33,6 +31,8 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Vec3i;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +40,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static me.beanbag.utils.BlockUtils.getBlockBreakingTimeMS;
+import static me.beanbag.utils.RotationsManager.canSeeBlockFace;
 
 public class Nuker implements ModInitializer {
 
@@ -82,6 +83,18 @@ public class Nuker implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+
+		/*
+		  Initialize the chat event handler
+		 */
+
+		RotationsManager.initEventHandler();
+
+		/*
+		  Initialize the chat event handler
+		 */
+
+		ChatEventHandler.initChatEventHandler();
 
 		/*
 		  Initialize the movement handlers on tick event
@@ -224,11 +237,34 @@ public class Nuker implements ModInitializer {
 			spherePosList.clear();
 			spherePosList.addAll(getPlayerBlockSphere(mc.player.getEyePos(), radius + 1));
 
-			// Remove impossible to mine blocks like bedrock, water, etc...
+			// Remove impossible to mine blocks like bedrock, air, etc...
 			filterBlocks(spherePosList);
 
+			List<BlockPos> liquidList = spherePosList;
+
+			liquidList.removeIf(b -> {
+				BlockState state = mc.world.getBlockState(b);
+				return !(state.getBlock().equals(Blocks.WATER)
+						|| state.getFluidState().getFluid().equals(Fluids.FLOWING_WATER)
+						|| state.getBlock().equals(Blocks.LAVA)
+						|| state.getFluidState().getFluid().equals(Fluids.FLOWING_LAVA)
+				);
+			});
+
+			if (!liquidList.isEmpty()) {
+				// Sort the blocks
+				liquidList = sortBlocks(liquidList, true);
+				for (BlockPos b : liquidList) {
+					Vec3d placeVec = canPlace(b);
+					if (placeVec != null) {
+						RotationsManager.lookAt(placeVec);
+					}
+				}
+				return;
+			}
+
 			// Sort the blocks
-			spherePosList = sortBlocks(spherePosList);
+			spherePosList = sortBlocks(spherePosList, false);
 
 			// Iterate through the list
 			for (BlockPos b : spherePosList) {
@@ -523,6 +559,37 @@ public class Nuker implements ModInitializer {
 		}
 		return true;
 	}
+	private @Nullable Vec3d canPlace(BlockPos pos) {
+		if (mc.player == null
+				|| mc.world == null) return null;
+		Vec3d centerPos = pos.toCenterPos();
+		if (mc.world.getBlockState(pos.add(0, 1, 0)).isFullCube(mc.world, pos.add(0, 1, 0))
+				&& canSeeBlockFace(mc.player, pos.add(0, 1, 0), Direction.DOWN)
+				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y + 0.5, centerPos.z)) <= 5) {
+			return centerPos.add(0, 0.5, 0);
+		} else if (mc.world.getBlockState(pos.add(0, -1, 0)).isFullCube(mc.world, pos.add(0, -1, 0))
+				&& canSeeBlockFace(mc.player, pos.add(0, -1, 0), Direction.UP)
+				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y - 0.5, centerPos.z)) <= 5) {
+			return centerPos.add(0, -0.5, 0);
+		} else if (mc.world.getBlockState(pos.add(1, 0, 0)).isFullCube(mc.world, pos.add(1, 0, 0))
+				&& canSeeBlockFace(mc.player, pos.add(1, 0, 0), Direction.WEST)
+				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x + 0.5, centerPos.y, centerPos.z)) <= 5) {
+			return centerPos.add(0.5, 0, 0);
+		} else if (mc.world.getBlockState(pos.add(0, 0, 1)).isFullCube(mc.world, pos.add(0, 0, 1))
+				&& canSeeBlockFace(mc.player, pos.add(0, 0, 1), Direction.NORTH)
+				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y, centerPos.z + 0.5)) <= 5) {
+			return centerPos.add(0, 0, 0.5);
+		} else if (mc.world.getBlockState(pos.add(-1, 0, 0)).isFullCube(mc.world, pos.add(-1, 0, 0))
+				&& canSeeBlockFace(mc.player, pos.add(-1, 0, 0), Direction.EAST)
+				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x - 0.5, centerPos.y, centerPos.z)) <= 5) {
+			return centerPos.add(-0.5, 0, 0);
+		} else if (mc.world.getBlockState(pos.add(0, 0, -1)).isFullCube(mc.world, pos.add(0, 0, -1))
+				&& canSeeBlockFace(mc.player, pos.add(0, 0, -1), Direction.SOUTH)
+				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y, centerPos.z - 0.5)) <= 5) {
+			return centerPos.add(0, 0, -0.5);
+		}
+		return null;
+	}
 	private void startDestroy(BlockPos blockPos) {
 		if (mc.getNetworkHandler() == null) return;
 		mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.START_DESTROY_BLOCK, blockPos, Direction.UP));
@@ -558,7 +625,7 @@ public class Nuker implements ModInitializer {
 	private Boolean isWithinRadius(Vec3d playerPos, BlockPos blockPos, int r) {
 		return playerPos.distanceTo(blockPos.toCenterPos()) <= r;
 	}
-	private List<BlockPos> sortBlocks(List<BlockPos> list) {
+	private List<BlockPos> sortBlocks(List<BlockPos> list, boolean reverseForLiquidPlace) {
 
 		List<BlockPos> sortedList = new ArrayList<>();
 
@@ -568,10 +635,31 @@ public class Nuker implements ModInitializer {
 				.sorted(Comparator.comparingDouble(a -> mc.player.getEyePos().distanceTo(a.toCenterPos()))).toList());
 
 		switch (mineSort) {
-			case FARTHEST -> Collections.reverse(sortedList);
-			case TOP_DOWN -> sortedList.sort(Comparator.comparingDouble((a) -> -a.getY()));
-			case BOTTOM_UP -> sortedList.sort(Comparator.comparingDouble(BlockPos::getY));
+			case FARTHEST -> {
+				if (!reverseForLiquidPlace) {
+					Collections.reverse(sortedList);
+				}
+			}
+			case TOP_DOWN -> {
+                if (reverseForLiquidPlace) {
+					sortedList.sort(Comparator.comparingDouble(Vec3i::getY));
+                } else {
+					sortedList.sort(Comparator.comparingDouble(b -> -b.getY()));
+                }
+            }
+			case BOTTOM_UP -> {
+				if (reverseForLiquidPlace) {
+					sortedList.sort(Comparator.comparingDouble(b -> -b.getY()));
+				} else {
+					sortedList.sort(Comparator.comparingDouble(BlockPos::getY));
+				}
+			}
 			case RANDOM -> Collections.shuffle(sortedList);
+			case CLOSEST -> {
+				if (reverseForLiquidPlace) {
+					Collections.reverse(sortedList);
+				}
+			}
 		}
 
 		return sortedList;
@@ -591,11 +679,7 @@ public class Nuker implements ModInitializer {
 			if (state.isAir()
 					|| block.getHardness() == 600
 					|| block.getHardness() == -1
-					|| block.equals(Blocks.BARRIER)
-					|| state.getBlock().equals(Blocks.WATER)
-					|| state.getFluidState().getFluid().equals(Fluids.FLOWING_WATER)
-					|| state.getBlock().equals(Blocks.WATER)
-					|| state.getFluidState().getFluid().equals(Fluids.FLOWING_LAVA)) {
+					|| block.equals(Blocks.BARRIER)) {
 				iterator.remove();
 			}
 		}

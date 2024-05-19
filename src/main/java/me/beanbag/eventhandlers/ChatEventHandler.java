@@ -9,9 +9,8 @@ import net.minecraft.util.ActionResult;
 import static me.beanbag.Nuker.mc;
 
 public class ChatEventHandler {
-    private final String prefix = "Nuker: ";
-    private final ChatEventHandler INSTANCE = new ChatEventHandler();
-    public ChatEventHandler() {
+    private static final String prefix = "Nuker: ";
+    public static void initChatEventHandler() {
         PacketSendCallback.EVENT.register(packet -> {
             if (packet instanceof ChatMessageC2SPacket p) {
 
@@ -207,22 +206,22 @@ public class ChatEventHandler {
             }
         });
     }
-    public void sendClientMessage(String text) {
+    public static void sendClientMessage(String text) {
         mc.inGameHud.getChatHud().addMessage(Text.of(text));
     }
-    public void sendClientMessages(Object[] text) {
+    public static void sendClientMessages(Object[] text) {
         sendClientMessage("======== Nuker ========");
         for (Object s : text) {
             sendClientMessage(s.toString());
         }
     }
-    public void sendClientMessages(String... text) {
+    public static void sendClientMessages(String... text) {
         sendClientMessage("======== Nuker ========");
         for (Object s : text) {
             sendClientMessage(s.toString());
         }
     }
-    private boolean isIntable(String text) {
+    private static boolean isIntable(String text) {
         try {
             Integer.parseInt(text);
             return true;

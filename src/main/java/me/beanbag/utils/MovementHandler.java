@@ -3,7 +3,6 @@ package me.beanbag.utils;
 import lombok.Getter;
 import me.beanbag.mixin.MixinAccessorKeyBinding;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 
@@ -16,12 +15,11 @@ public class MovementHandler {
             if (mc.player == null) return;
 
             if (!FreeLook.INSTANCE.isEnabled()) {
-                if (disableNextTick) {
-                    disableNextTick = false;
-                    InputDirections.apply(InputDirections.getCurrentInput());
+                if (!disableNextTick) {
+                    return;
                 }
-                return;
             }
+
             // Get current inputs
             InputDirections currentInputDirection = InputDirections.getCurrentInput();
 
@@ -49,6 +47,12 @@ public class MovementHandler {
                 InputDirections.apply(resultDirection);
             } else {
                 InputDirections.apply(InputDirections.NONE);
+            }
+            if (!FreeLook.INSTANCE.isEnabled()) {
+                if (disableNextTick) {
+                    disableNextTick = false;
+                    InputDirections.apply(InputDirections.getCurrentInput());
+                }
             }
         });
     }
@@ -146,6 +150,6 @@ public class MovementHandler {
         }
     }
     private static boolean isKeyPressed(KeyBinding keyBinding) {
-        return InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), ((MixinAccessorKeyBinding) keyBinding).getBoundKey().getCode());
+        return InputUtil.isKeyPressed(mc.getWindow().getHandle(), ((MixinAccessorKeyBinding) keyBinding).getBoundKey().getCode());
     }
 }

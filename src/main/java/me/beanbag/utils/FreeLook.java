@@ -7,10 +7,10 @@ import static me.beanbag.Nuker.mc;
 @Getter
 public class FreeLook {
     @Setter
-    float yaw = 0;
+    private float yaw = 0;
     @Setter
-    float pitch = 0;
-    boolean enabled = false;
+    private float pitch = 0;
+    private boolean enabled = false;
     public static final FreeLook INSTANCE = new FreeLook();
     public void enable() {
         if (mc.player == null) return;
@@ -19,6 +19,10 @@ public class FreeLook {
         pitch = mc.player.getPitch();
     }
     public void disable() {
+        if (mc.player != null) {
+            mc.player.setYaw(yaw);
+            mc.player.setPitch(pitch);
+        }
         enabled = false;
         MovementHandler.disable();
     }
