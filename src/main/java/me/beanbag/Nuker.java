@@ -4,13 +4,12 @@ import baritone.api.BaritoneAPI;
 import baritone.api.selection.ISelection;
 import lombok.AllArgsConstructor;
 import me.beanbag.eventhandlers.ChatEventHandler;
-import me.beanbag.events.Render3DCallback;
-import me.beanbag.utils.*;
 import me.beanbag.events.PacketReceiveCallback;
+import me.beanbag.events.Render3DCallback;
 import me.beanbag.utils.Timer;
+import me.beanbag.utils.*;
 import me.beanbag.utils.litematica.LitematicaHelper;
 import net.fabricmc.api.ModInitializer;
-
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -31,7 +30,6 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.math.Vec3i;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -240,7 +238,7 @@ public class Nuker implements ModInitializer {
 			// Remove impossible to mine blocks like bedrock, air, etc...
 			filterBlocks(spherePosList);
 
-			List<BlockPos> liquidList = spherePosList;
+            List<BlockPos> liquidList = new ArrayList<>(spherePosList);
 
 			liquidList.removeIf(b -> {
 				BlockState state = mc.world.getBlockState(b);
@@ -253,18 +251,26 @@ public class Nuker implements ModInitializer {
 
 			if (!liquidList.isEmpty()) {
 				// Sort the blocks
-				liquidList = sortBlocks(liquidList, true);
+				liquidList = sortBlocks(liquidList);
 				for (BlockPos b : liquidList) {
-					Vec3d placeVec = canPlace(b);
-					if (placeVec != null) {
-						RotationsManager.lookAt(placeVec);
+					BlockHitResult placeResult = canPlace(b);
+					if (placeResult != null) {
+						int netherrack = PlaceUtils.findNetherrack();
+						if (netherrack != -1) {
+							mc.player.getInventory().selectedSlot = netherrack;
+							mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(netherrack));
+							RotationsManager.lookAt(placeResult.getPos());
+							PlaceUtils.place(placeResult);
+							return;
+						} else {
+							break;
+						}
 					}
 				}
-				return;
 			}
 
 			// Sort the blocks
-			spherePosList = sortBlocks(spherePosList, false);
+			spherePosList = sortBlocks(spherePosList);
 
 			// Iterate through the list
 			for (BlockPos b : spherePosList) {
@@ -288,6 +294,7 @@ public class Nuker implements ModInitializer {
 						mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(bestTool));
 						packetCounter++;
 					}
+
 					// Mine block
 					mineBlock(b);
 				}
@@ -559,34 +566,34 @@ public class Nuker implements ModInitializer {
 		}
 		return true;
 	}
-	private @Nullable Vec3d canPlace(BlockPos pos) {
+	private @Nullable BlockHitResult canPlace(BlockPos pos) {
 		if (mc.player == null
 				|| mc.world == null) return null;
 		Vec3d centerPos = pos.toCenterPos();
 		if (mc.world.getBlockState(pos.add(0, 1, 0)).isFullCube(mc.world, pos.add(0, 1, 0))
 				&& canSeeBlockFace(mc.player, pos.add(0, 1, 0), Direction.DOWN)
 				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y + 0.5, centerPos.z)) <= 5) {
-			return centerPos.add(0, 0.5, 0);
+			return new BlockHitResult(centerPos.add(0, 0.5, 0), Direction.DOWN, pos, false);
 		} else if (mc.world.getBlockState(pos.add(0, -1, 0)).isFullCube(mc.world, pos.add(0, -1, 0))
 				&& canSeeBlockFace(mc.player, pos.add(0, -1, 0), Direction.UP)
 				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y - 0.5, centerPos.z)) <= 5) {
-			return centerPos.add(0, -0.5, 0);
+			return new BlockHitResult(centerPos.add(0, -0.5, 0), Direction.UP, pos, false);
 		} else if (mc.world.getBlockState(pos.add(1, 0, 0)).isFullCube(mc.world, pos.add(1, 0, 0))
 				&& canSeeBlockFace(mc.player, pos.add(1, 0, 0), Direction.WEST)
 				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x + 0.5, centerPos.y, centerPos.z)) <= 5) {
-			return centerPos.add(0.5, 0, 0);
+			return new BlockHitResult(centerPos.add(0.5, 0, 0), Direction.WEST, pos, false);
 		} else if (mc.world.getBlockState(pos.add(0, 0, 1)).isFullCube(mc.world, pos.add(0, 0, 1))
 				&& canSeeBlockFace(mc.player, pos.add(0, 0, 1), Direction.NORTH)
 				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y, centerPos.z + 0.5)) <= 5) {
-			return centerPos.add(0, 0, 0.5);
+			return new BlockHitResult(centerPos.add(0, 0, 0.5), Direction.NORTH, pos, false);
 		} else if (mc.world.getBlockState(pos.add(-1, 0, 0)).isFullCube(mc.world, pos.add(-1, 0, 0))
 				&& canSeeBlockFace(mc.player, pos.add(-1, 0, 0), Direction.EAST)
 				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x - 0.5, centerPos.y, centerPos.z)) <= 5) {
-			return centerPos.add(-0.5, 0, 0);
+			return new BlockHitResult(centerPos.add(-0.5, 0, 0), Direction.EAST, pos, false);
 		} else if (mc.world.getBlockState(pos.add(0, 0, -1)).isFullCube(mc.world, pos.add(0, 0, -1))
 				&& canSeeBlockFace(mc.player, pos.add(0, 0, -1), Direction.SOUTH)
 				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y, centerPos.z - 0.5)) <= 5) {
-			return centerPos.add(0, 0, -0.5);
+			return new BlockHitResult(centerPos.add(0, 0, -0.5), Direction.SOUTH, pos, false);
 		}
 		return null;
 	}
@@ -625,7 +632,7 @@ public class Nuker implements ModInitializer {
 	private Boolean isWithinRadius(Vec3d playerPos, BlockPos blockPos, int r) {
 		return playerPos.distanceTo(blockPos.toCenterPos()) <= r;
 	}
-	private List<BlockPos> sortBlocks(List<BlockPos> list, boolean reverseForLiquidPlace) {
+	private List<BlockPos> sortBlocks(List<BlockPos> list) {
 
 		List<BlockPos> sortedList = new ArrayList<>();
 
@@ -635,31 +642,10 @@ public class Nuker implements ModInitializer {
 				.sorted(Comparator.comparingDouble(a -> mc.player.getEyePos().distanceTo(a.toCenterPos()))).toList());
 
 		switch (mineSort) {
-			case FARTHEST -> {
-				if (!reverseForLiquidPlace) {
-					Collections.reverse(sortedList);
-				}
-			}
-			case TOP_DOWN -> {
-                if (reverseForLiquidPlace) {
-					sortedList.sort(Comparator.comparingDouble(Vec3i::getY));
-                } else {
-					sortedList.sort(Comparator.comparingDouble(b -> -b.getY()));
-                }
-            }
-			case BOTTOM_UP -> {
-				if (reverseForLiquidPlace) {
-					sortedList.sort(Comparator.comparingDouble(b -> -b.getY()));
-				} else {
-					sortedList.sort(Comparator.comparingDouble(BlockPos::getY));
-				}
-			}
+			case FARTHEST -> Collections.reverse(sortedList);
+			case TOP_DOWN -> sortedList.sort(Comparator.comparingDouble((a) -> -a.getY()));
+			case BOTTOM_UP -> sortedList.sort(Comparator.comparingDouble(BlockPos::getY));
 			case RANDOM -> Collections.shuffle(sortedList);
-			case CLOSEST -> {
-				if (reverseForLiquidPlace) {
-					Collections.reverse(sortedList);
-				}
-			}
 		}
 
 		return sortedList;
