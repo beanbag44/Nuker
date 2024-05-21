@@ -78,9 +78,16 @@ public class Nuker implements ModInitializer {
 	public static boolean baritoneSelection = false;
 	public static double clientBreakGhostBlockTimeout = 1000;
 	public static int blockTimeoutDelay = 300;
-	public static int placeBlockTimeoutDelay = 3000;
 	public static int instaMineThreshold = 67;
 	public static boolean onGround = true;
+
+	/*
+	 * Liquid Settings
+	 */
+
+	public static boolean sourceRemover = false;
+	public static int placeBlockTimeoutDelay = 2500;
+	public static boolean expandBaritoneSelectionsForLiquids = true;
 
 	@Override
 	public void onInitialize() {
@@ -190,7 +197,7 @@ public class Nuker implements ModInitializer {
 
 			// Place block timeout check
 			placeBlockTimeout.keySet().removeIf(
-					next -> placeBlockTimeout.get(next).getPassedTimeMs() > blockTimeoutDelay + next.ttm);
+					next -> placeBlockTimeout.get(next).getPassedTimeMs() > placeBlockTimeoutDelay + next.ttm);
 
 			// Sounds timeout check
 			sQueue.forEach(b -> {
@@ -232,52 +239,57 @@ public class Nuker implements ModInitializer {
 				}
 			}
 
+
+
+
 			// Get a list of blocks around the player
 			spherePosList.clear();
 			spherePosList.addAll(getPlayerBlockSphere(mc.player.getEyePos(), radius + 1));
 
 			// Remove impossible to mine blocks like bedrock, air, etc...
-			filterBlocks(spherePosList);
+			filterBlocks(spherePosList, !sourceRemover);
 
-            List<BlockPos> liquidList = new ArrayList<>(spherePosList);
+			if (sourceRemover) {
+				List<BlockPos> liquidList = new ArrayList<>(spherePosList);
 
-			liquidList.removeIf(b -> {
-				BlockState state = mc.world.getBlockState(b);
-				return !(state.getBlock().equals(Blocks.WATER)
-						|| state.getFluidState().getFluid().equals(Fluids.FLOWING_WATER)
-						|| state.getBlock().equals(Blocks.LAVA)
-						|| state.getFluidState().getFluid().equals(Fluids.FLOWING_LAVA)
-				);
-			});
+				liquidList.removeIf(b -> {
+					BlockState state = mc.world.getBlockState(b);
+					return !(state.getBlock().equals(Blocks.WATER)
+							|| state.getFluidState().getFluid().equals(Fluids.FLOWING_WATER)
+							|| state.getBlock().equals(Blocks.LAVA)
+							|| state.getFluidState().getFluid().equals(Fluids.FLOWING_LAVA)
+					);
+				});
 
-			if (!liquidList.isEmpty()) {
-				// Sort the blocks
-				liquidList = sortBlocks(liquidList);
-				for (BlockPos b : liquidList) {
-					boolean inTimeout = false;
-					for (PosAndState ps : placeBlockTimeout.keySet()) {
-						if (ps.pos.equals(b)) {
-							inTimeout = true;
-							break;
-						}
-					}
-					if (inTimeout) {
-						continue;
-					}
-					BlockHitResult placeResult = canPlace(b);
-					if (placeResult != null) {
-						int netherrack = PlaceUtils.findNetherrack();
-						if (netherrack != -1) {
-							if (!mc.player.getInventory().getMainHandStack().getItem().equals(Items.NETHERRACK)) {
-								mc.player.getInventory().selectedSlot = netherrack;
-								mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(netherrack));
+				if (!liquidList.isEmpty()) {
+					// Sort the blocks
+					liquidList = sortBlocks(liquidList);
+					for (BlockPos b : liquidList) {
+						boolean inTimeout = false;
+						for (PosAndState ps : placeBlockTimeout.keySet()) {
+							if (ps.pos.equals(b)) {
+								inTimeout = true;
+								break;
 							}
-							RotationsManager.lookAt(placeResult.getPos());
-							PlaceUtils.place(placeResult);
-							placeBlockTimeout.put(new PosAndState(b, 0), new Timer().reset());
-							return;
-						} else {
-							break;
+						}
+						if (inTimeout) {
+							continue;
+						}
+						BlockHitResult placeResult = canPlace(b);
+						if (placeResult != null) {
+							int netherrack = PlaceUtils.findNetherrack();
+							if (netherrack != -1) {
+								if (!mc.player.getInventory().getMainHandStack().getItem().equals(Items.NETHERRACK)) {
+									mc.player.getInventory().selectedSlot = netherrack;
+									mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(netherrack));
+								}
+								RotationsManager.lookAt(placeResult.getPos());
+								PlaceUtils.place(placeResult);
+								placeBlockTimeout.put(new PosAndState(b, 0), new Timer().reset());
+								return;
+							} else {
+								break;
+							}
 						}
 					}
 				}
@@ -458,6 +470,7 @@ public class Nuker implements ModInitializer {
 				}
 			}
 		}
+
 		// Double block
 		Iterator<MBlock> iterator = mBlocks.iterator();
 		while (iterator.hasNext()) {
@@ -588,6 +601,40 @@ public class Nuker implements ModInitializer {
 		return true;
 	}
 	private @Nullable BlockHitResult canPlace(BlockPos pos) {
+
+		if (baritoneSelection) {
+			if (packetCounter == 0) {
+				baritoneSelections.clear();
+				BaritoneAPI.getProvider().getAllBaritones().forEach(b ->
+						baritoneSelections.addAll(Arrays.stream(b.getSelectionManager().getSelections()).toList()));
+			}
+			if (!baritoneSelections.isEmpty()) {
+				for (ISelection selection : baritoneSelections) {
+					BlockPos pos1 = new BlockPos(selection.pos1().x, selection.pos1().y, selection.pos1().z);
+					BlockPos pos2 = new BlockPos(selection.pos2().x, selection.pos2().y, selection.pos2().z);
+					int minX = Math.min(pos1.getX(), pos2.getX());
+					int minY = Math.min(pos1.getY(), pos2.getY());
+					int minZ = Math.min(pos1.getZ(), pos2.getZ());
+					int maxX = Math.max(pos1.getX(), pos2.getX());
+					int maxY = Math.max(pos1.getY(), pos2.getY());
+					int maxZ = Math.max(pos1.getZ(), pos2.getZ());
+					if (expandBaritoneSelectionsForLiquids) {
+						minX -= 1;
+						minY -= 1;
+						minZ -= 1;
+						maxX += 1;
+						maxY += 1;
+						maxZ += 1;
+					}
+					if (pos.getX() < minX || pos.getX() > maxX
+							|| pos.getY() < minY || pos.getY() > maxY
+							|| pos.getZ() < minZ || pos.getZ() > maxZ) {
+						return null;
+					}
+				}
+			}
+		}
+
 		if (mc.player == null
 				|| mc.world == null) return null;
 		Vec3d centerPos = pos.toCenterPos();
@@ -676,7 +723,7 @@ public class Nuker implements ModInitializer {
 
 		return sortedList;
 	}
-	private void filterBlocks(List<BlockPos> positions) {
+	private void filterBlocks(List<BlockPos> positions, boolean removeLiquids) {
 
 		if (mc.world == null) return;
 
@@ -692,6 +739,14 @@ public class Nuker implements ModInitializer {
 					|| block.getHardness() == 600
 					|| block.getHardness() == -1
 					|| block.equals(Blocks.BARRIER)) {
+				iterator.remove();
+			}
+
+			if (removeLiquids
+					&& state.getBlock().equals(Blocks.WATER)
+					|| state.getFluidState().getFluid().equals(Fluids.FLOWING_WATER)
+					|| state.getBlock().equals(Blocks.LAVA)
+					|| state.getFluidState().getFluid().equals(Fluids.FLOWING_LAVA)) {
 				iterator.remove();
 			}
 		}

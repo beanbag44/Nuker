@@ -23,7 +23,8 @@ public class ChatEventHandler {
                 String message = p.chatMessage().toLowerCase();
 
                 if (message.equals("&&list")) {
-                    sendClientMessages(prefix + "Sorting Mode: " + Nuker.mineSort
+                    sendClientMessages(
+                            prefix + "Sorting Mode: " + Nuker.mineSort
                             , prefix + "Flatten Mode: " + Nuker.flattenMode
                             , prefix + "Packet Limit: " + Nuker.packetLimit
                             , prefix + "Client Side Break: " + Nuker.clientBreak
@@ -34,7 +35,9 @@ public class ChatEventHandler {
                             , prefix + "Place Block Timeout Delay: " + Nuker.placeBlockTimeoutDelay
                             , prefix + "InstaMine Threshold: " + Nuker.instaMineThreshold
                             , prefix + "On Ground: " + Nuker.onGround
-                            , prefix + "Litematica " + Nuker.litematica
+                            , prefix + "Litematica: " + Nuker.litematica
+                            , prefix + "Source Remover: " + Nuker.sourceRemover
+                            , prefix + "Expand Baritone Selections For Liquids: " + Nuker.expandBaritoneSelectionsForLiquids
                     );
 
                 } else if (message.startsWith("&&litematica")) {
@@ -185,7 +188,7 @@ public class ChatEventHandler {
                     message = message.replace("&&placeblocktimeoutdelay", "").trim();
                     if (isIntable(message)) {
                         Nuker.placeBlockTimeoutDelay = Integer.parseInt(message);
-                        sendClientMessage(prefix + "Block Timeout Delay = " + message);
+                        sendClientMessage(prefix + "Place Block Timeout Delay = " + message);
                     }
 
                 } else if (message.startsWith("&&instaminethreshold")) {
@@ -206,6 +209,34 @@ public class ChatEventHandler {
                         case "false" -> {
                             Nuker.onGround = false;
                             sendClientMessages(prefix + "On Ground = false");
+                        }
+                    }
+
+                } else if (message.startsWith("&&sourceremover")) {
+                    message = message.replace("&&sourceremover", "").trim();
+                    switch (message) {
+                        case "" -> sendClientMessages(String.valueOf(Nuker.sourceRemover));
+                        case "true" -> {
+                            Nuker.sourceRemover = true;
+                            sendClientMessages(prefix + "Source Remover = true");
+                        }
+                        case "false" -> {
+                            Nuker.sourceRemover = false;
+                            sendClientMessages(prefix + "Source Remover = false");
+                        }
+                    }
+
+                } else if (message.startsWith("&&expandbaritoneselectionsforliquids")) {
+                    message = message.replace("&&expandbaritoneselectionsforliquids", "").trim();
+                    switch (message) {
+                        case "" -> sendClientMessages(String.valueOf(Nuker.expandBaritoneSelectionsForLiquids));
+                        case "true" -> {
+                            Nuker.expandBaritoneSelectionsForLiquids = true;
+                            sendClientMessages(prefix + "Expand Baritone Selections For Liquids = true");
+                        }
+                        case "false" -> {
+                            Nuker.expandBaritoneSelectionsForLiquids = false;
+                            sendClientMessages(prefix + "Expand Baritone Selections For Liquids = false");
                         }
                     }
 
