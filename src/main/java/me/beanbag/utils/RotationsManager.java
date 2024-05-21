@@ -45,25 +45,12 @@ public class RotationsManager {
         if (mc.player != null
                 && mc.getNetworkHandler() != null) {
             onRotate();
-            float[] yawPitch = getNeededRotations(mc.player, vec);
-            mc.player.setYaw(yawPitch[0]);
-            mc.player.setPitch(yawPitch[1]);
-            mc.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(yawPitch[0], yawPitch[1], mc.player.isOnGround()));
+//            float[] yawPitch = calculateLookAt(mc.player.getEyePos(), vec);
+//            mc.player.setYaw(yawPitch[0]);
+//            mc.player.setPitch(yawPitch[1]);
+            mc.player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, vec);
+//            mc.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(mc.player.getYaw(), mc.player.getPitch(), mc.player.isOnGround()));
         }
-    }
-    public static float[] getNeededRotations(ClientPlayerEntity player, Vec3d vec) {
-        Vec3d eyesPos = player.getEyePos();
-
-        double diffX = vec.x - eyesPos.x;
-        double diffY = vec.y - eyesPos.y;
-        double diffZ = vec.z - eyesPos.z;
-
-        double r = Math.sqrt(diffX * diffX + diffY * diffY + diffZ * diffZ);
-        double yaw = -Math.atan2(diffX, diffZ) / Math.PI * 180;
-
-        double pitch = -Math.asin(diffY / r) / Math.PI * 180;
-
-        return new float[]{(float) yaw, (float) pitch};
     }
     public static boolean canSeeBlockFace(PlayerEntity player, BlockPos blockPos, Direction direction) {
         Vec3d playerEyePos = player.getEyePos();

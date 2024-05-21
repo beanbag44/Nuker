@@ -18,6 +18,7 @@ import net.minecraft.block.FallingBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
@@ -58,6 +59,7 @@ public class Nuker implements ModInitializer {
 	private final Set<MBlock> ghostBlockCheckSetRemove = Collections.synchronizedSet(new HashSet<>());
 	private final Set<Runnable> renderRunnables = Collections.synchronizedSet(new HashSet<>());
 	private final Map<PosAndState, Timer> blockTimeout = new ConcurrentHashMap<>();
+	private final Map<PosAndState, Timer> placeBlockTimeout = new ConcurrentHashMap<>();
 	private final Set<ISelection> baritoneSelections = Collections.synchronizedSet(new HashSet<>());
 	private Set<BlockPos> schematicMismatches = Collections.synchronizedSet(new HashSet<>());
 
@@ -75,7 +77,8 @@ public class Nuker implements ModInitializer {
 	public static int radius = 5;
 	public static boolean baritoneSelection = false;
 	public static double clientBreakGhostBlockTimeout = 1000;
-	public static double blockTimeoutDelay = 300;
+	public static int blockTimeoutDelay = 300;
+	public static int placeBlockTimeoutDelay = 3000;
 	public static int instaMineThreshold = 67;
 	public static boolean onGround = true;
 
@@ -93,12 +96,6 @@ public class Nuker implements ModInitializer {
 		 */
 
 		ChatEventHandler.initChatEventHandler();
-
-		/*
-		  Initialize the movement handlers on tick event
-		 */
-
-		MovementHandler.initEventHandler();
 
 		/*
 		  On packet receive
@@ -191,6 +188,10 @@ public class Nuker implements ModInitializer {
 			blockTimeout.keySet().removeIf(
 					next -> blockTimeout.get(next).getPassedTimeMs() > blockTimeoutDelay + next.ttm);
 
+			// Place block timeout check
+			placeBlockTimeout.keySet().removeIf(
+					next -> placeBlockTimeout.get(next).getPassedTimeMs() > blockTimeoutDelay + next.ttm);
+
 			// Sounds timeout check
 			sQueue.forEach(b -> {
 				if (b.timer.getPassedTimeMs() > b.ttm) {
@@ -253,14 +254,27 @@ public class Nuker implements ModInitializer {
 				// Sort the blocks
 				liquidList = sortBlocks(liquidList);
 				for (BlockPos b : liquidList) {
+					boolean inTimeout = false;
+					for (PosAndState ps : placeBlockTimeout.keySet()) {
+						if (ps.pos.equals(b)) {
+							inTimeout = true;
+							break;
+						}
+					}
+					if (inTimeout) {
+						continue;
+					}
 					BlockHitResult placeResult = canPlace(b);
 					if (placeResult != null) {
 						int netherrack = PlaceUtils.findNetherrack();
 						if (netherrack != -1) {
-							mc.player.getInventory().selectedSlot = netherrack;
-							mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(netherrack));
+							if (!mc.player.getInventory().getMainHandStack().getItem().equals(Items.NETHERRACK)) {
+								mc.player.getInventory().selectedSlot = netherrack;
+								mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(netherrack));
+							}
 							RotationsManager.lookAt(placeResult.getPos());
 							PlaceUtils.place(placeResult);
+							placeBlockTimeout.put(new PosAndState(b, 0), new Timer().reset());
 							return;
 						} else {
 							break;
@@ -315,6 +329,13 @@ public class Nuker implements ModInitializer {
 			renderRunnables.clear();
 			return ActionResult.PASS;
 		});
+
+		/*
+		  Initialize the movement handlers on tick event
+		  I initialize it after the nuker on tick handler so that rotations are done by the time the movement handler decides how to move the player
+		 */
+
+		MovementHandler.initEventHandler();
 
 		LOGGER.info("Nuker!");
 	}
@@ -572,28 +593,33 @@ public class Nuker implements ModInitializer {
 		Vec3d centerPos = pos.toCenterPos();
 		if (mc.world.getBlockState(pos.add(0, 1, 0)).isFullCube(mc.world, pos.add(0, 1, 0))
 				&& canSeeBlockFace(mc.player, pos.add(0, 1, 0), Direction.DOWN)
-				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y + 0.5, centerPos.z)) <= 5) {
-			return new BlockHitResult(centerPos.add(0, 0.5, 0), Direction.DOWN, pos, false);
+				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y + 0.5, centerPos.z)) <= 4.5) {
+			return new BlockHitResult(centerPos.add(0, 0.5, 0), Direction.DOWN, pos.add(0, 1, 0), false);
+
 		} else if (mc.world.getBlockState(pos.add(0, -1, 0)).isFullCube(mc.world, pos.add(0, -1, 0))
 				&& canSeeBlockFace(mc.player, pos.add(0, -1, 0), Direction.UP)
-				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y - 0.5, centerPos.z)) <= 5) {
-			return new BlockHitResult(centerPos.add(0, -0.5, 0), Direction.UP, pos, false);
+				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y - 0.5, centerPos.z)) <= 4.5) {
+			return new BlockHitResult(centerPos.add(0, -0.5, 0), Direction.UP, pos.add(0, -1, 0), false);
+
 		} else if (mc.world.getBlockState(pos.add(1, 0, 0)).isFullCube(mc.world, pos.add(1, 0, 0))
 				&& canSeeBlockFace(mc.player, pos.add(1, 0, 0), Direction.WEST)
-				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x + 0.5, centerPos.y, centerPos.z)) <= 5) {
-			return new BlockHitResult(centerPos.add(0.5, 0, 0), Direction.WEST, pos, false);
+				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x + 0.5, centerPos.y, centerPos.z)) <= 4.5) {
+			return new BlockHitResult(centerPos.add(0.5, 0, 0), Direction.WEST, pos.add(1, 0, 0), false);
+
 		} else if (mc.world.getBlockState(pos.add(0, 0, 1)).isFullCube(mc.world, pos.add(0, 0, 1))
 				&& canSeeBlockFace(mc.player, pos.add(0, 0, 1), Direction.NORTH)
-				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y, centerPos.z + 0.5)) <= 5) {
-			return new BlockHitResult(centerPos.add(0, 0, 0.5), Direction.NORTH, pos, false);
+				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y, centerPos.z + 0.5)) <= 4.5) {
+			return new BlockHitResult(centerPos.add(0, 0, 0.5), Direction.NORTH, pos.add(0, 0, 1), false);
+
 		} else if (mc.world.getBlockState(pos.add(-1, 0, 0)).isFullCube(mc.world, pos.add(-1, 0, 0))
 				&& canSeeBlockFace(mc.player, pos.add(-1, 0, 0), Direction.EAST)
-				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x - 0.5, centerPos.y, centerPos.z)) <= 5) {
-			return new BlockHitResult(centerPos.add(-0.5, 0, 0), Direction.EAST, pos, false);
+				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x - 0.5, centerPos.y, centerPos.z)) <= 4.5) {
+			return new BlockHitResult(centerPos.add(-0.5, 0, 0), Direction.EAST, pos.add(-1, 0, 0), false);
+
 		} else if (mc.world.getBlockState(pos.add(0, 0, -1)).isFullCube(mc.world, pos.add(0, 0, -1))
 				&& canSeeBlockFace(mc.player, pos.add(0, 0, -1), Direction.SOUTH)
-				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y, centerPos.z - 0.5)) <= 5) {
-			return new BlockHitResult(centerPos.add(0, 0, -0.5), Direction.SOUTH, pos, false);
+				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y, centerPos.z - 0.5)) <= 4.5) {
+			return new BlockHitResult(centerPos.add(0, 0, -0.5), Direction.SOUTH, pos.add(0, 0, -1), false);
 		}
 		return null;
 	}

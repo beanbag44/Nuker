@@ -31,6 +31,7 @@ public class ChatEventHandler {
                             , prefix + "Baritone Selection mode: " + Nuker.baritoneSelection
                             , prefix + "Client Break Ghost Block Timeout: " + Nuker.clientBreakGhostBlockTimeout
                             , prefix + "Block Timeout Delay: " + Nuker.blockTimeoutDelay
+                            , prefix + "Place Block Timeout Delay: " + Nuker.placeBlockTimeoutDelay
                             , prefix + "InstaMine Threshold: " + Nuker.instaMineThreshold
                             , prefix + "On Ground: " + Nuker.onGround
                             , prefix + "Litematica " + Nuker.litematica
@@ -167,21 +168,28 @@ public class ChatEventHandler {
                     }
 
                 } else if (message.startsWith("&&clientbreakghostblocktimeout")) {
-                    message = message.replace("&&clientbreakghostblocktimeout", "");
+                    message = message.replace("&&clientbreakghostblocktimeout", "").trim();
                     if (isIntable(message)) {
                         Nuker.clientBreakGhostBlockTimeout = Integer.parseInt(message);
                         sendClientMessage(prefix + "Client Break Ghost Block Timeout = " + message);
                     }
 
                 } else if (message.startsWith("&&blocktimeoutdelay")) {
-                    message = message.replace("&&blocktimeoutdelay", "");
+                    message = message.replace("&&blocktimeoutdelay", "").trim();
                     if (isIntable(message)) {
                         Nuker.blockTimeoutDelay = Integer.parseInt(message);
                         sendClientMessage(prefix + "Block Timeout Delay = " + message);
                     }
 
+                } else if (message.startsWith("&&placeblocktimeoutdelay")) {
+                    message = message.replace("&&placeblocktimeoutdelay", "").trim();
+                    if (isIntable(message)) {
+                        Nuker.placeBlockTimeoutDelay = Integer.parseInt(message);
+                        sendClientMessage(prefix + "Block Timeout Delay = " + message);
+                    }
+
                 } else if (message.startsWith("&&instaminethreshold")) {
-                    message = message.replace("&&instaminethreshold", "");
+                    message = message.replace("&&instaminethreshold", "").trim();
                     if (isIntable(message)) {
                         Nuker.instaMineThreshold = Integer.parseInt(message);
                         sendClientMessage(prefix + "InstaMine Threshold = " + message);
