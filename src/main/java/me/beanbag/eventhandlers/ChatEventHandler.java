@@ -165,21 +165,21 @@ public class ChatEventHandler {
                     }
 
                 } else if (message.startsWith("&&clientbreakghostblocktimeout")) {
-                    message = message.replace("&&clientbreakghostblocktimeout", "");
+                    message = message.replace("&&clientbreakghostblocktimeout", "").trim();
                     if (isIntable(message)) {
                         Nuker.clientBreakGhostBlockTimeout = Integer.parseInt(message);
                         sendClientMessage(prefix + "Client Break Ghost Block Timeout = " + message);
                     }
 
                 } else if (message.startsWith("&&blocktimeoutdelay")) {
-                    message = message.replace("&&blocktimeoutdelay", "");
+                    message = message.replace("&&blocktimeoutdelay", "").trim();
                     if (isIntable(message)) {
                         Nuker.blockTimeoutDelay = Integer.parseInt(message);
                         sendClientMessage(prefix + "Block Timeout Delay = " + message);
                     }
 
                 } else if (message.startsWith("&&instaminethreshold")) {
-                    message = message.replace("&&instaminethreshold", "");
+                    message = message.replace("&&instaminethreshold", "").trim();
                     if (isIntable(message)) {
                         Nuker.instaMineThreshold = Integer.parseInt(message);
                         sendClientMessage(prefix + "InstaMine Threshold = " + message);
