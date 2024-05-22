@@ -1,6 +1,7 @@
 package me.beanbag.utils;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.FallingBlock;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -29,7 +30,8 @@ public class PlaceUtils {
             Item item = mc.player.getInventory().getStack(i).getItem();
             if (item instanceof BlockItem) {
                 Block block = ((BlockItem) item).getBlock();
-                if (!(block instanceof FallingBlock)
+                if (!(block instanceof FallingBlock
+                        && !block.equals(Blocks.OBSIDIAN))
                         && block.getDefaultState().isFullCube(mc.world, new BlockPos(0, 321, 0))) {
                     return i;
                 }
