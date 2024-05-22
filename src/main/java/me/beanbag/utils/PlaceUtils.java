@@ -5,6 +5,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.FallingBlock;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -29,14 +30,21 @@ public class PlaceUtils {
         for (int i = 0; i <9; i++) {
             Item item = mc.player.getInventory().getStack(i).getItem();
             if (item instanceof BlockItem) {
-                Block block = ((BlockItem) item).getBlock();
-                if (!(block instanceof FallingBlock
-                        && !block.equals(Blocks.OBSIDIAN))
-                        && block.getDefaultState().isFullCube(mc.world, new BlockPos(0, 321, 0))) {
+                if (isSuitableBlock(item)) {
                     return i;
                 }
             }
         }
         return -1;
+    }
+    public static boolean isSuitableBlock(Item item) {
+        if (!(item instanceof BlockItem)) {
+            return false;
+        }
+        Block block = ((BlockItem) item).getBlock();
+        return !(block instanceof FallingBlock)
+                && !block.equals(Blocks.OBSIDIAN)
+                && block.getDefaultState().isFullCube(mc.world, new BlockPos(0, 321, 0)
+        );
     }
 }

@@ -17,6 +17,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.FallingBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.fluid.Fluids;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
@@ -279,9 +280,10 @@ public class Nuker implements ModInitializer {
 						if (placeResult != null) {
 							int netherrack = PlaceUtils.findSuitableBlock();
 							if (netherrack != -1) {
-								if (!mc.player.getInventory().getMainHandStack().getItem().equals(Items.NETHERRACK)) {
+								if (!PlaceUtils.isSuitableBlock(mc.player.getInventory().getMainHandStack().getItem())) {
 									mc.player.getInventory().selectedSlot = netherrack;
 									mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(netherrack));
+									return;
 								}
 								RotationsManager.lookAt(placeResult.getPos());
 								PlaceUtils.place(placeResult);
