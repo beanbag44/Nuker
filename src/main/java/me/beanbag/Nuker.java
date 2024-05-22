@@ -277,7 +277,7 @@ public class Nuker implements ModInitializer {
 						}
 						BlockHitResult placeResult = canPlace(b);
 						if (placeResult != null) {
-							int netherrack = PlaceUtils.findNetherrack();
+							int netherrack = PlaceUtils.findSuitableBlock();
 							if (netherrack != -1) {
 								if (!mc.player.getInventory().getMainHandStack().getItem().equals(Items.NETHERRACK)) {
 									mc.player.getInventory().selectedSlot = netherrack;

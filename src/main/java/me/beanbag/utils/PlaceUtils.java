@@ -1,8 +1,13 @@
 package me.beanbag.utils;
 
-import net.minecraft.item.Items;
+import net.minecraft.block.Block;
+import net.minecraft.block.FallingBlock;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
+import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
 
 import static me.beanbag.Nuker.mc;
 
@@ -15,14 +20,19 @@ public class PlaceUtils {
             return;
         }
 
-        mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, blockHitResult);
-//        mc.getNetworkHandler().sendPacket(new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND, blockHitResult, 0));
+//        mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, blockHitResult);
+        mc.getNetworkHandler().sendPacket(new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND, blockHitResult, 0));
     }
-    public static int findNetherrack() {
+    public static int findSuitableBlock() {
         if (mc.player == null) return -1;
         for (int i = 0; i <9; i++) {
-            if (mc.player.getInventory().getStack(i).getItem().equals(Items.NETHERRACK)) {
-                return i;
+            Item item = mc.player.getInventory().getStack(i).getItem();
+            if (item instanceof BlockItem) {
+                Block block = ((BlockItem) item).getBlock();
+                if (!(block instanceof FallingBlock)
+                        && block.getDefaultState().isFullCube(mc.world, new BlockPos(0, 321, 0))) {
+                    return i;
+                }
             }
         }
         return -1;
