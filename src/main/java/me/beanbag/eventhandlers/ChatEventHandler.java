@@ -9,6 +9,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 
 import static me.beanbag.Nuker.mc;
+import static me.beanbag.utils.ChatUtils.*;
 
 public class ChatEventHandler {
     private static final String prefix = "Nuker: ";
@@ -23,6 +24,7 @@ public class ChatEventHandler {
                 String message = p.chatMessage().toLowerCase();
 
                 if (message.equals("&&list")) {
+                    sendHeader();
                     sendClientMessages(
                             prefix + "Sorting Mode: " + Nuker.mineSort
                             , prefix + "Flatten Mode: " + Nuker.flattenMode
@@ -68,7 +70,7 @@ public class ChatEventHandler {
                         case "" -> sendClientMessages(Nuker.FlattenMode.values());
                         case "none" -> {
                             Nuker.flattenMode = Nuker.FlattenMode.NONE;
-                            sendClientMessages(prefix + "Flatten Mode = " + message);
+                            sendClientMessages( prefix + "Flatten Mode = " + message);
                         }
                         case "standard" -> {
                             Nuker.flattenMode = Nuker.FlattenMode.STANDARD;
@@ -246,21 +248,6 @@ public class ChatEventHandler {
                 return ActionResult.PASS;
             }
         });
-    }
-    public static void sendClientMessage(String text) {
-        mc.inGameHud.getChatHud().addMessage(Text.of(text));
-    }
-    public static void sendClientMessages(Object[] text) {
-        sendClientMessage("======== Nuker ========");
-        for (Object s : text) {
-            sendClientMessage(s.toString());
-        }
-    }
-    public static void sendClientMessages(String... text) {
-        sendClientMessage("======== Nuker ========");
-        for (Object s : text) {
-            sendClientMessage(s.toString());
-        }
     }
     private static boolean isIntable(String text) {
         try {
