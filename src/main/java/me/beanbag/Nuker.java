@@ -4,13 +4,12 @@ import baritone.api.BaritoneAPI;
 import baritone.api.selection.ISelection;
 import lombok.AllArgsConstructor;
 import me.beanbag.eventhandlers.ChatEventHandler;
+import me.beanbag.events.PacketReceiveCallback;
 import me.beanbag.events.Render3DCallback;
 import me.beanbag.utils.Timer;
-import me.beanbag.events.PacketReceiveCallback;
-import me.beanbag.utils.InventoryUtils;
+import me.beanbag.utils.*;
 import me.beanbag.utils.litematica.LitematicaHelper;
 import net.fabricmc.api.ModInitializer;
-
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -18,7 +17,9 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.FallingBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.fluid.Fluids;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
@@ -31,6 +32,7 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +40,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static me.beanbag.utils.BlockUtils.getBlockBreakingTimeMS;
+import static me.beanbag.utils.RotationsManager.canSeeBlockFace;
 
 public class Nuker implements ModInitializer {
 
@@ -57,6 +60,7 @@ public class Nuker implements ModInitializer {
 	private final Set<MBlock> ghostBlockCheckSetRemove = Collections.synchronizedSet(new HashSet<>());
 	private final Set<Runnable> renderRunnables = Collections.synchronizedSet(new HashSet<>());
 	private final Map<PosAndState, Timer> blockTimeout = new ConcurrentHashMap<>();
+	private final Map<PosAndState, Timer> placeBlockTimeout = new ConcurrentHashMap<>();
 	private final Set<ISelection> baritoneSelections = Collections.synchronizedSet(new HashSet<>());
 	private Set<BlockPos> schematicMismatches = Collections.synchronizedSet(new HashSet<>());
 
@@ -74,14 +78,32 @@ public class Nuker implements ModInitializer {
 	public static int radius = 5;
 	public static boolean baritoneSelection = false;
 	public static double clientBreakGhostBlockTimeout = 1000;
-	public static double blockTimeoutDelay = 300;
+	public static int blockTimeoutDelay = 300;
 	public static int instaMineThreshold = 67;
 	public static boolean onGround = true;
+
+	/*
+	 * Liquid Settings
+	 */
+
+	public static boolean sourceRemover = false;
+	public static int placeBlockTimeoutDelay = 2500;
+	public static boolean expandBaritoneSelectionsForLiquids = true;
 
 	@Override
 	public void onInitialize() {
 
-		new ChatEventHandler();
+		/*
+		  Initialize the chat event handler
+		 */
+
+		RotationsManager.initEventHandler();
+
+		/*
+		  Initialize the chat event handler
+		 */
+
+		ChatEventHandler.initChatEventHandler();
 
 		/*
 		  On packet receive
@@ -174,6 +196,10 @@ public class Nuker implements ModInitializer {
 			blockTimeout.keySet().removeIf(
 					next -> blockTimeout.get(next).getPassedTimeMs() > blockTimeoutDelay + next.ttm);
 
+			// Place block timeout check
+			placeBlockTimeout.keySet().removeIf(
+					next -> placeBlockTimeout.get(next).getPassedTimeMs() > placeBlockTimeoutDelay + next.ttm);
+
 			// Sounds timeout check
 			sQueue.forEach(b -> {
 				if (b.timer.getPassedTimeMs() > b.ttm) {
@@ -195,7 +221,7 @@ public class Nuker implements ModInitializer {
 			// Mine checking
 			if (mc.player == null
 					|| !enabled
-					|| onGround && !mc.player.isOnGround()) {
+					|| (onGround && !mc.player.isOnGround())) {
 				return;
 			}
 
@@ -214,12 +240,61 @@ public class Nuker implements ModInitializer {
 				}
 			}
 
+
+
+
 			// Get a list of blocks around the player
 			spherePosList.clear();
 			spherePosList.addAll(getPlayerBlockSphere(mc.player.getEyePos(), radius + 1));
 
-			// Remove impossible to mine blocks like bedrock, water, etc...
-			filterBlocks(spherePosList);
+			// Remove impossible to mine blocks like bedrock, air, etc...
+			filterBlocks(spherePosList, !sourceRemover);
+
+			if (sourceRemover) {
+				List<BlockPos> liquidList = new ArrayList<>(spherePosList);
+
+				liquidList.removeIf(b -> {
+					BlockState state = mc.world.getBlockState(b);
+					return !(state.getBlock().equals(Blocks.WATER)
+							|| state.getFluidState().getFluid().equals(Fluids.FLOWING_WATER)
+							|| state.getBlock().equals(Blocks.LAVA)
+							|| state.getFluidState().getFluid().equals(Fluids.FLOWING_LAVA)
+					);
+				});
+
+				if (!liquidList.isEmpty()) {
+					// Sort the blocks
+					liquidList = sortBlocks(liquidList);
+					for (BlockPos b : liquidList) {
+						boolean inTimeout = false;
+						for (PosAndState ps : placeBlockTimeout.keySet()) {
+							if (ps.pos.equals(b)) {
+								inTimeout = true;
+								break;
+							}
+						}
+						if (inTimeout) {
+							continue;
+						}
+						BlockHitResult placeResult = canPlace(b);
+						if (placeResult != null) {
+							int netherrack = PlaceUtils.findSuitableBlock();
+							if (netherrack != -1) {
+								if (!PlaceUtils.isSuitableBlock(mc.player.getInventory().getMainHandStack().getItem())) {
+									mc.player.getInventory().selectedSlot = netherrack;
+									mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(netherrack));
+								}
+								RotationsManager.lookAt(placeResult.getPos());
+								PlaceUtils.place(placeResult);
+								placeBlockTimeout.put(new PosAndState(b, 0), new Timer().reset());
+								return;
+							} else {
+								break;
+							}
+						}
+					}
+				}
+			}
 
 			// Sort the blocks
 			spherePosList = sortBlocks(spherePosList);
@@ -246,6 +321,7 @@ public class Nuker implements ModInitializer {
 						mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(bestTool));
 						packetCounter++;
 					}
+
 					// Mine block
 					mineBlock(b);
 				}
@@ -266,6 +342,13 @@ public class Nuker implements ModInitializer {
 			renderRunnables.clear();
 			return ActionResult.PASS;
 		});
+
+		/*
+		  Initialize the movement handlers on tick event
+		  I initialize it after the nuker on tick handler so that rotations are done by the time the movement handler decides how to move the player
+		 */
+
+		MovementHandler.initEventHandler();
 
 		LOGGER.info("Nuker!");
 	}
@@ -388,6 +471,7 @@ public class Nuker implements ModInitializer {
 				}
 			}
 		}
+
 		// Double block
 		Iterator<MBlock> iterator = mBlocks.iterator();
 		while (iterator.hasNext()) {
@@ -517,6 +601,76 @@ public class Nuker implements ModInitializer {
 		}
 		return true;
 	}
+	private @Nullable BlockHitResult canPlace(BlockPos pos) {
+
+		if (baritoneSelection) {
+			if (packetCounter == 0) {
+				baritoneSelections.clear();
+				BaritoneAPI.getProvider().getAllBaritones().forEach(b ->
+						baritoneSelections.addAll(Arrays.stream(b.getSelectionManager().getSelections()).toList()));
+			}
+			if (!baritoneSelections.isEmpty()) {
+				for (ISelection selection : baritoneSelections) {
+					BlockPos pos1 = new BlockPos(selection.pos1().x, selection.pos1().y, selection.pos1().z);
+					BlockPos pos2 = new BlockPos(selection.pos2().x, selection.pos2().y, selection.pos2().z);
+					int minX = Math.min(pos1.getX(), pos2.getX());
+					int minY = Math.min(pos1.getY(), pos2.getY());
+					int minZ = Math.min(pos1.getZ(), pos2.getZ());
+					int maxX = Math.max(pos1.getX(), pos2.getX());
+					int maxY = Math.max(pos1.getY(), pos2.getY());
+					int maxZ = Math.max(pos1.getZ(), pos2.getZ());
+					if (expandBaritoneSelectionsForLiquids) {
+						minX -= 1;
+						minY -= 1;
+						minZ -= 1;
+						maxX += 1;
+						maxY += 1;
+						maxZ += 1;
+					}
+					if (pos.getX() < minX || pos.getX() > maxX
+							|| pos.getY() < minY || pos.getY() > maxY
+							|| pos.getZ() < minZ || pos.getZ() > maxZ) {
+						return null;
+					}
+				}
+			}
+		}
+
+		if (mc.player == null
+				|| mc.world == null) return null;
+		Vec3d centerPos = pos.toCenterPos();
+		if (mc.world.getBlockState(pos.add(0, 1, 0)).isFullCube(mc.world, pos.add(0, 1, 0))
+				&& canSeeBlockFace(mc.player, pos.add(0, 1, 0), Direction.DOWN)
+				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y + 0.5, centerPos.z)) <= 4.5) {
+			return new BlockHitResult(centerPos.add(0, 0.5, 0), Direction.DOWN, pos.add(0, 1, 0), false);
+
+		} else if (mc.world.getBlockState(pos.add(0, -1, 0)).isFullCube(mc.world, pos.add(0, -1, 0))
+				&& canSeeBlockFace(mc.player, pos.add(0, -1, 0), Direction.UP)
+				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y - 0.5, centerPos.z)) <= 4.5) {
+			return new BlockHitResult(centerPos.add(0, -0.5, 0), Direction.UP, pos.add(0, -1, 0), false);
+
+		} else if (mc.world.getBlockState(pos.add(1, 0, 0)).isFullCube(mc.world, pos.add(1, 0, 0))
+				&& canSeeBlockFace(mc.player, pos.add(1, 0, 0), Direction.WEST)
+				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x + 0.5, centerPos.y, centerPos.z)) <= 4.5) {
+			return new BlockHitResult(centerPos.add(0.5, 0, 0), Direction.WEST, pos.add(1, 0, 0), false);
+
+		} else if (mc.world.getBlockState(pos.add(0, 0, 1)).isFullCube(mc.world, pos.add(0, 0, 1))
+				&& canSeeBlockFace(mc.player, pos.add(0, 0, 1), Direction.NORTH)
+				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y, centerPos.z + 0.5)) <= 4.5) {
+			return new BlockHitResult(centerPos.add(0, 0, 0.5), Direction.NORTH, pos.add(0, 0, 1), false);
+
+		} else if (mc.world.getBlockState(pos.add(-1, 0, 0)).isFullCube(mc.world, pos.add(-1, 0, 0))
+				&& canSeeBlockFace(mc.player, pos.add(-1, 0, 0), Direction.EAST)
+				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x - 0.5, centerPos.y, centerPos.z)) <= 4.5) {
+			return new BlockHitResult(centerPos.add(-0.5, 0, 0), Direction.EAST, pos.add(-1, 0, 0), false);
+
+		} else if (mc.world.getBlockState(pos.add(0, 0, -1)).isFullCube(mc.world, pos.add(0, 0, -1))
+				&& canSeeBlockFace(mc.player, pos.add(0, 0, -1), Direction.SOUTH)
+				&& mc.player.getEyePos().distanceTo(new Vec3d(centerPos.x, centerPos.y, centerPos.z - 0.5)) <= 4.5) {
+			return new BlockHitResult(centerPos.add(0, 0, -0.5), Direction.SOUTH, pos.add(0, 0, -1), false);
+		}
+		return null;
+	}
 	private void startDestroy(BlockPos blockPos) {
 		if (mc.getNetworkHandler() == null) return;
 		mc.getNetworkHandler().sendPacket(new PlayerActionC2SPacket(PlayerActionC2SPacket.Action.START_DESTROY_BLOCK, blockPos, Direction.UP));
@@ -570,7 +724,7 @@ public class Nuker implements ModInitializer {
 
 		return sortedList;
 	}
-	private void filterBlocks(List<BlockPos> positions) {
+	private void filterBlocks(List<BlockPos> positions, boolean removeLiquids) {
 
 		if (mc.world == null) return;
 
@@ -585,10 +739,14 @@ public class Nuker implements ModInitializer {
 			if (state.isAir()
 					|| block.getHardness() == 600
 					|| block.getHardness() == -1
-					|| block.equals(Blocks.BARRIER)
-					|| state.getBlock().equals(Blocks.WATER)
+					|| block.equals(Blocks.BARRIER)) {
+				iterator.remove();
+			}
+
+			if (removeLiquids
+					&& state.getBlock().equals(Blocks.WATER)
 					|| state.getFluidState().getFluid().equals(Fluids.FLOWING_WATER)
-					|| state.getBlock().equals(Blocks.WATER)
+					|| state.getBlock().equals(Blocks.LAVA)
 					|| state.getFluidState().getFluid().equals(Fluids.FLOWING_LAVA)) {
 				iterator.remove();
 			}

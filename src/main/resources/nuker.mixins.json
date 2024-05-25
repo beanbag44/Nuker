@@ -10,6 +10,9 @@
     "defaultRequire": 1
   },
   "client": [
+    "MixinAccessorKeyBinding",
+    "MixinCamera",
+    "MixinMouse",
     "render.MixinGameRenderer"
   ]
 }

@@ -2,15 +2,17 @@ package me.beanbag.eventhandlers;
 
 import me.beanbag.Nuker;
 import me.beanbag.events.PacketSendCallback;
+import me.beanbag.utils.PlaceUtils;
 import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.hit.BlockHitResult;
 
 import static me.beanbag.Nuker.mc;
 
 public class ChatEventHandler {
-    private final String prefix = "Nuker: ";
-    public ChatEventHandler() {
+    private static final String prefix = "Nuker: ";
+    public static void initChatEventHandler() {
         PacketSendCallback.EVENT.register(packet -> {
             if (packet instanceof ChatMessageC2SPacket p) {
 
@@ -21,7 +23,8 @@ public class ChatEventHandler {
                 String message = p.chatMessage().toLowerCase();
 
                 if (message.equals("&&list")) {
-                    sendClientMessages(prefix + "Sorting Mode: " + Nuker.mineSort
+                    sendClientMessages(
+                            prefix + "Sorting Mode: " + Nuker.mineSort
                             , prefix + "Flatten Mode: " + Nuker.flattenMode
                             , prefix + "Packet Limit: " + Nuker.packetLimit
                             , prefix + "Client Side Break: " + Nuker.clientBreak
@@ -29,9 +32,12 @@ public class ChatEventHandler {
                             , prefix + "Baritone Selection mode: " + Nuker.baritoneSelection
                             , prefix + "Client Break Ghost Block Timeout: " + Nuker.clientBreakGhostBlockTimeout
                             , prefix + "Block Timeout Delay: " + Nuker.blockTimeoutDelay
+                            , prefix + "Place Block Timeout Delay: " + Nuker.placeBlockTimeoutDelay
                             , prefix + "InstaMine Threshold: " + Nuker.instaMineThreshold
                             , prefix + "On Ground: " + Nuker.onGround
-                            , prefix + "Litematica " + Nuker.litematica
+                            , prefix + "Litematica: " + Nuker.litematica
+                            , prefix + "Source Remover: " + Nuker.sourceRemover
+                            , prefix + "Expand Baritone Selections For Liquids: " + Nuker.expandBaritoneSelectionsForLiquids
                     );
 
                 } else if (message.startsWith("&&litematica")) {
@@ -178,6 +184,13 @@ public class ChatEventHandler {
                         sendClientMessage(prefix + "Block Timeout Delay = " + message);
                     }
 
+                } else if (message.startsWith("&&placeblocktimeoutdelay")) {
+                    message = message.replace("&&placeblocktimeoutdelay", "").trim();
+                    if (isIntable(message)) {
+                        Nuker.placeBlockTimeoutDelay = Integer.parseInt(message);
+                        sendClientMessage(prefix + "Place Block Timeout Delay = " + message);
+                    }
+
                 } else if (message.startsWith("&&instaminethreshold")) {
                     message = message.replace("&&instaminethreshold", "").trim();
                     if (isIntable(message)) {
@@ -199,6 +212,34 @@ public class ChatEventHandler {
                         }
                     }
 
+                } else if (message.startsWith("&&sourceremover")) {
+                    message = message.replace("&&sourceremover", "").trim();
+                    switch (message) {
+                        case "" -> sendClientMessages(String.valueOf(Nuker.sourceRemover));
+                        case "true" -> {
+                            Nuker.sourceRemover = true;
+                            sendClientMessages(prefix + "Source Remover = true");
+                        }
+                        case "false" -> {
+                            Nuker.sourceRemover = false;
+                            sendClientMessages(prefix + "Source Remover = false");
+                        }
+                    }
+
+                } else if (message.startsWith("&&expandbaritoneselectionsforliquids")) {
+                    message = message.replace("&&expandbaritoneselectionsforliquids", "").trim();
+                    switch (message) {
+                        case "" -> sendClientMessages(String.valueOf(Nuker.expandBaritoneSelectionsForLiquids));
+                        case "true" -> {
+                            Nuker.expandBaritoneSelectionsForLiquids = true;
+                            sendClientMessages(prefix + "Expand Baritone Selections For Liquids = true");
+                        }
+                        case "false" -> {
+                            Nuker.expandBaritoneSelectionsForLiquids = false;
+                            sendClientMessages(prefix + "Expand Baritone Selections For Liquids = false");
+                        }
+                    }
+
                 }
                 return ActionResult.FAIL;
             } else {
@@ -206,22 +247,22 @@ public class ChatEventHandler {
             }
         });
     }
-    public void sendClientMessage(String text) {
+    public static void sendClientMessage(String text) {
         mc.inGameHud.getChatHud().addMessage(Text.of(text));
     }
-    public void sendClientMessages(Object[] text) {
+    public static void sendClientMessages(Object[] text) {
         sendClientMessage("======== Nuker ========");
         for (Object s : text) {
             sendClientMessage(s.toString());
         }
     }
-    public void sendClientMessages(String... text) {
+    public static void sendClientMessages(String... text) {
         sendClientMessage("======== Nuker ========");
         for (Object s : text) {
             sendClientMessage(s.toString());
         }
     }
-    private boolean isIntable(String text) {
+    private static boolean isIntable(String text) {
         try {
             Integer.parseInt(text);
             return true;
