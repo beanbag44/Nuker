@@ -28,6 +28,7 @@
 		"java": ">=17",
 		"fabric-api": "*"
 	},
+	"accessWidener": "nuker.accesswidener",
 	"suggests": {
 		"another-mod": "*"
 	}

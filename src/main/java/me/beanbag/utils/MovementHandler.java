@@ -3,6 +3,7 @@ package me.beanbag.utils;
 import lombok.Getter;
 import me.beanbag.mixin.MixinAccessorKeyBinding;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 
@@ -15,9 +16,14 @@ public class MovementHandler {
             if (mc.player == null) return;
 
             if (!FreeLook.INSTANCE.isEnabled()) {
-                if (!disableNextTick) {
-                    return;
+                if (disableNextTick) {
+                    disableNextTick = false;
+                    mc.options.forwardKey.setPressed(InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), mc.options.forwardKey.boundKey.getCode()));
+                    mc.options.backKey.setPressed(InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), mc.options.backKey.boundKey.getCode()));
+                    mc.options.leftKey.setPressed(InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), mc.options.leftKey.boundKey.getCode()));
+                    mc.options.rightKey.setPressed(InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), mc.options.rightKey.boundKey.getCode()));
                 }
+                return;
             }
 
             // Get current inputs
@@ -47,12 +53,6 @@ public class MovementHandler {
                 InputDirections.apply(resultDirection);
             } else {
                 InputDirections.apply(InputDirections.NONE);
-            }
-            if (!FreeLook.INSTANCE.isEnabled()) {
-                if (disableNextTick) {
-                    disableNextTick = false;
-                    InputDirections.apply(InputDirections.getCurrentInput());
-                }
             }
         });
     }
