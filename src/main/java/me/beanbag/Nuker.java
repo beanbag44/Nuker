@@ -17,9 +17,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.FallingBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
@@ -255,10 +253,10 @@ public class Nuker implements ModInitializer {
 
 				liquidList.removeIf(b -> {
 					BlockState state = mc.world.getBlockState(b);
-					return !(state.getBlock().equals(Blocks.WATER)
-							|| state.getFluidState().getFluid().equals(Fluids.FLOWING_WATER)
-							|| state.getBlock().equals(Blocks.LAVA)
-							|| state.getFluidState().getFluid().equals(Fluids.FLOWING_LAVA)
+					return !state.getBlock().equals(Blocks.WATER)
+							&& !state.getFluidState().getFluid().equals(Fluids.FLOWING_WATER)
+							&& !state.getBlock().equals(Blocks.LAVA)
+							&& !state.getFluidState().getFluid().equals(Fluids.FLOWING_LAVA
 					);
 				});
 
@@ -278,11 +276,14 @@ public class Nuker implements ModInitializer {
 						}
 						BlockHitResult placeResult = canPlace(b);
 						if (placeResult != null) {
-							int netherrack = PlaceUtils.findSuitableBlock();
-							if (netherrack != -1) {
+							int suitableBlock = PlaceUtils.findSuitableBlock();
+							if (suitableBlock != -1) {
+								if (!mBlocks.isEmpty()) {
+									return;
+								}
 								if (!PlaceUtils.isSuitableBlock(mc.player.getInventory().getMainHandStack().getItem())) {
-									mc.player.getInventory().selectedSlot = netherrack;
-									mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(netherrack));
+									mc.player.getInventory().selectedSlot = suitableBlock;
+									mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(suitableBlock));
 								}
 								RotationsManager.lookAt(placeResult.getPos());
 								PlaceUtils.place(placeResult);
@@ -744,10 +745,10 @@ public class Nuker implements ModInitializer {
 			}
 
 			if (removeLiquids
-					&& state.getBlock().equals(Blocks.WATER)
+					&& (state.getBlock().equals(Blocks.WATER)
 					|| state.getFluidState().getFluid().equals(Fluids.FLOWING_WATER)
 					|| state.getBlock().equals(Blocks.LAVA)
-					|| state.getFluidState().getFluid().equals(Fluids.FLOWING_LAVA)) {
+					|| state.getFluidState().getFluid().equals(Fluids.FLOWING_LAVA))) {
 				iterator.remove();
 			}
 		}
