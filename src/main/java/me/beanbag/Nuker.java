@@ -284,6 +284,7 @@ public class Nuker implements ModInitializer {
 								if (!PlaceUtils.isSuitableBlock(mc.player.getInventory().getMainHandStack().getItem())) {
 									mc.player.getInventory().selectedSlot = suitableBlock;
 									mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(suitableBlock));
+									return;
 								}
 								RotationsManager.lookAt(placeResult.getPos());
 								PlaceUtils.place(placeResult);
