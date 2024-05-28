@@ -18,6 +18,7 @@ import net.minecraft.block.FallingBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
@@ -79,6 +80,7 @@ public class Nuker implements ModInitializer {
 	public static int blockTimeoutDelay = 300;
 	public static int instaMineThreshold = 67;
 	public static boolean onGround = true;
+	public static boolean canalMode = false;
 
 	/*
 	 * Liquid Settings
@@ -245,8 +247,68 @@ public class Nuker implements ModInitializer {
 			spherePosList.clear();
 			spherePosList.addAll(getPlayerBlockSphere(mc.player.getEyePos(), radius + 1));
 
-			// Remove impossible to mine blocks like bedrock, air, etc...
-			filterBlocks(spherePosList, !sourceRemover);
+			// Remove impossible to mine blocks like bedrock, barrier, etc...
+			filterBlocks(spherePosList, false, false);
+
+			if (canalMode) {
+				List<BlockPos> obiPositions = new ArrayList<>(spherePosList);
+
+				obiPositions.removeIf(b -> {
+					int x = b.getX();
+					int y = b.getY();
+					return !(
+							(
+									(y == 59 && x >= -13 && x <= 12)
+									|| (x == 13 && y >= 60 && y <= 62)
+									|| (x == -14 && y >= 60 && y <= 62)
+									|| (y == 62 && x >= 13 && x <= 15)
+									|| (y == 62 && x >= -16 && x <= -14)
+							) && mc.world.getBlockState(b).isReplaceable()
+									&& b.getZ() > 0
+					);
+				});
+
+				if (!obiPositions.isEmpty()){
+					List<BlockPos> playerBlocks = PlaceUtils.getBlocksPlayerOccupied();
+
+					obiPositions = sortBlocks(obiPositions);
+					for (BlockPos b : obiPositions) {
+						boolean inTimeout = false;
+						for (PosAndState ps : placeBlockTimeout.keySet()) {
+							if (ps.pos.equals(b)) {
+								inTimeout = true;
+								break;
+							}
+						}
+						if (inTimeout) {
+							continue;
+						}
+						BlockHitResult placeResult = canPlace(b);
+						if (placeResult != null
+								&& !playerBlocks.contains(placeResult.getBlockPos())) {
+							int obi = PlaceUtils.findObsidian();
+							if (obi != -1) {
+								if (!mBlocks.isEmpty()) {
+									return;
+								}
+								if (!mc.player.getMainHandStack().getItem().equals(Items.OBSIDIAN)) {
+									mc.player.getInventory().selectedSlot = obi;
+									mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(obi));
+									return;
+								}
+								RotationsManager.lookAt(placeResult.getPos());
+								PlaceUtils.place(placeResult);
+								placeBlockTimeout.put(new PosAndState(b, 0), new Timer().reset());
+								return;
+							} else {
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			filterBlocks(spherePosList, false, true);
 
 			if (sourceRemover) {
 				List<BlockPos> liquidList = new ArrayList<>(spherePosList);
@@ -261,6 +323,8 @@ public class Nuker implements ModInitializer {
 				});
 
 				if (!liquidList.isEmpty()) {
+					List<BlockPos> playerBlocks = PlaceUtils.getBlocksPlayerOccupied();
+
 					// Sort the blocks
 					liquidList = sortBlocks(liquidList);
 					for (BlockPos b : liquidList) {
@@ -275,7 +339,8 @@ public class Nuker implements ModInitializer {
 							continue;
 						}
 						BlockHitResult placeResult = canPlace(b);
-						if (placeResult != null) {
+						if (placeResult != null
+								&& !playerBlocks.contains(placeResult.getBlockPos())) {
 							int suitableBlock = PlaceUtils.findSuitableBlock();
 							if (suitableBlock != -1) {
 								if (!mBlocks.isEmpty()) {
@@ -297,6 +362,8 @@ public class Nuker implements ModInitializer {
 					}
 				}
 			}
+
+			filterBlocks(spherePosList, true, false);
 
 			// Sort the blocks
 			spherePosList = sortBlocks(spherePosList);
@@ -571,6 +638,30 @@ public class Nuker implements ModInitializer {
 				&& !schematicMismatches.contains(pos)) {
 			return false;
 		}
+
+		if (canalMode) {
+			int x = pos.getX();
+			int y = pos.getY();
+
+			if (!(((y >= 59 && x >= -13 && x <= 12)
+									|| (x == 13 && y >= 60)
+									|| (x == -14 && y >= 60)
+									|| (y >= 62 && x >= 13 && x <= 15)
+									|| (y >= 62 && x >= -16 && x <= -14))
+					&& pos.getZ() > 0)) {
+				return false;
+			}
+
+			if ((y == 59
+					|| x == 13 && y <= 62
+					|| x == -14 && y <= 62
+					|| y == 62 && x >= 13
+					|| y == 62 && x <= -14)
+					&& mc.world.getBlockState(pos).getBlock().equals(Blocks.OBSIDIAN)) {
+				return false;
+			}
+		}
+
 		// baritone selection mode
 		if (baritoneSelection) {
 			if (packetCounter == 0) {
@@ -726,7 +817,7 @@ public class Nuker implements ModInitializer {
 
 		return sortedList;
 	}
-	private void filterBlocks(List<BlockPos> positions, boolean removeLiquids) {
+	private void filterBlocks(List<BlockPos> positions, boolean removeLiquids, boolean removeAir) {
 
 		if (mc.world == null) return;
 
@@ -738,11 +829,16 @@ public class Nuker implements ModInitializer {
 			BlockState state = mc.world.getBlockState(next);
 			Block block = state.getBlock();
 
-			if (state.isAir()
-					|| block.getHardness() == 600
+			if (block.getHardness() == 600
 					|| block.getHardness() == -1
 					|| block.equals(Blocks.BARRIER)) {
 				iterator.remove();
+			}
+
+			if (removeAir) {
+				if (state.isAir()) {
+					iterator.remove();
+				}
 			}
 
 			if (removeLiquids

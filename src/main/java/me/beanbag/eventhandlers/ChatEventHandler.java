@@ -40,6 +40,7 @@ public class ChatEventHandler {
                             , prefix + "Litematica: " + Nuker.litematica
                             , prefix + "Source Remover: " + Nuker.sourceRemover
                             , prefix + "Expand Baritone Selections For Liquids: " + Nuker.expandBaritoneSelectionsForLiquids
+                            , prefix + "Canal Mode: " + Nuker.canalMode
                     );
 
                 } else if (message.startsWith("&&litematica")) {
@@ -242,7 +243,22 @@ public class ChatEventHandler {
                         }
                     }
 
+                } else if (message.startsWith("&&canalmode")) {
+                    message = message.replace("&&canalmode", "").trim();
+                    switch (message) {
+                        case "" -> sendClientMessages(String.valueOf(Nuker.canalMode));
+                        case "true" -> {
+                            Nuker.canalMode = true;
+                            sendClientMessages(prefix + "Canal Mode = true");
+                        }
+                        case "false" -> {
+                            Nuker.canalMode = false;
+                            sendClientMessages(prefix + "Canal Mode = false");
+                        }
+                    }
+
                 }
+
                 return ActionResult.FAIL;
             } else {
                 return ActionResult.PASS;
