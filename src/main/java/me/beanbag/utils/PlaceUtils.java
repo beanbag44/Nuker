@@ -17,7 +17,7 @@ import java.util.List;
 import static me.beanbag.Nuker.mc;
 
 public class PlaceUtils {
-    public static void place(BlockHitResult blockHitResult) {
+    public static void place(BlockHitResult blockHitResult, boolean packetPlace) {
         if (mc.player == null
                 || mc.getCameraEntity() == null
                 || mc.interactionManager == null
@@ -25,8 +25,11 @@ public class PlaceUtils {
             return;
         }
 
-//        mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, blockHitResult);
-        mc.getNetworkHandler().sendPacket(new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND, blockHitResult, 0));
+        if (packetPlace) {
+            mc.getNetworkHandler().sendPacket(new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND, blockHitResult, 0));
+        } else {
+            mc.interactionManager.interactBlock(mc.player, Hand.MAIN_HAND, blockHitResult);
+        }
     }
     public static int findSuitableBlock() {
         if (mc.player == null) return -1;

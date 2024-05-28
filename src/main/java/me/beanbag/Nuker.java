@@ -81,13 +81,14 @@ public class Nuker implements ModInitializer {
 	public static int instaMineThreshold = 67;
 	public static boolean onGround = true;
 	public static boolean canalMode = false;
+	public static boolean packetPlace = false;
 
 	/*
 	 * Liquid Settings
 	 */
 
 	public static boolean sourceRemover = false;
-	public static int placeBlockTimeoutDelay = 2500;
+	public static int placeBlockTimeoutDelay = 5000;
 	public static boolean expandBaritoneSelectionsForLiquids = true;
 
 	@Override
@@ -297,7 +298,7 @@ public class Nuker implements ModInitializer {
 									return;
 								}
 								RotationsManager.lookAt(placeResult.getPos());
-								PlaceUtils.place(placeResult);
+								PlaceUtils.place(placeResult, packetPlace);
 								placeBlockTimeout.put(new PosAndState(b, 0), new Timer().reset());
 								return;
 							} else {
@@ -352,7 +353,7 @@ public class Nuker implements ModInitializer {
 									return;
 								}
 								RotationsManager.lookAt(placeResult.getPos());
-								PlaceUtils.place(placeResult);
+								PlaceUtils.place(placeResult, packetPlace);
 								placeBlockTimeout.put(new PosAndState(b, 0), new Timer().reset());
 								return;
 							} else {
