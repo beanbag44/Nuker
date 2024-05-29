@@ -15,7 +15,7 @@ public class RusherhackModule extends ToggleableModule {
 
     public RusherhackModule() {
         super("Epic Nuker", "Epic nuker for nuking terrain", ModuleCategory.WORLD);
-        NumberSetting<Integer> radius = new NumberSetting<>("Radius", 10, 0, 15)
+        NumberSetting<Integer> radius = new NumberSetting<>("Radius", 5, 0, 15)
                 .onChange(v -> Nuker.radius = v);
         NumberSetting<Integer> blockTimeoutDelay = new NumberSetting<>("Block Timeout Delay", 300, 0, 1000)
                 .onChange(v -> Nuker.blockTimeoutDelay = v);

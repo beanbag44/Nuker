@@ -13,7 +13,7 @@ public class MeteorModule extends Module {
 
         general.add(new IntSetting.Builder()
                 .name("Radius")
-                .defaultValue(10)
+                .defaultValue(5)
                 .sliderRange(0, 15)
                 .onChanged(v -> Nuker.radius = v)
                 .build());
