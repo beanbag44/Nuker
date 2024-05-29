@@ -29,6 +29,16 @@ repositories {
 		name = 'ParchmentMC'
 		url = 'https://maven.parchmentmc.org'
 	}
+
+	maven {
+		name = "Meteor Dev Releases"
+		url = "https://maven.meteordev.org/releases"
+	}
+
+	maven {
+		name = "Meteor Dev Snapshots"
+		url = "https://maven.meteordev.org/snapshots"
+	}
 }
 
 loom {
@@ -51,11 +61,7 @@ dependencies {
 
 	modImplementation "com.ptsmods:devlogin:3.4.1"
 
-	//mojmap + parchment mappings
-//	mappings loom.layered() {
-//		officialMojangMappings()
-//		parchment("org.parchmentmc.data:parchment-1.20.4:2024.04.14@zip")
-//	}
+	modImplementation "meteordevelopment:meteor-client:${project.meteor_version}"
 
 	// Rusherhack API
 	rusherhackApi files("libs/rusherhack-api-1.20.4-yarn.jar")

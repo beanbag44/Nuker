@@ -17,6 +17,9 @@
 	"entrypoints": {
 		"main": [
 			"me.beanbag.Nuker"
+		],
+		"meteor": [
+			"me.beanbag.plugins.MeteorAddonLoader"
 		]
 	},
 	"mixins": [
@@ -30,6 +33,6 @@
 	},
 	"accessWidener": "nuker.accesswidener",
 	"suggests": {
-		"another-mod": "*"
+		"meteor-client": "*"
 	}
 }

@@ -4,10 +4,14 @@ import baritone.api.BaritoneAPI;
 import baritone.api.selection.ISelection;
 import lombok.AllArgsConstructor;
 import me.beanbag.eventhandlers.ChatEventHandler;
+import me.beanbag.events.PacketReceiveCallback;
+import me.beanbag.events.Render3DCallback;
 import me.beanbag.utils.Timer;
 import me.beanbag.utils.*;
 import me.beanbag.utils.litematica.LitematicaHelper;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -23,6 +27,7 @@ import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket;
 import net.minecraft.registry.tag.FluidTags;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -65,7 +70,8 @@ public class Nuker implements ModInitializer {
 	 */
 
 	public static boolean rusherhackLoaded = false;
-	public static boolean meteorLoaded = false;
+	public static boolean meteorPresent = false;
+	public static boolean initialized = false;
 
 	/*
 	 * Nuker Settings
@@ -386,17 +392,29 @@ public class Nuker implements ModInitializer {
 	@Override
 	public void onInitialize() {
 
+		meteorPresent = FabricLoader.getInstance().getModContainer("meteor-client").isPresent();
+
 		/*
-		  Initialize the chat event handler
+		  Initialize the event handlers
+		 */
+
+		ClientTickEvents.START_CLIENT_TICK.register(mc -> onTick());
+
+		Render3DCallback.EVENT.register(() -> {
+			onRender3D();
+			return ActionResult.PASS;
+		});
+
+		PacketReceiveCallback.EVENT.register(packet -> {
+			onPacketReceive(packet);
+			return ActionResult.PASS;
+		});
+
+		/*
+		  Initialize the rotations manager
 		 */
 
 		RotationsManager.initEventHandler();
-
-		/*
-		  Initialize the chat event handler
-		 */
-
-		ChatEventHandler.initChatEventHandler();
 
 		/*
 		  Initialize the movement handlers on tick event
@@ -404,6 +422,16 @@ public class Nuker implements ModInitializer {
 		 */
 
 		MovementHandler.initEventHandler();
+
+		/*
+		  Initialize the chat event handler if meteor isnt loaded
+		 */
+
+		if (!meteorPresent) {
+			ChatEventHandler.initChatEventHandler();
+		}
+
+		initialized = true;
 
 		LOGGER.info("Nuker!");
 	}
