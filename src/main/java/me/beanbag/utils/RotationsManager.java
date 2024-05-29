@@ -1,13 +1,14 @@
 package me.beanbag.utils;
 
+import me.beanbag.Nuker;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
+import org.rusherhack.client.api.RusherHackAPI;
 
 import static me.beanbag.Nuker.mc;
 
@@ -15,6 +16,7 @@ public class RotationsManager {
     private static boolean deSynced = false;
     private static boolean rotatedThisTick = false;
     private static int ticksSinceLastRotation = 0;
+    public static boolean isInitialized = false;
     public static void initEventHandler() {
         ClientTickEvents.END_CLIENT_TICK.register((mc) -> {
             if (mc.player == null) return;
@@ -31,26 +33,45 @@ public class RotationsManager {
                 FreeLook.INSTANCE.disable();
             }
         });
+        isInitialized = true;
     }
     public static void rotate(int yaw, int pitch) {
         if (mc.player != null
                 && mc.getNetworkHandler() != null) {
-            onRotate();
-            mc.player.setYaw(yaw);
-            mc.player.setPitch(pitch);
-            mc.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(mc.player.getYaw(), mc.player.getPitch(), mc.player.isOnGround()));
+            if (Nuker.rusherhackLoaded) {
+                RusherHackAPI.getRotationManager().updateRotation(yaw, pitch);
+            } else {
+                onRotate();
+                mc.player.setYaw(yaw);
+                mc.player.setPitch(pitch);
+            }
         }
     }
     public static void lookAt(Vec3d vec) {
         if (mc.player != null
                 && mc.getNetworkHandler() != null) {
-            onRotate();
-//            float[] yawPitch = calculateLookAt(mc.player.getEyePos(), vec);
-//            mc.player.setYaw(yawPitch[0]);
-//            mc.player.setPitch(yawPitch[1]);
-            mc.player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, vec);
-//            mc.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.LookAndOnGround(mc.player.getYaw(), mc.player.getPitch(), mc.player.isOnGround()));
+            if (Nuker.rusherhackLoaded) {
+                float[] yawPitch = calculateLookAt(mc.player.getEyePos(), vec);
+                RusherHackAPI.getRotationManager().updateRotation(yawPitch[0], yawPitch[1]);
+            } else {
+                onRotate();
+                mc.player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, vec);
+            }
         }
+    }
+    public static float[] calculateLookAt(Vec3d eyePos, Vec3d targetPos) {
+        double dx = targetPos.x - eyePos.x;
+        double dy = targetPos.y - eyePos.y;
+        double dz = targetPos.z - eyePos.z;
+
+        double yaw = Math.atan2(dz, dx);
+        yaw = Math.toDegrees(yaw) - 90;
+
+        double horizontalDistance = Math.sqrt(dx * dx + dz * dz);
+        double pitch = -Math.atan2(dy, horizontalDistance);
+        pitch = Math.toDegrees(pitch);
+
+        return new float[]{(float) yaw, (float) pitch};
     }
     public static boolean canSeeBlockFace(PlayerEntity player, BlockPos blockPos, Direction direction) {
         Vec3d playerEyePos = player.getEyePos();
@@ -77,6 +98,15 @@ public class RotationsManager {
         return true;
     }
     public static void onRotate() {
+        if (!RotationsManager.isInitialized) {
+            RotationsManager.initEventHandler();
+            RotationsManager.isInitialized = true;
+        }
+        if (!MovementHandler.isInitialized) {
+            MovementHandler.initEventHandler();
+            MovementHandler.isInitialized = true;
+        }
+
         if (!FreeLook.INSTANCE.isEnabled()) {
             FreeLook.INSTANCE.enable();
         }

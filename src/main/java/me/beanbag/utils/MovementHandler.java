@@ -11,6 +11,7 @@ import static me.beanbag.Nuker.mc;
 
 public class MovementHandler {
     private static boolean disableNextTick = true;
+    public static boolean isInitialized = false;
     public static void initEventHandler() {
         ClientTickEvents.START_CLIENT_TICK.register((mc) -> {
             if (mc.player == null) return;
@@ -55,6 +56,7 @@ public class MovementHandler {
                 InputDirections.apply(InputDirections.NONE);
             }
         });
+        isInitialized = true;
     }
 
     public static void disable() {

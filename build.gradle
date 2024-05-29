@@ -6,11 +6,29 @@ plugins {
 version = project.mod_version
 group = project.maven_group
 
+configurations {
+	rusherhackApi
+	rusherhackApi.canBeResolved(true)
+	compileOnly.extendsFrom(rusherhackApi)
+}
+
 base {
 	archivesName = project.archives_base_name
 }
 
 repositories {
+	maven {
+		name = "rusherhack"
+		//releases repository will have the latest api version for last stable rusherhack release
+		//snapshots will always be the latest api version
+		//url = "https://maven.rusherhack.org/releases"
+		url = "https://maven.rusherhack.org/snapshots"
+	}
+
+	maven {
+		name = 'ParchmentMC'
+		url = 'https://maven.parchmentmc.org'
+	}
 }
 
 loom {
@@ -30,17 +48,27 @@ dependencies {
 	modImplementation files("libs/baritone-api-fabric-1.10.2.jar")
 	modImplementation files("libs/malilib-fabric-1.20.4-0.18.1.jar")
 	modImplementation files("libs/litematica-fabric-1.20.4-0.17.2.jar")
+
 	modImplementation "com.ptsmods:devlogin:3.4.1"
+
+	//mojmap + parchment mappings
+//	mappings loom.layered() {
+//		officialMojangMappings()
+//		parchment("org.parchmentmc.data:parchment-1.20.4:2024.04.14@zip")
+//	}
+
+	// Rusherhack API
+	rusherhackApi files("libs/rusherhack-api-1.20.4-yarn.jar")
 
 	compileOnly 'org.projectlombok:lombok:1.18.32'
 	annotationProcessor 'org.projectlombok:lombok:1.18.32'
 }
 
 processResources {
-	inputs.property "version", project.version
+	inputs.property "mod_version", project.version
 
-	filesMatching("fabric.mod.json") {
-		expand "version": project.version
+	filesMatching("rusherhack-plugin.json") {
+		expand "mod_version": project.version
 	}
 }
 
