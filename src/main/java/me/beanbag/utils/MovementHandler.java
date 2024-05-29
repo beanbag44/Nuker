@@ -80,18 +80,17 @@ public class MovementHandler {
         }
 
         private static InputDirections getDirection(float yaw) {
+            while (yaw < 0) yaw += 360;
             yaw = yaw % 360;
-            if (yaw < 0) yaw += 360;
-            if (yaw >= 0 && yaw < 22.5) return FORWARD;
-            if (yaw >= 22.5 && yaw < 67.5) return FORWARD_LEFT;
-            if (yaw >= 67.5 && yaw < 112.5) return LEFT;
-            if (yaw >= 112.5 && yaw < 157.5) return BACK_LEFT;
-            if (yaw >= 157.5 && yaw < 202.5) return BACK;
-            if (yaw >= 202.5 && yaw < 247.5) return BACK_RIGHT;
-            if (yaw >= 247.5 && yaw < 292.5) return RIGHT;
-            if (yaw >= 292.5 && yaw < 337.5) return FORWARD_RIGHT;
-            if (yaw >= 337.5 && yaw < 360) return FORWARD;
-            return NONE;
+            if (yaw < 22.5) return FORWARD;
+            if (yaw < 67.5) return FORWARD_LEFT;
+            if (yaw < 112.5) return LEFT;
+            if (yaw < 157.5) return BACK_LEFT;
+            if (yaw < 202.5) return BACK;
+            if (yaw < 247.5) return BACK_RIGHT;
+            if (yaw < 292.5) return RIGHT;
+            if (yaw < 337.5) return FORWARD_RIGHT;
+            return FORWARD;
         }
 
         private static InputDirections getCurrentInput() {

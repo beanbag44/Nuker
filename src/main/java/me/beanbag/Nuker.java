@@ -276,7 +276,6 @@ public class Nuker implements ModInitializer {
 							if (!mc.player.getMainHandStack().getItem().equals(Items.OBSIDIAN)) {
 								mc.player.getInventory().selectedSlot = obi;
 								mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(obi));
-								return;
 							}
 							RotationsManager.lookAt(placeResult.getPos());
 							PlaceUtils.place(placeResult, packetPlace);
@@ -331,7 +330,6 @@ public class Nuker implements ModInitializer {
 							if (!PlaceUtils.isSuitableBlock(mc.player.getInventory().getMainHandStack().getItem())) {
 								mc.player.getInventory().selectedSlot = suitableBlock;
 								mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(suitableBlock));
-								return;
 							}
 							RotationsManager.lookAt(placeResult.getPos());
 							PlaceUtils.place(placeResult, packetPlace);
