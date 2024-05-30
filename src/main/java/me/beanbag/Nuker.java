@@ -64,7 +64,8 @@ public class Nuker implements ModInitializer {
 	private static final Map<PosAndState, Timer> placeBlockTimeout = new ConcurrentHashMap<>();
 	private static final Set<ISelection> baritoneSelections = Collections.synchronizedSet(new HashSet<>());
 	private static Set<BlockPos> schematicMismatches = Collections.synchronizedSet(new HashSet<>());
-
+	private static Vec3d lookPos = new Vec3d(0, 0, 0);
+	private static boolean preRotated = false;
 	/*
 	 * Nuker Settings
 	 */
@@ -96,6 +97,7 @@ public class Nuker implements ModInitializer {
 	public static boolean sourceRemover = false;
 	public static int placeBlockTimeoutDelay = 5000;
 	public static boolean expandBaritoneSelectionsForLiquids = true;
+	public static boolean placeRotatePlace = true;
 
 
 	public static void onPacketReceive(Packet<?> packet) {
@@ -733,9 +735,31 @@ public class Nuker implements ModInitializer {
 								mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(obi));
 							}
 							RotationsManager.lookAt(placeResult.getPos());
-							PlaceUtils.place(placeResult, packetPlace);
-							placeBlockTimeout.put(new PosAndState(b, 0), new Timer().reset());
-							return true;
+							if (placeRotatePlace) {
+								if (placeResult.getPos().equals(lookPos)
+										&& preRotated) {
+									PlaceUtils.place(placeResult, packetPlace);
+									placeBlockTimeout.put(new PosAndState(b, 0), new Timer().reset());
+									preRotated = false;
+								} else if (!placeResult.getPos().equals(lookPos)
+										&& preRotated) {
+									lookPos = placeResult.getPos();
+									return true;
+								} else if (placeResult.getPos().equals(lookPos)
+										&& !preRotated) {
+									preRotated = true;
+									return true;
+								} else if (!placeResult.getPos().equals(lookPos)
+										&& !preRotated) {
+									lookPos = placeResult.getPos();
+									preRotated = true;
+									return true;
+								}
+							} else {
+								PlaceUtils.place(placeResult, packetPlace);
+								placeBlockTimeout.put(new PosAndState(b, 0), new Timer().reset());
+								return true;
+							}
 						} else {
 							break;
 						}
@@ -792,9 +816,31 @@ public class Nuker implements ModInitializer {
 								mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(suitableBlock));
 							}
 							RotationsManager.lookAt(placeResult.getPos());
-							PlaceUtils.place(placeResult, packetPlace);
-							placeBlockTimeout.put(new PosAndState(b, 0), new Timer().reset());
-							return true;
+							if (placeRotatePlace) {
+								if (placeResult.getPos().equals(lookPos)
+										&& preRotated) {
+									PlaceUtils.place(placeResult, packetPlace);
+									placeBlockTimeout.put(new PosAndState(b, 0), new Timer().reset());
+									preRotated = false;
+								} else if (!placeResult.getPos().equals(lookPos)
+										&& preRotated) {
+									lookPos = placeResult.getPos();
+									return true;
+								} else if (placeResult.getPos().equals(lookPos)
+										&& !preRotated) {
+									preRotated = true;
+									return true;
+								} else if (!placeResult.getPos().equals(lookPos)
+										&& !preRotated) {
+									lookPos = placeResult.getPos();
+									preRotated = true;
+									return true;
+								}
+							} else {
+								PlaceUtils.place(placeResult, packetPlace);
+								placeBlockTimeout.put(new PosAndState(b, 0), new Timer().reset());
+								return true;
+							}
 						} else {
 							break;
 						}

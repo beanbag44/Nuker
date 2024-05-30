@@ -51,6 +51,8 @@ public class RusherhackModule extends ToggleableModule {
                 .onChange(v -> Nuker.sourceRemover = v);
         BooleanSetting expandBaritoneSelectionsForLiquids = new BooleanSetting("Expand Baritone Selections For Liquids", true)
                 .onChange(v -> Nuker.expandBaritoneSelectionsForLiquids = v);
+        BooleanSetting placeRotatePlace = new BooleanSetting("Place Rotate Place", true)
+                .onChange(v -> Nuker.placeRotatePlace = v);
         this.registerSettings(
                 radius
                 , blockTimeoutDelay
@@ -70,6 +72,7 @@ public class RusherhackModule extends ToggleableModule {
                 , packetPlace
                 , sourceRemover
                 , expandBaritoneSelectionsForLiquids
+                , placeRotatePlace
         );
     }
     @Subscribe

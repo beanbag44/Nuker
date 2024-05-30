@@ -42,6 +42,7 @@ public class ChatEventHandler {
                             , prefix + "Expand Baritone Selections For Liquids: " + Nuker.expandBaritoneSelectionsForLiquids
                             , prefix + "Canal Mode: " + Nuker.canalMode
                             , prefix + "Packet Place: " + Nuker.packetPlace
+                            , prefix + "Place Rotate Place: " + Nuker.placeRotatePlace
                     );
 
                 } else if (message.startsWith("&&litematica")) {
@@ -269,6 +270,20 @@ public class ChatEventHandler {
                         case "false" -> {
                             Nuker.packetPlace = false;
                             sendClientMessages(prefix + "Packet Place = false");
+                        }
+                    }
+
+                } else if (message.startsWith("&&placerotateplace")) {
+                    message = message.replace("&&placerotateplace", "").trim();
+                    switch (message) {
+                        case "" -> sendClientMessages(String.valueOf(Nuker.placeRotatePlace));
+                        case "true" -> {
+                            Nuker.placeRotatePlace = true;
+                            sendClientMessages(prefix + "Place Rotate Place = true");
+                        }
+                        case "false" -> {
+                            Nuker.placeRotatePlace = false;
+                            sendClientMessages(prefix + "Place Rotate Place = false");
                         }
                     }
 

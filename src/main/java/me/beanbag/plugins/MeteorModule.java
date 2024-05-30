@@ -108,6 +108,11 @@ public class MeteorModule extends Module {
                 .defaultValue(true)
                 .onChanged(v -> Nuker.expandBaritoneSelectionsForLiquids = v)
                 .build());
+        general.add(new BoolSetting.Builder()
+                .name("Place Rotate Place")
+                .defaultValue(true)
+                .onChanged(v -> Nuker.placeRotatePlace = v)
+                .build());
     }
 
     @Override
