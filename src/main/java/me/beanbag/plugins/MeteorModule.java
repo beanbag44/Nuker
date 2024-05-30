@@ -114,9 +114,9 @@ public class MeteorModule extends Module {
                 .onChanged(v -> Nuker.placeRotatePlace = v)
                 .build());
         general.add(new BoolSetting.Builder()
-                .name("Prevent Sprinting")
+                .name("Prevent Sprinting In Water")
                 .defaultValue(true)
-                .onChanged(v -> Nuker.preventSprinting = v)
+                .onChanged(v -> Nuker.preventSprintingInWater = v)
                 .build());
     }
 

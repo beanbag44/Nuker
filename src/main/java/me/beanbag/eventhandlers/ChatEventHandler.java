@@ -39,7 +39,7 @@ public class ChatEventHandler {
                             , prefix + "Canal Mode: " + Nuker.canalMode
                             , prefix + "Packet Place: " + Nuker.packetPlace
                             , prefix + "Place Rotate Place: " + Nuker.placeRotatePlace
-                            , prefix + "Prevent Double Tap Sprint: " + Nuker.preventSprinting
+                            , prefix + "Prevent Sprinting In Water: " + Nuker.preventSprintingInWater
                     );
 
                 } else if (message.startsWith("&&litematica")) {
@@ -284,17 +284,17 @@ public class ChatEventHandler {
                         }
                     }
 
-                } else if (message.startsWith("&&preventsprinting")) {
-                    message = message.replace("&&preventsprinting", "").trim();
+                } else if (message.startsWith("&&preventsprintinginwater")) {
+                    message = message.replace("&&preventsprintinginwater", "").trim();
                     switch (message) {
-                        case "" -> sendClientMessages(String.valueOf(Nuker.preventSprinting));
+                        case "" -> sendClientMessages(String.valueOf(Nuker.preventSprintingInWater));
                         case "true" -> {
-                            Nuker.preventSprinting = true;
-                            sendClientMessages(prefix + "Prevent Sprinting = true");
+                            Nuker.preventSprintingInWater = true;
+                            sendClientMessages(prefix + "Prevent Sprinting In Water = true");
                         }
                         case "false" -> {
-                            Nuker.preventSprinting = false;
-                            sendClientMessages(prefix + "Prevent Sprinting = false");
+                            Nuker.preventSprintingInWater = false;
+                            sendClientMessages(prefix + "Prevent Sprinting In Water = false");
                         }
                     }
 

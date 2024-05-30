@@ -98,7 +98,7 @@ public class Nuker implements ModInitializer {
 	public static int placeBlockTimeoutDelay = 5000;
 	public static boolean expandBaritoneSelectionsForLiquids = true;
 	public static boolean placeRotatePlace = true;
-	public static boolean preventSprinting = false;
+	public static boolean preventSprintingInWater = false;
 
 
 	public static void onPacketReceive(Packet<?> packet) {
@@ -161,7 +161,8 @@ public class Nuker implements ModInitializer {
 			return;
 		}
 
-		if (preventSprinting) {
+		if (preventSprintingInWater
+				&& mc.player.isSubmergedInWater()) {
 			mc.player.setSprinting(false);
 		}
 
