@@ -157,7 +157,8 @@ public class Nuker implements ModInitializer {
 	public static void onTick() {
 		if (mc.world == null
 				|| mc.getNetworkHandler() == null
-				|| mc.player == null) {
+				|| mc.player == null
+				|| mc.interactionManager == null) {
 			return;
 		}
 
@@ -332,13 +333,11 @@ public class Nuker implements ModInitializer {
 			}
 		}
 		// Sounds
-		if (breakingTime > 50) {
-			sQueue.add(new SQB(
-					breakingTime * 3 + 500
-					, blockPos
-					, new Timer().reset())
-			);
-		}
+		sQueue.add(new SQB(
+				breakingTime * 3 + 500
+				, blockPos
+				, new Timer().reset())
+		);
 	}
 	private static boolean canMine(BlockPos pos) {
 
@@ -626,7 +625,8 @@ public class Nuker implements ModInitializer {
 	private static void blockListChecks() {
 		if (mc.world == null
 				|| mc.getNetworkHandler() == null
-				|| mc.player == null) {
+				|| mc.player == null
+				|| mc.interactionManager == null) {
 			return;
 		}
 
@@ -635,7 +635,8 @@ public class Nuker implements ModInitializer {
 			if (ghostBlockCheckSet.get(b).getPassedTimeMs() > clientBreakGhostBlockTimeout) {
 				mc.world.setBlockState(b.pos, b.block.getDefaultState());
 				mc.getNetworkHandler().sendPacket(
-						new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND
+						new PlayerInteractBlockC2SPacket(
+								Hand.MAIN_HAND
 								, new BlockHitResult(b.pos.toCenterPos()
 								, Direction.UP
 								, b.pos
@@ -681,7 +682,11 @@ public class Nuker implements ModInitializer {
 		Iterator<MBlock> iterator = mBlocks.iterator();
 		while(iterator.hasNext()) {
 			MBlock b = iterator.next();
-			if (!mc.world.getBlockState(b.pos).getBlock().equals(b.block)) {
+			if (!mc.world.getBlockState(b.pos).getBlock().equals(b.block)
+					|| b.serverMine ? b.timer.getPassedTimeMs() >= b.ttm : b.timer.getPassedTimeMs() >= b.ttm * 0.7) {
+				if (clientBreak) {
+					mc.interactionManager.breakBlock(b.pos);
+				}
 				iterator.remove();
 			} else {
 				mc.player.getInventory().selectedSlot = b.tool;
