@@ -1,6 +1,8 @@
 package me.beanbag.plugins;
 
 import me.beanbag.Nuker;
+import me.beanbag.settings.FlattenMode;
+import me.beanbag.settings.MineSort;
 import org.rusherhack.client.api.events.client.EventUpdate;
 import org.rusherhack.client.api.events.network.EventPacket;
 import org.rusherhack.client.api.events.render.EventRender3D;
@@ -29,9 +31,9 @@ public class RusherhackModule extends ToggleableModule {
                 .onChange(v -> Nuker.baritoneSelection = v);
         BooleanSetting litematica = new BooleanSetting("Litematica", false)
                 .onChange(v -> Nuker.litematica = v);
-        EnumSetting<Nuker.FlattenMode> flattenMode = new EnumSetting<>("Flatten Mode", Nuker.FlattenMode.STANDARD)
+        EnumSetting<FlattenMode> flattenMode = new EnumSetting<>("Flatten Mode", FlattenMode.STANDARD)
                 .onChange(v -> Nuker.flattenMode = v);
-        EnumSetting<Nuker.MineSort> mineSort = new EnumSetting<>("Mine Sort", Nuker.MineSort.CLOSEST)
+        EnumSetting<MineSort> mineSort = new EnumSetting<>("Mine Sort", MineSort.CLOSEST)
                 .onChange(v -> Nuker.mineSort = v);
         BooleanSetting clientBreak = new BooleanSetting("Client Side Break", true)
                 .onChange(v -> Nuker.clientBreak = v);
@@ -55,6 +57,8 @@ public class RusherhackModule extends ToggleableModule {
                 .onChange(v -> Nuker.placeRotatePlace = v);
         BooleanSetting preventSprintingInWater = new BooleanSetting("Prevent Sprinting In Water", false)
                 .onChange(v -> Nuker.preventSprintingInWater = v);
+        BooleanSetting crouchLowerFlatten = new BooleanSetting("Crouch Lower Flatten", false)
+                .onChange(v -> Nuker.crouchLowerFlatten = v);
         this.registerSettings(
                 radius
                 , blockTimeoutDelay
@@ -76,6 +80,7 @@ public class RusherhackModule extends ToggleableModule {
                 , expandBaritoneSelectionsForLiquids
                 , placeRotatePlace
                 , preventSprintingInWater
+                , crouchLowerFlatten
         );
     }
     @Subscribe
@@ -88,7 +93,7 @@ public class RusherhackModule extends ToggleableModule {
     }
     @Subscribe
     public void onRender3D(EventRender3D event) {
-        Nuker.onRender3D();
+//        Nuker.onRender3D();
     }
     @Override
     public void onEnable() {

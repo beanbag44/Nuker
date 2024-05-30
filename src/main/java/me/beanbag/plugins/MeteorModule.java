@@ -1,6 +1,8 @@
 package me.beanbag.plugins;
 
 import me.beanbag.Nuker;
+import me.beanbag.settings.FlattenMode;
+import me.beanbag.settings.MineSort;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 
@@ -52,13 +54,13 @@ public class MeteorModule extends Module {
                 .build());
         general.add(new EnumSetting.Builder<>()
                 .name("Flatten Mode")
-                .defaultValue(Nuker.FlattenMode.STANDARD)
-                .onChanged(v -> Nuker.flattenMode = (Nuker.FlattenMode) v)
+                .defaultValue(FlattenMode.STANDARD)
+                .onChanged(v -> Nuker.flattenMode = (FlattenMode) v)
                 .build());
         general.add(new EnumSetting.Builder<>()
                 .name("Mine Sort")
-                .defaultValue(Nuker.MineSort.CLOSEST)
-                .onChanged(v -> Nuker.mineSort = (Nuker.MineSort) v)
+                .defaultValue(MineSort.CLOSEST)
+                .onChanged(v -> Nuker.mineSort = (MineSort) v)
                 .build());
         general.add(new BoolSetting.Builder()
                 .name("Client Side Break")
@@ -115,8 +117,13 @@ public class MeteorModule extends Module {
                 .build());
         general.add(new BoolSetting.Builder()
                 .name("Prevent Sprinting In Water")
-                .defaultValue(true)
+                .defaultValue(false)
                 .onChanged(v -> Nuker.preventSprintingInWater = v)
+                .build());
+        general.add(new BoolSetting.Builder()
+                .name("Crouch Lower Flatten")
+                .defaultValue(false)
+                .onChanged(v -> Nuker.crouchLowerFlatten = v)
                 .build());
     }
 

@@ -1,7 +1,9 @@
-package me.beanbag.eventhandlers;
+package me.beanbag;
 
 import me.beanbag.Nuker;
 import me.beanbag.events.PacketSendCallback;
+import me.beanbag.settings.FlattenMode;
+import me.beanbag.settings.MineSort;
 import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
 import net.minecraft.util.ActionResult;
 
@@ -40,6 +42,7 @@ public class ChatEventHandler {
                             , prefix + "Packet Place: " + Nuker.packetPlace
                             , prefix + "Place Rotate Place: " + Nuker.placeRotatePlace
                             , prefix + "Prevent Sprinting In Water: " + Nuker.preventSprintingInWater
+                            , prefix + "Crouch Lower Flatten: " + Nuker.crouchLowerFlatten
                     );
 
                 } else if (message.startsWith("&&litematica")) {
@@ -67,21 +70,21 @@ public class ChatEventHandler {
                 } else if (message.startsWith("&&flattenmode")) {
                     message = message.replace("&&flattenmode", "").trim();
                     switch (message) {
-                        case "" -> sendClientMessages(Nuker.FlattenMode.values());
+                        case "" -> sendClientMessages(FlattenMode.values());
                         case "none" -> {
-                            Nuker.flattenMode = Nuker.FlattenMode.NONE;
+                            Nuker.flattenMode = FlattenMode.NONE;
                             sendClientMessages( prefix + "Flatten Mode = " + message);
                         }
                         case "standard" -> {
-                            Nuker.flattenMode = Nuker.FlattenMode.STANDARD;
+                            Nuker.flattenMode = FlattenMode.STANDARD;
                             sendClientMessages(prefix + "Flatten Mode = " + message);
                         }
                         case "smart" -> {
-                            Nuker.flattenMode = Nuker.FlattenMode.SMART;
+                            Nuker.flattenMode = FlattenMode.SMART;
                             sendClientMessages(prefix + "Flatten Mode = " + message);
                         }
                         case "reverse_smart" -> {
-                            Nuker.flattenMode = Nuker.FlattenMode.REVERSE_SMART;
+                            Nuker.flattenMode = FlattenMode.REVERSE_SMART;
                             sendClientMessages(prefix + "Flatten Mode = " + message);
                         }
                     }
@@ -89,25 +92,25 @@ public class ChatEventHandler {
                 } else if (message.startsWith("&&sortingmode")) {
                     message = message.replace("&&sortingmode", "").trim();
                     switch (message) {
-                        case "" -> sendClientMessages(Nuker.MineSort.values());
+                        case "" -> sendClientMessages(MineSort.values());
                         case "closest" -> {
-                            Nuker.mineSort = Nuker.MineSort.CLOSEST;
+                            Nuker.mineSort = MineSort.CLOSEST;
                             sendClientMessages(prefix + "Sorting Mode = " + message);
                         }
                         case "farthest" -> {
-                            Nuker.mineSort = Nuker.MineSort.FARTHEST;
+                            Nuker.mineSort = MineSort.FARTHEST;
                             sendClientMessages(prefix + "Sorting Mode = " + message);
                         }
                         case "top_down" -> {
-                            Nuker.mineSort = Nuker.MineSort.TOP_DOWN;
+                            Nuker.mineSort = MineSort.TOP_DOWN;
                             sendClientMessages(prefix + "Sorting Mode = " + message);
                         }
                         case "bottom_up" -> {
-                            Nuker.mineSort = Nuker.MineSort.BOTTOM_UP;
+                            Nuker.mineSort = MineSort.BOTTOM_UP;
                             sendClientMessages(prefix + "Sorting Mode = " + message);
                         }
                         case "random" -> {
-                            Nuker.mineSort = Nuker.MineSort.RANDOM;
+                            Nuker.mineSort = MineSort.RANDOM;
                             sendClientMessages(prefix + "Sorting Mode = " + message);
                         }
                     }
@@ -295,6 +298,20 @@ public class ChatEventHandler {
                         case "false" -> {
                             Nuker.preventSprintingInWater = false;
                             sendClientMessages(prefix + "Prevent Sprinting In Water = false");
+                        }
+                    }
+
+                } else if (message.startsWith("&&crouchlowerflatten")) {
+                    message = message.replace("&&crouchlowerflatten", "").trim();
+                    switch (message) {
+                        case "" -> sendClientMessages(String.valueOf(Nuker.crouchLowerFlatten));
+                        case "true" -> {
+                            Nuker.crouchLowerFlatten = true;
+                            sendClientMessages(prefix + "Crouch Lower Flatten = true");
+                        }
+                        case "false" -> {
+                            Nuker.crouchLowerFlatten = false;
+                            sendClientMessages(prefix + "Crouch Lower Flatten = false");
                         }
                     }
 
