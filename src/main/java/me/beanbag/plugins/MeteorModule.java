@@ -113,6 +113,11 @@ public class MeteorModule extends Module {
                 .defaultValue(true)
                 .onChanged(v -> Nuker.placeRotatePlace = v)
                 .build());
+        general.add(new BoolSetting.Builder()
+                .name("Prevent Sprinting")
+                .defaultValue(true)
+                .onChanged(v -> Nuker.preventSprinting = v)
+                .build());
     }
 
     @Override

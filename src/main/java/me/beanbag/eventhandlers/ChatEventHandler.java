@@ -2,13 +2,9 @@ package me.beanbag.eventhandlers;
 
 import me.beanbag.Nuker;
 import me.beanbag.events.PacketSendCallback;
-import me.beanbag.utils.PlaceUtils;
 import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket;
-import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
-import net.minecraft.util.hit.BlockHitResult;
 
-import static me.beanbag.Nuker.mc;
 import static me.beanbag.utils.ChatUtils.*;
 
 public class ChatEventHandler {
@@ -43,6 +39,7 @@ public class ChatEventHandler {
                             , prefix + "Canal Mode: " + Nuker.canalMode
                             , prefix + "Packet Place: " + Nuker.packetPlace
                             , prefix + "Place Rotate Place: " + Nuker.placeRotatePlace
+                            , prefix + "Prevent Double Tap Sprint: " + Nuker.preventSprinting
                     );
 
                 } else if (message.startsWith("&&litematica")) {
@@ -284,6 +281,20 @@ public class ChatEventHandler {
                         case "false" -> {
                             Nuker.placeRotatePlace = false;
                             sendClientMessages(prefix + "Place Rotate Place = false");
+                        }
+                    }
+
+                } else if (message.startsWith("&&preventsprinting")) {
+                    message = message.replace("&&preventsprinting", "").trim();
+                    switch (message) {
+                        case "" -> sendClientMessages(String.valueOf(Nuker.preventSprinting));
+                        case "true" -> {
+                            Nuker.preventSprinting = true;
+                            sendClientMessages(prefix + "Prevent Sprinting = true");
+                        }
+                        case "false" -> {
+                            Nuker.preventSprinting = false;
+                            sendClientMessages(prefix + "Prevent Sprinting = false");
                         }
                     }
 

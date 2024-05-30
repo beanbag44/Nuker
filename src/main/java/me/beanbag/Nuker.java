@@ -98,6 +98,7 @@ public class Nuker implements ModInitializer {
 	public static int placeBlockTimeoutDelay = 5000;
 	public static boolean expandBaritoneSelectionsForLiquids = true;
 	public static boolean placeRotatePlace = true;
+	public static boolean preventSprinting = false;
 
 
 	public static void onPacketReceive(Packet<?> packet) {
@@ -158,6 +159,10 @@ public class Nuker implements ModInitializer {
 				|| mc.getNetworkHandler() == null
 				|| mc.player == null) {
 			return;
+		}
+
+		if (preventSprinting) {
+			mc.player.setSprinting(false);
 		}
 
 		// Updating the block lists
