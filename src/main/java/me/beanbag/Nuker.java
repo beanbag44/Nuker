@@ -153,7 +153,8 @@ public class Nuker implements ModInitializer {
 
 	public static void onTick() {
 		if (mc.world == null
-				|| mc.getNetworkHandler() == null) {
+				|| mc.getNetworkHandler() == null
+				|| mc.player == null) {
 			return;
 		}
 
@@ -161,8 +162,7 @@ public class Nuker implements ModInitializer {
 		blockListChecks();
 
 		// Mine checking
-		if (mc.player == null
-				|| !enabled
+		if (!enabled
 				|| (onGround && !mc.player.isOnGround())) {
 			return;
 		}
@@ -179,6 +179,7 @@ public class Nuker implements ModInitializer {
 
 		filterBlocks(false, true);
 
+		// Checks for source remover placements and returns true if it should return here
 		if (sourceRemoverPlacements()) return;
 
 		filterBlocks(true, false);
