@@ -7,7 +7,7 @@ import net.minecraft.util.math.BlockPos;
 
 @AllArgsConstructor
 public class SoundQueueBlock {
-    public double timeToMine;
+    public double awaitReceiveTime;
     public BlockPos pos;
     public BlockState state;
     public Timer timer;

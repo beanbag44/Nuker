@@ -37,7 +37,6 @@ public class BreakingHandler {
     @Getter
     private static final List<MiningBlock> miningBlocks = Collections.synchronizedList(new ArrayList<>());
     private static final ConcurrentHashMap<MiningBlock, Timer> ghostBlockCheckSet = new ConcurrentHashMap<>();
-    private static final Set<MiningBlock> ghostBlockCheckSetRemove = Collections.synchronizedSet(new HashSet<>());
     private static final Map<PosAndTimeToMine, Timer> blockTimeout = new ConcurrentHashMap<>();
     public static void executeBreakAttempts(List<BlockPos> blockList) {
         updateBlockLists();
@@ -304,25 +303,22 @@ public class BreakingHandler {
     private static void updateBlockLists() {
 
         // Ghost block timeout check
-        ghostBlockCheckSet.forEach((b, t) -> {
+        ghostBlockCheckSet.keySet().removeIf(b -> {
             if (ghostBlockCheckSet.get(b).getPassedTimeMs() > Nuker.clientBreakGhostBlockTimeout) {
-                mc.world.setBlockState(b.pos, b.block.getDefaultState());
-                if (!(mc.player.getMainHandStack().getItem() instanceof BlockItem)) {
-                    mc.getNetworkHandler().sendPacket(
-                            new PlayerInteractBlockC2SPacket(
-                                    Hand.MAIN_HAND
-                                    , new BlockHitResult(b.pos.toCenterPos()
-                                    , Direction.UP
-                                    , b.pos
-                                    , true)
-                                    , 0)
-                    );
-                }
-                ghostBlockCheckSetRemove.add(b);
+//                mc.world.setBlockState(b.pos, b.state);
+                mc.getNetworkHandler().sendPacket(
+                        new PlayerInteractBlockC2SPacket(
+                                Hand.OFF_HAND
+                                , new BlockHitResult(b.pos.toCenterPos()
+                                , Direction.UP
+                                , b.pos
+                                , true)
+                                , 0)
+                );
+                return true;
             }
+            return false;
         });
-        ghostBlockCheckSetRemove.forEach(ghostBlockCheckSet::remove);
-        ghostBlockCheckSetRemove.clear();
 
         // Block timeout check
         blockTimeout.keySet().removeIf(
@@ -330,8 +326,7 @@ public class BreakingHandler {
 
         // Checks the currently mining blocks
         Iterator<MiningBlock> iterator = miningBlocks.iterator();
-        while(iterator.hasNext()) {
-            MiningBlock block = iterator.next();
+        miningBlocks.removeIf(block -> {
             block.amountBroken += block.state.calcBlockBreakingDelta(mc.player, mc.world, block.pos);
             if (!mc.world.getBlockState(block.pos).getBlock().equals(block.block)
                     || block.serverMine ? block.amountBroken >= 1 : block.amountBroken >= 0.7) {
@@ -339,36 +334,32 @@ public class BreakingHandler {
                     ghostBlockCheckSet.put(block, new Timer().reset());
                     Nuker.renderRunnables.add(() -> mc.interactionManager.breakBlock(block.pos));
                 }
-                iterator.remove();
+                return true;
             } else if (!block.serverMine) {
                 mc.player.getInventory().selectedSlot = block.tool;
                 stopDestroy(block.pos);
             }
-        }
+            return false;
+        });
     }
     public static void onBlockUpdatePacket(BlockUpdateS2CPacket packet) {
         // Ghost block checks
-        for (MiningBlock block : ghostBlockCheckSet.keySet()) {
-            if (block.pos.equals(packet.getPos())
-                    && (packet.getState().isAir() || (block.state.getProperties().contains(Properties.WATERLOGGED) && packet.getState().getFluidState().getFluid() instanceof WaterFluid))) {
-                ghostBlockCheckSetRemove.add(block);
-            }
-        }
-        ghostBlockCheckSetRemove.forEach(ghostBlockCheckSet::remove);
-        ghostBlockCheckSetRemove.clear();
+        ghostBlockCheckSet.keySet().removeIf(block -> block.pos.equals(packet.getPos())
+                    && (packet.getState().isAir() || (block.state.getProperties().contains(Properties.WATERLOGGED) && packet.getState().getFluidState().getFluid() instanceof WaterFluid))
+        );
     }
     public static void onChunkDeltaPacket(ChunkDeltaUpdateS2CPacket packet) {
         // Ghost block checks
-        for (MiningBlock block : ghostBlockCheckSet.keySet()) {
+        ghostBlockCheckSet.keySet().removeIf(block -> {
+            Set<BlockState> stateList = new HashSet<>();
             packet.visitUpdates((pos, state) -> {
                 if (block.pos.equals(pos)
                         && (state.isAir() || (block.state.getProperties().contains(Properties.WATERLOGGED) && state.getFluidState().getFluid() instanceof WaterFluid))) {
-                    ghostBlockCheckSetRemove.add(block);
+                    stateList.add(state);
                 }
             });
-        }
-        ghostBlockCheckSetRemove.forEach(ghostBlockCheckSet::remove);
-        ghostBlockCheckSetRemove.clear();
+            return !stateList.isEmpty();
+        });
     }
     private static void startDestroy(BlockPos blockPos) {
         if (mc.getNetworkHandler() == null) return;
