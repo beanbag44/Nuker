@@ -63,21 +63,22 @@ public class Nuker implements ModInitializer {
 	public static boolean crouchLowerFlatten = false;
 
 
-	public static void onPacketReceive(Packet<?> packet) {
+	public static boolean onPacketReceive(Packet<?> packet) {
 		if (mc.world == null
 				|| mc.player == null
 				|| mc.getNetworkHandler() == null
 				|| mc.interactionManager == null) {
-			return;
+			return false;
 		}
 		if (packet instanceof BlockUpdateS2CPacket blockUpdatePacket) {
 			BreakingHandler.onBlockUpdatePacket(blockUpdatePacket);
-			SoundHandler.onBlockUdatePacket(blockUpdatePacket);
+			return (SoundHandler.onBlockUdatePacket(blockUpdatePacket));
 
 		} else if (packet instanceof ChunkDeltaUpdateS2CPacket chunkDeltaPacket) {
 			BreakingHandler.onChunkDeltaPacket(chunkDeltaPacket);
-			SoundHandler.onChunkDeltaPacket(chunkDeltaPacket);
+			return (SoundHandler.onChunkDeltaPacket(chunkDeltaPacket));
 		}
+		return false;
 	}
 
 	public static void onTick() {
@@ -146,13 +147,16 @@ public class Nuker implements ModInitializer {
 		ClientTickEvents.START_CLIENT_TICK.register(mc -> onTick());
 
 		Render3DCallback.EVENT.register(() -> {
-//			onRender3D();
+			onRender3D();
 			return ActionResult.PASS;
 		});
 
 		PacketReceiveCallback.EVENT.register(packet -> {
-			onPacketReceive(packet);
-			return ActionResult.PASS;
+			if (onPacketReceive(packet)) {
+				return ActionResult.CONSUME;
+			} else {
+				return ActionResult.PASS;
+			}
 		});
 
 		/*

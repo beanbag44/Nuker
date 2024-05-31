@@ -3,6 +3,7 @@ package me.beanbag.plugins;
 import me.beanbag.Nuker;
 import me.beanbag.settings.FlattenMode;
 import me.beanbag.settings.MineSort;
+import net.minecraft.util.ActionResult;
 import org.rusherhack.client.api.events.client.EventUpdate;
 import org.rusherhack.client.api.events.network.EventPacket;
 import org.rusherhack.client.api.events.render.EventRender3D;
@@ -85,7 +86,9 @@ public class RusherhackModule extends ToggleableModule {
     }
     @Subscribe
     public void onPacketReceive(EventPacket.Receive event) {
-        Nuker.onPacketReceive(event.getPacket());
+        if (Nuker.onPacketReceive(event.getPacket())) {
+            event.setCancelled(true);
+        }
     }
     @Subscribe
     public void onTick(EventUpdate event) {
