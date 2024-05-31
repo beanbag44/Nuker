@@ -113,7 +113,7 @@ public class PlacementHandler {
         return null;
     }
 
-    public static boolean canalPlacements() {
+    private static boolean canalPlacements() {
         if (mc.player == null
                 || mc.world == null
                 || mc.getNetworkHandler() == null) {
@@ -195,7 +195,7 @@ public class PlacementHandler {
         return false;
     }
 
-    public static boolean sourceRemoverPlacements() {
+    private static boolean sourceRemoverPlacements() {
         if (mc.player == null
                 || mc.world == null
                 || mc.getNetworkHandler() == null) {
@@ -272,7 +272,9 @@ public class PlacementHandler {
         return false;
     }
     private static void updateBlockLists() {
-
+        // Place block timeout check
+        placeBlockTimeout.keySet().removeIf(
+                next -> placeBlockTimeout.get(next).getPassedTimeMs() > Nuker.placeBlockTimeoutDelay + next.ttm);
     }
 
 }

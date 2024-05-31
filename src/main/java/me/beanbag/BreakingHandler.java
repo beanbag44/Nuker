@@ -5,14 +5,12 @@ import lombok.Getter;
 import me.beanbag.datatypes.MiningBlock;
 import me.beanbag.datatypes.PosAndState;
 import me.beanbag.datatypes.SoundQueueBlock;
-import me.beanbag.utils.BaritoneUtils;
-import me.beanbag.utils.BlockUtils;
-import me.beanbag.utils.InventoryUtils;
+import me.beanbag.utils.*;
 import me.beanbag.utils.Timer;
-import me.beanbag.utils.litematica.LitematicaHelper;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.FallingBlock;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
@@ -39,29 +37,28 @@ public class BreakingHandler {
     private static final ConcurrentHashMap<MiningBlock, Timer> ghostBlockCheckSet = new ConcurrentHashMap<>();
     private static final Set<MiningBlock> ghostBlockCheckSetRemove = Collections.synchronizedSet(new HashSet<>());
     private static final Map<PosAndState, Timer> blockTimeout = new ConcurrentHashMap<>();
-    private static Set<BlockPos> schematicMismatches = Collections.synchronizedSet(new HashSet<>());
     public static void executeBreakAttempts(List<BlockPos> blockList) {
         updateBlockLists();
 
         packetCounter = 0;
 
         // Iterate through the list
-        for (BlockPos b : blockList) {
+        for (BlockPos block : blockList) {
 
             // If possible, mine / start mining the block
-            if (canMine(b)) {
+            if (canMine(block)) {
 
                 // Top down gravity block checks to shift the block position to the top of the column
-                if (mc.world.getBlockState(b).getBlock() instanceof FallingBlock) {
-                    while (mc.world.getBlockState(b.add(0, 1, 0)).getBlock() instanceof FallingBlock
-                            && BlockUtils.isWithinRadius(mc.player.getEyePos(), b.add(0, 1, 0), Nuker.radius)
-                            && canMine(b.add(0, 1, 0))) {
-                        b = b.add(0, 1, 0);
+                if (mc.world.getBlockState(block).getBlock() instanceof FallingBlock) {
+                    while (mc.world.getBlockState(block.add(0, 1, 0)).getBlock() instanceof FallingBlock
+                            && BlockUtils.isWithinRadius(mc.player.getEyePos(), block.add(0, 1, 0), Nuker.radius)
+                            && canMine(block.add(0, 1, 0))) {
+                        block = block.add(0, 1, 0);
                     }
                 }
 
                 // Swaps to the right tool
-                int bestTool = InventoryUtils.getBestToolSlot(b);
+                int bestTool = InventoryUtils.getBestToolSlot(block);
                 if (mc.player.getInventory().selectedSlot != bestTool) {
                     mc.player.getInventory().selectedSlot = bestTool;
                     mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(bestTool));
@@ -69,21 +66,14 @@ public class BreakingHandler {
                 }
 
                 // Mine block
-                mineBlock(b);
+                mineBlock(block);
             }
         }
     }
     private static void mineBlock(BlockPos blockPos) {
-
-        if (mc.player == null
-                || mc.world == null
-                || mc.interactionManager == null) {
-            return;
-        }
-
         double breakingTime = getBlockBreakingTimeMS(mc.player.getInventory().getMainHandStack(), blockPos, mc.player, mc.world);
         blockTimeout.put(new PosAndState(blockPos, breakingTime), new Timer().reset());
-        MiningBlock mBlock = new MiningBlock(blockPos
+        MiningBlock miningBlock = new MiningBlock(blockPos
                 , mc.world.getBlockState(blockPos).getBlock()
                 , breakingTime
                 , new Timer().reset()
@@ -96,7 +86,7 @@ public class BreakingHandler {
         }
 
         if (breakingTime > Nuker.instaMineThreshold) {
-            miningBlocks.add(mBlock);
+            miningBlocks.add(miningBlock);
         }
         // Different mine packets for hardness values
         if (breakingTime <= Nuker.instaMineThreshold) {
@@ -109,7 +99,7 @@ public class BreakingHandler {
             }
             if (Nuker.clientBreak) {
                 mc.interactionManager.breakBlock(blockPos);
-                ghostBlockCheckSet.put(mBlock, new Timer().reset());
+                ghostBlockCheckSet.put(miningBlock, new Timer().reset());
             }
         } else if (breakingTime > Nuker.instaMineThreshold) {
             startDestroy(blockPos);
@@ -132,13 +122,6 @@ public class BreakingHandler {
         );
     }
     private static boolean canMine(BlockPos pos) {
-
-        if (mc.world == null
-                || mc.player == null
-                || mc.interactionManager == null) {
-            return false;
-        }
-
         ItemStack stack= mc.player.getInventory().getStack(InventoryUtils.getBestToolSlot(pos));
         // Flatten modes
         switch (Nuker.flattenMode) {
@@ -191,41 +174,14 @@ public class BreakingHandler {
             }
         }
 
-        // Double block
-        Iterator<MiningBlock> iterator = miningBlocks.iterator();
-        while (iterator.hasNext()) {
-            MiningBlock block = iterator.next();
-            if (block.serverMine) {
-                if (block.timer.getPassedTimeMs() >= block.ttm
-                        || mc.world.getBlockState(block.pos).getBlock() != block.block) {
-                    if (Nuker.clientBreak
-                            && BlockUtils.isWithinRadius(mc.player.getEyePos(), block.pos, Nuker.radius)) {
-                        mc.interactionManager.breakBlock(block.pos);
-                        ghostBlockCheckSet.put(block, new Timer().reset());
-                    }
-                    iterator.remove();
-                }
-            } else {
-                if (block.timer.getPassedTimeMs() >= block.ttm * 0.7
-                        || mc.world.getBlockState(block.pos).getBlock() != block.block) {
-                    if (Nuker.clientBreak
-                            && BlockUtils.isWithinRadius(mc.player.getEyePos(), block.pos, Nuker.radius)) {
-                        mc.interactionManager.breakBlock(block.pos);
-                        ghostBlockCheckSet.put(block, new Timer().reset());
-                    }
-                    iterator.remove();
-                }
-            }
-        }
-
         if (miningBlocks.size() >= 2) {
             return false;
         } else if (!miningBlocks.isEmpty()) {
-            MiningBlock b = miningBlocks.get(0);
+            MiningBlock block = miningBlocks.get(0);
 
-            if (b.pos.equals(pos)) {
+            if (block.pos.equals(pos)) {
                 return false;
-            } else if (stack.getItem() != mc.player.getInventory().getStack(b.tool).getItem()) {
+            } else if (stack.getItem() != mc.player.getInventory().getStack(block.tool).getItem()) {
                 return false;
             }
         }
@@ -285,7 +241,7 @@ public class BreakingHandler {
         }
         // Litematica
         if (Nuker.litematica
-                && !schematicMismatches.contains(pos)) {
+                && !LitematicaUtils.schematicMismatches.contains(pos)) {
             return false;
         }
 
@@ -344,15 +300,17 @@ public class BreakingHandler {
         ghostBlockCheckSet.forEach((b, t) -> {
             if (ghostBlockCheckSet.get(b).getPassedTimeMs() > Nuker.clientBreakGhostBlockTimeout) {
                 mc.world.setBlockState(b.pos, b.block.getDefaultState());
-                mc.getNetworkHandler().sendPacket(
-                        new PlayerInteractBlockC2SPacket(
-                                Hand.MAIN_HAND
-                                , new BlockHitResult(b.pos.toCenterPos()
-                                , Direction.UP
-                                , b.pos
-                                , true)
-                                , 0)
-                );
+                if (!(mc.player.getMainHandStack().getItem() instanceof BlockItem)) {
+                    mc.getNetworkHandler().sendPacket(
+                            new PlayerInteractBlockC2SPacket(
+                                    Hand.MAIN_HAND
+                                    , new BlockHitResult(b.pos.toCenterPos()
+                                    , Direction.UP
+                                    , b.pos
+                                    , true)
+                                    , 0)
+                    );
+                }
                 ghostBlockCheckSetRemove.add(b);
             }
         });
@@ -363,15 +321,6 @@ public class BreakingHandler {
         blockTimeout.keySet().removeIf(
                 next -> blockTimeout.get(next).getPassedTimeMs() > Nuker.blockTimeoutDelay + next.ttm);
 
-        // Litematica
-        if (Nuker.litematica) {
-            if (!LitematicaHelper.isLitematicaLoaded()) {
-                Nuker.litematica = false;
-            } else {
-                schematicMismatches = LitematicaHelper.INSTANCE.getMismatches();
-            }
-        }
-
         // Checks the currently mining blocks
         Iterator<MiningBlock> iterator = miningBlocks.iterator();
         while(iterator.hasNext()) {
@@ -380,6 +329,7 @@ public class BreakingHandler {
                     || block.serverMine ? block.timer.getPassedTimeMs() >= block.ttm : block.timer.getPassedTimeMs() >= block.ttm * 0.7) {
                 if (Nuker.clientBreak) {
                     mc.interactionManager.breakBlock(block.pos);
+                    ghostBlockCheckSet.put(block, new Timer().reset());
                 }
                 iterator.remove();
             } else if (!block.serverMine) {
@@ -390,10 +340,10 @@ public class BreakingHandler {
     }
     public static void onBlockUpdatePacket(BlockUpdateS2CPacket packet) {
         // Ghost block checks
-        for (MiningBlock b : ghostBlockCheckSet.keySet()) {
-            if (b.pos.equals(packet.getPos())
+        for (MiningBlock block : ghostBlockCheckSet.keySet()) {
+            if (block.pos.equals(packet.getPos())
                     && (packet.getState().isAir() || packet.getState().getBlock().equals(Blocks.WATER))) {
-                ghostBlockCheckSetRemove.add(b);
+                ghostBlockCheckSetRemove.add(block);
             }
         }
         ghostBlockCheckSetRemove.forEach(ghostBlockCheckSet::remove);
@@ -401,11 +351,11 @@ public class BreakingHandler {
     }
     public static void onChunkDeltaPacket(ChunkDeltaUpdateS2CPacket packet) {
         // Ghost block checks
-        for (MiningBlock b : ghostBlockCheckSet.keySet()) {
+        for (MiningBlock block : ghostBlockCheckSet.keySet()) {
             packet.visitUpdates((pos, state) -> {
-                if (b.pos.equals(pos)
+                if (block.pos.equals(pos)
                         && (state.isAir() || state.getBlock().equals(Blocks.WATER))) {
-                    ghostBlockCheckSetRemove.add(b);
+                    ghostBlockCheckSetRemove.add(block);
                 }
             });
         }
