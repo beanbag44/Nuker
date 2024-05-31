@@ -10,6 +10,7 @@ import me.beanbag.utils.Timer;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.FallingBlock;
+import net.minecraft.fluid.WaterFluid;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
@@ -18,6 +19,7 @@ import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket;
 import net.minecraft.registry.tag.FluidTags;
+import net.minecraft.state.property.Properties;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -73,8 +75,10 @@ public class BreakingHandler {
     private static void mineBlock(BlockPos blockPos) {
         double breakingTime = getBlockBreakingTimeMS(mc.player.getInventory().getMainHandStack(), blockPos, mc.player, mc.world);
         blockTimeout.put(new PosAndState(blockPos, breakingTime), new Timer().reset());
-        MiningBlock miningBlock = new MiningBlock(blockPos
-                , mc.world.getBlockState(blockPos).getBlock()
+        BlockState state = mc.world.getBlockState(blockPos);
+        MiningBlock miningBlock = new MiningBlock(state
+                , blockPos
+                , state.getBlock()
                 , breakingTime
                 , new Timer().reset()
                 , false
@@ -98,8 +102,8 @@ public class BreakingHandler {
                 startDestroy(blockPos);
             }
             if (Nuker.clientBreak) {
-                mc.interactionManager.breakBlock(blockPos);
                 ghostBlockCheckSet.put(miningBlock, new Timer().reset());
+                Nuker.renderRunnables.add(() -> mc.interactionManager.breakBlock(blockPos));
             }
         } else if (breakingTime > Nuker.instaMineThreshold) {
             startDestroy(blockPos);
@@ -118,6 +122,7 @@ public class BreakingHandler {
         SoundHandler.getSoundQueue().add(new SoundQueueBlock(
                 breakingTime * 3 + 500
                 , blockPos
+                , state
                 , new Timer().reset())
         );
     }
@@ -328,8 +333,8 @@ public class BreakingHandler {
             if (!mc.world.getBlockState(block.pos).getBlock().equals(block.block)
                     || block.serverMine ? block.timer.getPassedTimeMs() >= block.ttm : block.timer.getPassedTimeMs() >= block.ttm * 0.7) {
                 if (Nuker.clientBreak) {
-                    mc.interactionManager.breakBlock(block.pos);
                     ghostBlockCheckSet.put(block, new Timer().reset());
+                    Nuker.renderRunnables.add(() -> mc.interactionManager.breakBlock(block.pos));
                 }
                 iterator.remove();
             } else if (!block.serverMine) {
@@ -342,7 +347,7 @@ public class BreakingHandler {
         // Ghost block checks
         for (MiningBlock block : ghostBlockCheckSet.keySet()) {
             if (block.pos.equals(packet.getPos())
-                    && (packet.getState().isAir() || packet.getState().getBlock().equals(Blocks.WATER))) {
+                    && (packet.getState().isAir() || (block.state.getProperties().contains(Properties.WATERLOGGED) && packet.getState().getFluidState().getFluid() instanceof WaterFluid))) {
                 ghostBlockCheckSetRemove.add(block);
             }
         }
@@ -354,7 +359,7 @@ public class BreakingHandler {
         for (MiningBlock block : ghostBlockCheckSet.keySet()) {
             packet.visitUpdates((pos, state) -> {
                 if (block.pos.equals(pos)
-                        && (state.isAir() || state.getBlock().equals(Blocks.WATER))) {
+                        && (state.isAir() || (block.state.getProperties().contains(Properties.WATERLOGGED) && state.getFluidState().getFluid() instanceof WaterFluid))) {
                     ghostBlockCheckSetRemove.add(block);
                 }
             });

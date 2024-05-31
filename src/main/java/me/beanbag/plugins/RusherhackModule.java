@@ -93,7 +93,7 @@ public class RusherhackModule extends ToggleableModule {
     }
     @Subscribe
     public void onRender3D(EventRender3D event) {
-//        Nuker.onRender3D();
+        Nuker.onRender3D();
     }
     @Override
     public void onEnable() {

@@ -29,6 +29,7 @@ public class Nuker implements ModInitializer {
 
 
 	public static List<BlockPos> spherePosList = Collections.synchronizedList(new ArrayList<>());
+	public static List<Runnable> renderRunnables = Collections.synchronizedList(new ArrayList<>());
 
 	public static boolean rusherhackLoaded = false;
 	public static boolean meteorPresent = false;
@@ -124,15 +125,14 @@ public class Nuker implements ModInitializer {
 		BreakingHandler.executeBreakAttempts(spherePosList);
 	}
 
-//	public static void onRender3D() {
-//		if (mc.world == null) {
-//			renderRunnables.clear();
-//			return;
-//		}
-//
-//		renderRunnables.forEach(Runnable::run);
-//		renderRunnables.clear();
-//	}
+	public static void onRender3D() {
+		if (mc.world == null) {
+			renderRunnables.clear();
+			return;
+		}
+		renderRunnables.forEach(Runnable::run);
+		renderRunnables.clear();
+	}
 
 	@Override
 	public void onInitialize() {

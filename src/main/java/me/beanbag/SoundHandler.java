@@ -5,6 +5,7 @@ import me.beanbag.datatypes.SoundQueueBlock;
 import net.minecraft.fluid.WaterFluid;
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket;
+import net.minecraft.state.property.Properties;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,8 +21,8 @@ public class SoundHandler {
     public static void onBlockUdatePacket(BlockUpdateS2CPacket packet) {
         for (SoundQueueBlock soundQueueBlock : soundQueue) {
             if (soundQueueBlock.pos.equals(packet.getPos())
-                    && (packet.getState().isAir() || packet.getState().getFluidState().getFluid() instanceof WaterFluid)) {
-                mc.interactionManager.breakBlock(soundQueueBlock.pos);
+                    && (packet.getState().isAir() || (soundQueueBlock.state.getProperties().contains(Properties.WATERLOGGED) && packet.getState().getFluidState().getFluid() instanceof WaterFluid))) {
+                Nuker.renderRunnables.add(() -> mc.interactionManager.breakBlock(soundQueueBlock.pos));
                 soundQueueRemove.add(soundQueueBlock);
             }
         }
@@ -32,8 +33,8 @@ public class SoundHandler {
         for (SoundQueueBlock soundQueueBlock : soundQueue) {
             packet.visitUpdates((pos, state) -> {
                 if (soundQueueBlock.pos.equals(pos)
-                        && (state.isAir() || state.getFluidState().getFluid() instanceof WaterFluid)) {
-                    mc.interactionManager.breakBlock(soundQueueBlock.pos);
+                        && (state.isAir() || (soundQueueBlock.state.getProperties().contains(Properties.WATERLOGGED) && state.getFluidState().getFluid() instanceof WaterFluid))) {
+                    Nuker.renderRunnables.add(() -> mc.interactionManager.breakBlock(soundQueueBlock.pos));
                     soundQueueRemove.add(soundQueueBlock);
                 }
             });
