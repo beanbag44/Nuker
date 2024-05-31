@@ -15,4 +15,4 @@ Now works as a plugin / addon for Rusherhack and Meteor Client, just make sure i
 Full credit goes to Icetank and his Litematica Printer for the freelook and movement handler [https://github.com/IceTank/litematica-printer]. Without these the rotations would have been incredibly goofy.
 
 Showcase video:
-https://youtu.be/eHJD_Q9GBTE
+https://youtu.be/JUhgqLYdONs
