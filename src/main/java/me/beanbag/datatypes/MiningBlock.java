@@ -8,6 +8,7 @@ import net.minecraft.util.math.BlockPos;
 
 @AllArgsConstructor
 public class MiningBlock {
+    public float amountBroken;
     public BlockState state;
     public BlockPos pos;
     public Block block;

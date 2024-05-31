@@ -1,7 +1,7 @@
 package me.beanbag;
 
 import baritone.api.selection.ISelection;
-import me.beanbag.datatypes.PosAndState;
+import me.beanbag.datatypes.PosAndTimeToMine;
 import me.beanbag.utils.*;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -25,7 +25,7 @@ import static me.beanbag.utils.RotationsManager.canSeeBlockFace;
 
 public class PlacementHandler {
 
-    private static final Map<PosAndState, Timer> placeBlockTimeout = new ConcurrentHashMap<>();
+    private static final Map<PosAndTimeToMine, Timer> placeBlockTimeout = new ConcurrentHashMap<>();
     private static Vec3d lookPos = new Vec3d(0, 0, 0);
     private static boolean preRotated = false;
 
@@ -142,7 +142,7 @@ public class PlacementHandler {
             blockList = BlockUtils.sortBlocks(blockList);
             for (BlockPos b : blockList) {
                 boolean inTimeout = false;
-                for (PosAndState ps : placeBlockTimeout.keySet()) {
+                for (PosAndTimeToMine ps : placeBlockTimeout.keySet()) {
                     if (ps.pos.equals(b)) {
                         inTimeout = true;
                         break;
@@ -165,7 +165,7 @@ public class PlacementHandler {
                             if (placeResult.getPos().equals(lookPos)
                                     && preRotated) {
                                 PlaceUtils.place(placeResult, Nuker.packetPlace);
-                                placeBlockTimeout.put(new PosAndState(b, 0), new Timer().reset());
+                                placeBlockTimeout.put(new PosAndTimeToMine(b, 0), new Timer().reset());
                                 preRotated = false;
                             } else if (!placeResult.getPos().equals(lookPos)
                                     && preRotated) {
@@ -183,7 +183,7 @@ public class PlacementHandler {
                             }
                         } else {
                             PlaceUtils.place(placeResult, Nuker.packetPlace);
-                            placeBlockTimeout.put(new PosAndState(b, 0), new Timer().reset());
+                            placeBlockTimeout.put(new PosAndTimeToMine(b, 0), new Timer().reset());
                             return true;
                         }
                     } else {
@@ -219,7 +219,7 @@ public class PlacementHandler {
             blockList = BlockUtils.sortBlocks(blockList);
             for (BlockPos b : blockList) {
                 boolean inTimeout = false;
-                for (PosAndState ps : placeBlockTimeout.keySet()) {
+                for (PosAndTimeToMine ps : placeBlockTimeout.keySet()) {
                     if (ps.pos.equals(b)) {
                         inTimeout = true;
                         break;
@@ -242,7 +242,7 @@ public class PlacementHandler {
                             if (placeResult.getPos().equals(lookPos)
                                     && preRotated) {
                                 PlaceUtils.place(placeResult, Nuker.packetPlace);
-                                placeBlockTimeout.put(new PosAndState(b, 0), new Timer().reset());
+                                placeBlockTimeout.put(new PosAndTimeToMine(b, 0), new Timer().reset());
                                 preRotated = false;
                             } else if (!placeResult.getPos().equals(lookPos)
                                     && preRotated) {
@@ -260,7 +260,7 @@ public class PlacementHandler {
                             }
                         } else {
                             PlaceUtils.place(placeResult, Nuker.packetPlace);
-                            placeBlockTimeout.put(new PosAndState(b, 0), new Timer().reset());
+                            placeBlockTimeout.put(new PosAndTimeToMine(b, 0), new Timer().reset());
                             return true;
                         }
                     } else {

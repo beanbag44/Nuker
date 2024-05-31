@@ -3,7 +3,7 @@ package me.beanbag;
 import baritone.api.selection.ISelection;
 import lombok.Getter;
 import me.beanbag.datatypes.MiningBlock;
-import me.beanbag.datatypes.PosAndState;
+import me.beanbag.datatypes.PosAndTimeToMine;
 import me.beanbag.datatypes.SoundQueueBlock;
 import me.beanbag.utils.*;
 import me.beanbag.utils.Timer;
@@ -38,7 +38,7 @@ public class BreakingHandler {
     private static final List<MiningBlock> miningBlocks = Collections.synchronizedList(new ArrayList<>());
     private static final ConcurrentHashMap<MiningBlock, Timer> ghostBlockCheckSet = new ConcurrentHashMap<>();
     private static final Set<MiningBlock> ghostBlockCheckSetRemove = Collections.synchronizedSet(new HashSet<>());
-    private static final Map<PosAndState, Timer> blockTimeout = new ConcurrentHashMap<>();
+    private static final Map<PosAndTimeToMine, Timer> blockTimeout = new ConcurrentHashMap<>();
     public static void executeBreakAttempts(List<BlockPos> blockList) {
         updateBlockLists();
 
@@ -74,9 +74,11 @@ public class BreakingHandler {
     }
     private static void mineBlock(BlockPos blockPos) {
         double breakingTime = getBlockBreakingTimeMS(mc.player.getInventory().getMainHandStack(), blockPos, mc.player, mc.world);
-        blockTimeout.put(new PosAndState(blockPos, breakingTime), new Timer().reset());
+        blockTimeout.put(new PosAndTimeToMine(blockPos, breakingTime), new Timer().reset());
         BlockState state = mc.world.getBlockState(blockPos);
-        MiningBlock miningBlock = new MiningBlock(state
+        MiningBlock miningBlock = new MiningBlock(
+                0
+                , state
                 , blockPos
                 , state.getBlock()
                 , breakingTime
@@ -211,8 +213,8 @@ public class BreakingHandler {
             return false;
         }
         // Block timeout
-        for (PosAndState pas : blockTimeout.keySet()) {
-            if (pos.equals(pas.pos)) {
+        for (PosAndTimeToMine posAndTTM : blockTimeout.keySet()) {
+            if (pos.equals(posAndTTM.pos)) {
                 return false;
             }
         }
@@ -330,8 +332,9 @@ public class BreakingHandler {
         Iterator<MiningBlock> iterator = miningBlocks.iterator();
         while(iterator.hasNext()) {
             MiningBlock block = iterator.next();
+            block.amountBroken += block.state.calcBlockBreakingDelta(mc.player, mc.world, block.pos);
             if (!mc.world.getBlockState(block.pos).getBlock().equals(block.block)
-                    || block.serverMine ? block.timer.getPassedTimeMs() >= block.ttm : block.timer.getPassedTimeMs() >= block.ttm * 0.7) {
+                    || block.serverMine ? block.amountBroken >= 1 : block.amountBroken >= 0.7) {
                 if (Nuker.clientBreak) {
                     ghostBlockCheckSet.put(block, new Timer().reset());
                     Nuker.renderRunnables.add(() -> mc.interactionManager.breakBlock(block.pos));

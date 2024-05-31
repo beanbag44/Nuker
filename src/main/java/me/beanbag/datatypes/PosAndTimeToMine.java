@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import net.minecraft.util.math.BlockPos;
 
 @AllArgsConstructor
-public class PosAndState {
+public class PosAndTimeToMine {
     public BlockPos pos;
     public double ttm;
 }
