@@ -13,3 +13,6 @@ This is essentially a paste from a module i was working on in a different client
 Now works as a plugin / addon for Rusherhack and Meteor Client, just make sure if the mod is being used as a rusherhack plugin to not load it as standalone / meteor addon at the same time otherwise your game will crash on boot.
 
 Full credit goes to Icetank and his Litematica Printer for the freelook and movement handler [https://github.com/IceTank/litematica-printer]. Without these the rotations would have been incredibly goofy.
+
+Showcase video:
+https://youtu.be/JUhgqLYdONs
