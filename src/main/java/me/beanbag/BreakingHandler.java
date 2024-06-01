@@ -11,7 +11,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.FallingBlock;
 import net.minecraft.fluid.WaterFluid;
-import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
@@ -104,7 +103,7 @@ public class BreakingHandler {
             }
             if (Nuker.clientBreak) {
                 ghostBlockCheckSet.put(miningBlock, new Timer().reset());
-                Nuker.renderRunnables.add(() -> mc.interactionManager.breakBlock(blockPos));
+                Nuker.renderRunnables.add(() -> state.getBlock().onBreak(mc.world, blockPos, state, mc.player));
             }
         } else if (breakingTime > Nuker.instaMineThreshold) {
             startDestroy(blockPos);
@@ -332,7 +331,7 @@ public class BreakingHandler {
                     || block.serverMine ? block.amountBroken >= 1 : block.amountBroken >= 0.7) {
                 if (Nuker.clientBreak) {
                     ghostBlockCheckSet.put(block, new Timer().reset());
-                    Nuker.renderRunnables.add(() -> mc.interactionManager.breakBlock(block.pos));
+                    Nuker.renderRunnables.add(() -> block.state.getBlock().onBreak(mc.world, block.pos, block.state, mc.player));
                 }
                 return true;
             } else if (!block.serverMine) {

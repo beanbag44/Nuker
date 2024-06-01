@@ -14,7 +14,6 @@ import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket;
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,22 +62,21 @@ public class Nuker implements ModInitializer {
 	public static boolean crouchLowerFlatten = false;
 
 
-	public static boolean onPacketReceive(Packet<?> packet) {
+	public static void onPacketReceive(Packet<?> packet) {
 		if (mc.world == null
 				|| mc.player == null
 				|| mc.getNetworkHandler() == null
 				|| mc.interactionManager == null) {
-			return false;
+			return;
 		}
 		if (packet instanceof BlockUpdateS2CPacket blockUpdatePacket) {
 			BreakingHandler.onBlockUpdatePacket(blockUpdatePacket);
-			return (SoundHandler.onBlockUdatePacket(blockUpdatePacket));
+			SoundHandler.onBlockUdatePacket(blockUpdatePacket);
 
 		} else if (packet instanceof ChunkDeltaUpdateS2CPacket chunkDeltaPacket) {
 			BreakingHandler.onChunkDeltaPacket(chunkDeltaPacket);
-			return (SoundHandler.onChunkDeltaPacket(chunkDeltaPacket));
+			SoundHandler.onChunkDeltaPacket(chunkDeltaPacket);
 		}
-		return false;
 	}
 
 	public static void onTick() {
@@ -152,11 +150,8 @@ public class Nuker implements ModInitializer {
 		});
 
 		PacketReceiveCallback.EVENT.register(packet -> {
-			if (onPacketReceive(packet)) {
-				return ActionResult.CONSUME;
-			} else {
-				return ActionResult.PASS;
-			}
+			onPacketReceive(packet);
+			return ActionResult.PASS;
 		});
 
 		/*

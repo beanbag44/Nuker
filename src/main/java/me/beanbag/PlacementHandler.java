@@ -5,6 +5,7 @@ import me.beanbag.datatypes.PosAndTimeToMine;
 import me.beanbag.utils.*;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
@@ -217,6 +218,36 @@ public class PlacementHandler {
 
             // Sort the blocks
             blockList = BlockUtils.sortBlocks(blockList);
+            blockList.sort((pos1, pos2) -> Integer.compare(pos2.getY(), pos1.getY()));
+            blockList.sort((pos1, pos2) -> {
+                BlockState state1 = mc.world.getBlockState(pos1);
+                BlockState state2 = mc.world.getBlockState(pos2);
+                Fluid fluid1 = state1.getFluidState().getFluid();
+                Fluid fluid2 = state2.getFluidState().getFluid();
+
+                // Check if fluid1 is a water or lava source block
+                boolean fluid1IsSource = (fluid1.equals(Fluids.WATER) && state1.getFluidState().isStill()) ||
+                        (fluid1.equals(Fluids.LAVA) && state1.getFluidState().isStill());
+                // Check if fluid2 is a water or lava source block
+                boolean fluid2IsSource = (fluid2.equals(Fluids.WATER) && state2.getFluidState().isStill()) ||
+                        (fluid2.equals(Fluids.LAVA) && state2.getFluidState().isStill());
+                // Check if fluid1 is flowing water or lava
+                boolean fluid1IsFlowing = fluid1.equals(Fluids.FLOWING_WATER) || fluid1.equals(Fluids.FLOWING_LAVA);
+                // Check if fluid2 is flowing water or lava
+                boolean fluid2IsFlowing = fluid2.equals(Fluids.FLOWING_WATER) || fluid2.equals(Fluids.FLOWING_LAVA);
+
+                if (fluid1IsSource && !fluid2IsSource) {
+                    return -1;
+                } else if (!fluid1IsSource && fluid2IsSource) {
+                    return 1;
+                } else if (fluid1IsFlowing && !fluid2IsFlowing) {
+                    return 1;
+                } else if (!fluid1IsFlowing && fluid2IsFlowing) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            });
             for (BlockPos b : blockList) {
                 boolean inTimeout = false;
                 for (PosAndTimeToMine ps : placeBlockTimeout.keySet()) {

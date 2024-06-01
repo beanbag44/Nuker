@@ -16,33 +16,29 @@ public class SoundHandler {
     @Getter
     private static final List<SoundQueueBlock> soundQueue = Collections.synchronizedList(new ArrayList<>());
 
-    public static boolean onBlockUdatePacket(BlockUpdateS2CPacket packet) {
-        int originalSize = soundQueue.size();
+    public static void onBlockUdatePacket(BlockUpdateS2CPacket packet) {
         soundQueue.removeIf(soundQueueBlock -> {
             if (soundQueueBlock.pos.equals(packet.getPos())
                     && (packet.getState().isAir() || (soundQueueBlock.state.getProperties().contains(Properties.WATERLOGGED) && packet.getState().getFluidState().getFluid() instanceof WaterFluid))) {
-                Nuker.renderRunnables.add(() -> mc.interactionManager.breakBlock(soundQueueBlock.pos));
+                Nuker.renderRunnables.add(() -> soundQueueBlock.state.getBlock().onBreak(mc.world, soundQueueBlock.pos, soundQueueBlock.state, mc.player));
                 return true;
             } else {
                 return false;
             }
         });
-        return soundQueue.size() < originalSize;
     }
-    public static boolean onChunkDeltaPacket(ChunkDeltaUpdateS2CPacket packet) {
-        int originalSize = soundQueue.size();
+    public static void onChunkDeltaPacket(ChunkDeltaUpdateS2CPacket packet) {
         soundQueue.removeIf(soundQueueBlock -> {
             Set<BlockState> matchList = new HashSet<>();
             packet.visitUpdates((pos, state) -> {
                 if (soundQueueBlock.pos.equals(pos)
                         && (state.isAir() || (soundQueueBlock.state.getProperties().contains(Properties.WATERLOGGED) && state.getFluidState().getFluid() instanceof WaterFluid))) {
-                    Nuker.renderRunnables.add(() -> mc.interactionManager.breakBlock(soundQueueBlock.pos));
+                    Nuker.renderRunnables.add(() -> soundQueueBlock.state.getBlock().onBreak(mc.world, soundQueueBlock.pos, soundQueueBlock.state, mc.player));
                     matchList.add(state);
                 }
             });
             return !matchList.isEmpty();
         });
-        return soundQueue.size() < originalSize;
     }
     public static void updateBlockLists() {
         // Sounds timeout check

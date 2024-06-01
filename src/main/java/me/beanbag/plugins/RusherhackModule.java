@@ -86,9 +86,7 @@ public class RusherhackModule extends ToggleableModule {
     }
     @Subscribe
     public void onPacketReceive(EventPacket.Receive event) {
-        if (Nuker.onPacketReceive(event.getPacket())) {
-            event.setCancelled(true);
-        }
+        Nuker.onPacketReceive(event.getPacket());
     }
     @Subscribe
     public void onTick(EventUpdate event) {
