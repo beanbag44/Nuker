@@ -34,17 +34,9 @@ public class PlacementHandler {
         updateBlockLists();
 
         if (BreakingHandler.getMiningBlocks().isEmpty()) {
-            if (Nuker.canalMode) {
-                if (canalPlacements()) return true;
-            }
-
-            Nuker.spherePosList.removeIf(pos -> mc.world.getBlockState(pos).isAir());
-
             if (Nuker.sourceRemover) {
                 if (sourceRemoverPlacements()) return true;
             }
-        } else {
-            Nuker.spherePosList.removeIf(pos -> mc.world.getBlockState(pos).isAir());
         }
         return false;
     }
@@ -112,88 +104,6 @@ public class PlacementHandler {
             return new BlockHitResult(centerPos.add(0, 0, -0.5), Direction.SOUTH, pos.add(0, 0, -1), false);
         }
         return null;
-    }
-
-    private static boolean canalPlacements() {
-        if (mc.player == null
-                || mc.world == null
-                || mc.getNetworkHandler() == null) {
-            return true;
-        }
-        List<BlockPos> blockList = new ArrayList<>(spherePosList);
-
-        blockList.removeIf(b -> {
-            int x = b.getX();
-            int y = b.getY();
-            return !(
-                    (
-                            (y == 59 && x >= -13 && x <= 12)
-                                    || (x == 13 && y >= 60 && y <= 62)
-                                    || (x == -14 && y >= 60 && y <= 62)
-                                    || (y == 62 && x >= 13 && x <= 14)
-                                    || (y == 62 && x >= -15 && x <= -14)
-                    ) && mc.world.getBlockState(b).isReplaceable()
-                            && b.getZ() > 0
-            );
-        });
-
-        if (!blockList.isEmpty()) {
-            List<BlockPos> playerBlocks = PlaceUtils.getBlocksPlayerOccupied();
-
-            blockList = BlockUtils.sortBlocks(blockList);
-            for (BlockPos b : blockList) {
-                boolean inTimeout = false;
-                for (PosAndTimeToMine ps : placeBlockTimeout.keySet()) {
-                    if (ps.pos.equals(b)) {
-                        inTimeout = true;
-                        break;
-                    }
-                }
-                if (inTimeout) {
-                    continue;
-                }
-                BlockHitResult placeResult = canPlace(b);
-                if (placeResult != null
-                        && !playerBlocks.contains(placeResult.getBlockPos())) {
-                    int obi = PlaceUtils.findObsidian();
-                    if (obi != -1) {
-                        if (!mc.player.getMainHandStack().getItem().equals(Items.OBSIDIAN)) {
-                            mc.player.getInventory().selectedSlot = obi;
-                            mc.getNetworkHandler().sendPacket(new UpdateSelectedSlotC2SPacket(obi));
-                        }
-                        RotationsManager.lookAt(placeResult.getPos());
-                        if (Nuker.placeRotatePlace) {
-                            if (placeResult.getPos().equals(lookPos)
-                                    && preRotated) {
-                                PlaceUtils.place(placeResult, Nuker.packetPlace);
-                                placeBlockTimeout.put(new PosAndTimeToMine(b, 0), new Timer().reset());
-                                preRotated = false;
-                            } else if (!placeResult.getPos().equals(lookPos)
-                                    && preRotated) {
-                                lookPos = placeResult.getPos();
-                                return true;
-                            } else if (placeResult.getPos().equals(lookPos)
-                                    && !preRotated) {
-                                preRotated = true;
-                                return true;
-                            } else if (!placeResult.getPos().equals(lookPos)
-                                    && !preRotated) {
-                                lookPos = placeResult.getPos();
-                                preRotated = true;
-                                return true;
-                            }
-                        } else {
-                            PlaceUtils.place(placeResult, Nuker.packetPlace);
-                            placeBlockTimeout.put(new PosAndTimeToMine(b, 0), new Timer().reset());
-                            return true;
-                        }
-                    } else {
-                        break;
-                    }
-                }
-            }
-        }
-        return false;
     }
 
     private static boolean sourceRemoverPlacements() {

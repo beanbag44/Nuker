@@ -91,10 +91,12 @@ public class BlockUtils {
     public static void filterImpossibleBlocks() {
         if (mc.world == null) return;
         Nuker.spherePosList.removeIf(pos -> {
-            Block block = mc.world.getBlockState(pos).getBlock();
+            BlockState state = mc.world.getBlockState(pos);
+            Block block = state.getBlock();
             return (block.getHardness() == 600
                     || block.getHardness() == -1
                     || block.equals(Blocks.BARRIER)
+                    || state.isAir()
             );
         });
     }
