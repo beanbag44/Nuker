@@ -112,7 +112,7 @@ public class Nuker implements ModInitializer {
 		BlockUtils.filterImpossibleBlocks();
 
 		// Returns true if nuker should wait until the next tick to continue
-		if (PlacementHandler.excecutePlacements()) return;
+		if (PlacementHandler.executePlacements()) return;
 
 		// Removes liquids
 		BlockUtils.filterLiquids();

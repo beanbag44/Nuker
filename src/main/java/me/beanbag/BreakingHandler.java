@@ -103,7 +103,7 @@ public class BreakingHandler {
             }
             if (Nuker.clientBreak) {
                 ghostBlockCheckSet.put(miningBlock, new Timer().reset());
-                Nuker.renderRunnables.add(() -> state.getBlock().onBreak(mc.world, blockPos, state, mc.player));
+                mc.interactionManager.breakBlock(blockPos);
             }
         } else if (breakingTime > Nuker.instaMineThreshold) {
             startDestroy(blockPos);
@@ -324,14 +324,13 @@ public class BreakingHandler {
                 next -> blockTimeout.get(next).getPassedTimeMs() > Nuker.blockTimeoutDelay + next.ttm);
 
         // Checks the currently mining blocks
-        Iterator<MiningBlock> iterator = miningBlocks.iterator();
         miningBlocks.removeIf(block -> {
             block.amountBroken += block.state.calcBlockBreakingDelta(mc.player, mc.world, block.pos);
             if (!mc.world.getBlockState(block.pos).getBlock().equals(block.block)
                     || block.serverMine ? block.amountBroken >= 1 : block.amountBroken >= 0.7) {
                 if (Nuker.clientBreak) {
                     ghostBlockCheckSet.put(block, new Timer().reset());
-                    Nuker.renderRunnables.add(() -> block.state.getBlock().onBreak(mc.world, block.pos, block.state, mc.player));
+                    mc.interactionManager.breakBlock(block.pos);
                 }
                 return true;
             } else if (!block.serverMine) {

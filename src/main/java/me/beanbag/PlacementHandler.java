@@ -7,7 +7,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.item.Items;
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -30,7 +29,7 @@ public class PlacementHandler {
     private static Vec3d lookPos = new Vec3d(0, 0, 0);
     private static boolean preRotated = false;
 
-    public static boolean excecutePlacements() {
+    public static boolean executePlacements() {
         updateBlockLists();
 
         if (BreakingHandler.getMiningBlocks().isEmpty()) {

@@ -19,8 +19,8 @@ public class SoundHandler {
     public static void onBlockUdatePacket(BlockUpdateS2CPacket packet) {
         soundQueue.removeIf(soundQueueBlock -> {
             if (soundQueueBlock.pos.equals(packet.getPos())
-                    && (packet.getState().isAir() || (soundQueueBlock.state.getProperties().contains(Properties.WATERLOGGED) && packet.getState().getFluidState().getFluid() instanceof WaterFluid))) {
-                Nuker.renderRunnables.add(() -> soundQueueBlock.state.getBlock().onBreak(mc.world, soundQueueBlock.pos, soundQueueBlock.state, mc.player));
+                    && (packet.getState().isAir() || ((soundQueueBlock.state.getProperties().contains(Properties.WATERLOGGED) && soundQueueBlock.state.get(Properties.WATERLOGGED)) && packet.getState().getFluidState().getFluid() instanceof WaterFluid))) {
+                mc.interactionManager.breakBlock(soundQueueBlock.pos);
                 return true;
             } else {
                 return false;
@@ -32,8 +32,8 @@ public class SoundHandler {
             Set<BlockState> matchList = new HashSet<>();
             packet.visitUpdates((pos, state) -> {
                 if (soundQueueBlock.pos.equals(pos)
-                        && (state.isAir() || (soundQueueBlock.state.getProperties().contains(Properties.WATERLOGGED) && state.getFluidState().getFluid() instanceof WaterFluid))) {
-                    Nuker.renderRunnables.add(() -> soundQueueBlock.state.getBlock().onBreak(mc.world, soundQueueBlock.pos, soundQueueBlock.state, mc.player));
+                        && (state.isAir() || ((soundQueueBlock.state.getProperties().contains(Properties.WATERLOGGED) && soundQueueBlock.state.get(Properties.WATERLOGGED)) && state.getFluidState().getFluid() instanceof WaterFluid))) {
+                    mc.interactionManager.breakBlock(soundQueueBlock.pos);
                     matchList.add(state);
                 }
             });
