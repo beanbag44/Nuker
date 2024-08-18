@@ -1,4 +1,4 @@
-package me.beanbag.events;
+package me.beanbag.nuker.events;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
@@ -9,7 +9,6 @@ public interface Render3DCallback {
             (listeners) -> () -> {
                 for (Render3DCallback listener : listeners) {
                     ActionResult result = listener.interact();
-
                     if(result != ActionResult.PASS) {
                         return result;
                     }

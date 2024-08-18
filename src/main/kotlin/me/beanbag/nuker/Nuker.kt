@@ -1,27 +1,72 @@
-package me.beanbag.nuker.client
+package me.beanbag.nuker
 
-import me.beanbag.nuker.client.settings.FlattenMode
-import me.beanbag.nuker.client.settings.MineStyle
-import net.fabricmc.api.ClientModInitializer
+import me.beanbag.nuker.handlers.BrokenBlockHandler.onBlockUpdate
+import me.beanbag.nuker.handlers.BrokenBlockHandler.updateBlockQueue
+import me.beanbag.nuker.settings.FlattenMode
+import me.beanbag.nuker.settings.MineStyle
+import me.beanbag.nuker.settings.VolumeShape
+import me.beanbag.nuker.utils.BlockUtils.getBlockVolume
+import net.minecraft.client.MinecraftClient
+import net.minecraft.network.packet.Packet
+import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
+import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
-class NukerClient : ClientModInitializer {
+object Nuker {
 
-    val enabled = false
-    val radius = 5f
-    val breakThreshold = 0.7f
-    val packetLimit = 8
-    val blockTimeoutDelay = 300
-    val ghostBlockTimeout = 1500
-    val canalMode = false
-    val baritoneSelMode = false
-    val litematicaMode = false
-    val avoidLiquids = false
-    val mineStyle = MineStyle.Closest
-    val flattenMode = FlattenMode.Standard
-    val crouchLowersFlatten = false
-    val validateBreak = true
-    val onGround = false
+    /*
+    settings
+     */
 
-    override fun onInitializeClient() {
+    var enabled = false
+    var radius = 5f
+    var shape = VolumeShape.Sphere
+    var breakThreshold = 0.7f
+    var packetLimit = 8
+    var blockTimeoutDelay = 300
+    var ghostBlockTimeout = 1500
+    var canalMode = false
+    var baritoneSelMode = false
+    var litematicaMode = false
+    var avoidLiquids = false
+    var mineStyle = MineStyle.Closest
+    var flattenMode = FlattenMode.Standard
+    var crouchLowersFlatten = false
+    var validateBreak = true
+    var onGround = false
+
+    val mc: MinecraftClient = MinecraftClient.getInstance()
+    var meteorIsPresent = false
+    val LOGGER: Logger = LoggerFactory.getLogger("Nuker")
+
+    fun onTick() {
+        if (!enabled || !nullSafe()) return
+
+        updateBlockQueue()
+
+        if (onGround && !mc.player!!.isOnGround) return
+
+        val blockShape = getBlockVolume()
     }
+
+    fun onPacketReceive(packet: Packet<*>) {
+        when (packet) {
+            is BlockUpdateS2CPacket -> {
+                onBlockUpdate(packet.pos, packet.state)
+            }
+
+            is ChunkDeltaUpdateS2CPacket -> {
+                packet.visitUpdates { pos, state ->
+                    onBlockUpdate(pos, state)
+                }
+            }
+        }
+    }
+
+    fun nullSafe() =
+        mc.player != null
+                && mc.world != null
+                && mc.interactionManager != null
+                && mc.networkHandler != null
 }

@@ -1,4 +1,4 @@
-package me.beanbag.nuker.client.settings
+package me.beanbag.nuker.settings
 
 enum class MineStyle {
     Closest,

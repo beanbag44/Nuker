@@ -7,14 +7,11 @@
   "authors": [],
   "contact": {},
   "license": "MIT",
-  "icon": "assets/nuker/icon.png",
+  "icon": "assets/icon.png",
   "environment": "client",
   "entrypoints": {
-    "client": [
-      "me.beanbag.nuker.client.NukerClient"
-    ],
     "main": [
-      "me.beanbag.nuker.Nuker"
+      "me.beanbag.nuker.Loader"
     ]
   },
   "mixins": [

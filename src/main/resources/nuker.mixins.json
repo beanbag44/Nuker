@@ -1,11 +1,13 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "me.beanbag.nuker.mixin",
+  "package": "me.beanbag.nuker.mixins",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
   ],
   "client": [
+    "MixinClientConnection",
+    "MixinGameRenderer"
   ],
   "injectors": {
     "defaultRequire": 1
