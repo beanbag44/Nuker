@@ -4,24 +4,25 @@ import me.beanbag.nuker.Nuker.mc
 import me.beanbag.nuker.Nuker.radius
 import me.beanbag.nuker.Nuker.shape
 import me.beanbag.nuker.settings.VolumeShape
+import me.beanbag.nuker.types.PosAndState
 import net.minecraft.block.BlockState
 import net.minecraft.fluid.WaterFluid
 import net.minecraft.state.property.Properties
 import net.minecraft.util.math.BlockPos
 
 object BlockUtils {
-    fun getBlockVolume(): List<BlockPos> =
+    fun getBlockVolume(): List<PosAndState> =
         if (shape == VolumeShape.Sphere) getBlockSphere() else getBlockCube()
 
-    private fun getBlockSphere(): List<BlockPos> =
+    private fun getBlockSphere(): List<PosAndState> =
         getBlockCube().apply {
-            removeIf { pos ->
-                mc.player!!.eyePos.distanceTo(pos.toCenterPos()) > radius
+            removeIf { posAndState ->
+                mc.player!!.eyePos.distanceTo(posAndState.blockPos.toCenterPos()) > radius
             }
         }
 
-    private fun getBlockCube(): MutableList<BlockPos> {
-        val posList = mutableListOf<BlockPos>()
+    private fun getBlockCube(): MutableList<PosAndState> {
+        val posList = mutableListOf<PosAndState>()
         val radToInt = radius.toInt()
         val radDecimal = radius - radToInt
         val eyePos = mc.player!!.eyePos
@@ -31,11 +32,15 @@ object BlockUtils {
                     val xRadDecimal = if (x > 0) radDecimal else -radDecimal
                     val yRadDecimal = if (y > 0) radDecimal else -radDecimal
                     val zRadDecimal = if (z > 0) radDecimal else -radDecimal
+                    val pos = BlockPos(
+                        (eyePos.x + x + xRadDecimal).toInt(),
+                        (eyePos.y + y + yRadDecimal).toInt(),
+                        (eyePos.z + z + zRadDecimal).toInt()
+                    )
                     posList.add(
-                        BlockPos(
-                            (eyePos.x + x + xRadDecimal).toInt(),
-                            (eyePos.y + y + yRadDecimal).toInt(),
-                            (eyePos.z + z + zRadDecimal).toInt()
+                        PosAndState(
+                            pos,
+                            pos.state
                         )
                     )
                 }
