@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "nuker",
+  "version": "${version}",
+  "name": "Nuker",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/nuker/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "me.beanbag.nuker.client.NukerClient"
+    ],
+    "main": [
+      "me.beanbag.nuker.Nuker"
+    ]
+  },
+  "mixins": [
+    "nuker.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-language-kotlin": ">=${kotlin_loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
