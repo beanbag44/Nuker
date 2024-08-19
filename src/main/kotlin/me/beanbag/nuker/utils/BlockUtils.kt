@@ -9,20 +9,21 @@ import net.minecraft.block.BlockState
 import net.minecraft.fluid.WaterFluid
 import net.minecraft.state.property.Properties
 import net.minecraft.util.math.BlockPos
+import java.util.ArrayList
 
 object BlockUtils {
-    fun getBlockVolume(): List<PosAndState> =
+    fun getBlockVolume(): ArrayList<PosAndState> =
         if (shape == VolumeShape.Sphere) getBlockSphere() else getBlockCube()
 
-    private fun getBlockSphere(): List<PosAndState> =
+    private fun getBlockSphere(): ArrayList<PosAndState> =
         getBlockCube().apply {
             removeIf { posAndState ->
                 mc.player!!.eyePos.distanceTo(posAndState.blockPos.toCenterPos()) > radius
             }
         }
 
-    private fun getBlockCube(): MutableList<PosAndState> {
-        val posList = mutableListOf<PosAndState>()
+    private fun getBlockCube(): ArrayList<PosAndState> {
+        val posList = arrayListOf<PosAndState>()
         val radToInt = radius.toInt()
         val radDecimal = radius - radToInt
         val eyePos = mc.player!!.eyePos
@@ -48,6 +49,17 @@ object BlockUtils {
         }
         return posList
     }
+
+    fun filterUnbreakableBlocks(posAndStateList: ArrayList<PosAndState>) =
+        posAndStateList.apply {
+            removeIf {
+                it.blockState?.run {
+                    this.getHardness(mc.world, it.blockPos) == -1f
+                            || this.block.hardness == 600f
+                            || isStateEmpty(this)
+                } ?: true
+            }
+        }
 
     fun isBlockBroken(currentState: BlockState?, newState: BlockState): Boolean {
         currentState?.let { current ->
