@@ -4,7 +4,7 @@
   "version": "${version}",
   "name": "Nuker",
   "description": "",
-  "authors": [],
+  "authors": ["Beanbag"],
   "contact": {},
   "license": "MIT",
   "icon": "assets/icon.png",
