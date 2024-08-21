@@ -64,8 +64,14 @@ class Setting<T: Any> {
     operator fun getValue(thisRef: Any?, property: KProperty<*>) =
         value
 
-    operator fun setValue(thisRef: Any?, property: KProperty<*>, newValue: T) {
-        this.value = newValue
+    operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
+        this.value = value
+        onChange?.forEach { it.accept(value) }
+    }
+
+    fun setValue(value: T) {
+        this.value = value
+        onChange?.forEach { it.accept(value) }
     }
 
     fun getName() =
@@ -97,30 +103,11 @@ class Setting<T: Any> {
 
     fun toRusherSetting(): RusherSetting<*>? {
         val setting: RusherSetting<*>? = when (value) {
-            is Number -> NumberSetting(
-                name,
-                value as Number,
-                min as Number,
-                max as Number
-            )
-
-            is Boolean -> BooleanSetting(
-                name,
-                value as Boolean
-            )
-
-            is Color -> RusherColorSetting(
-                name,
-                value as Color
-            )
-
-            is Enum<*> -> RusherEnumSetting(
-                name,
-                value as Enum<*>
-            )
-
+            is Number -> NumberSetting(name, value as Number, min as Number, max as Number)
+            is Boolean -> BooleanSetting(name, value as Boolean)
+            is Color -> RusherColorSetting(name, value as Color)
+            is Enum<*> -> RusherEnumSetting(name, value as Enum<*>)
             is List<*> -> null /* ToDo */
-
             else -> null
         }
 
@@ -128,7 +115,7 @@ class Setting<T: Any> {
         return setting?.apply {
             setDescription(description)
             setVisibility { visible.get() }
-            onChange { newValue -> onChange?.forEach { it.accept(newValue as T) } }
+            onChange { newValue -> setValue(newValue as T) }
         }
     }
 
@@ -166,7 +153,7 @@ class Setting<T: Any> {
             name(name)
             description(description)
             defaultValue(value)
-            onChanged { newValue -> onChange?.forEach { it.accept(newValue as T) } }
+            onChanged { newValue -> setValue(newValue) }
             visible { visible.get() }
             build()
         }
