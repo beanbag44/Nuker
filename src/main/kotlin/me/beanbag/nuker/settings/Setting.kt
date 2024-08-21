@@ -95,42 +95,6 @@ class Setting<T: Any> {
     fun getVisible() =
         visible
 
-    fun setName(name: String) {
-        this.name = name
-    }
-
-    fun setDescription(description: String) {
-        this.description = description
-    }
-
-    fun setMin(min: T) {
-        this.min = min
-    }
-
-    fun setMax(max: T) {
-        this.max = max
-    }
-
-    fun setSliderMin(sliderMin: T) {
-        this.sliderMin = sliderMin
-    }
-
-    fun setSliderMax(sliderMax: T) {
-        this.sliderMax = sliderMax
-    }
-
-    fun setStep(step: T) {
-        this.step = step
-    }
-
-    fun setOnChange(onChange: List<Consumer<T>>) {
-        this.onChange = onChange
-    }
-
-    fun setVisible(visible: Supplier<Boolean>) {
-        this.visible = visible
-    }
-
     fun toRusherSetting(): RusherSetting<*>? {
         val setting: RusherSetting<*>? = when (value) {
             is Number -> NumberSetting(
