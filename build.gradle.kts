@@ -23,6 +23,11 @@ java {
     withSourcesJar()
 }
 
+configurations {
+    configurations.create("rusherhackApi")
+    configurations.getByName("rusherhackApi").isCanBeResolved = true
+    compileOnly.get().extendsFrom(configurations.getByName("rusherhackApi"))
+}
 
 repositories {
     // Add repositories to retrieve artifacts from in here.
@@ -30,6 +35,15 @@ repositories {
     // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html
     // for more information about repositories.
+    maven(
+        //releases repository will have the latest api version for last stable rusherhack release
+        //snapshots will always be the latest api version
+        //url = "https://maven.rusherhack.org/releases"
+        url = "https://maven.rusherhack.org/snapshots"
+    )
+    maven("https://maven.meteordev.org/releases") // Meteor
+    maven("https://maven.meteordev.org/snapshots") // Baritone/ meteor
+    maven("https://babbaj.github.io/maven/") //Nether Pathfinder
 }
 
 dependencies {
@@ -41,6 +55,11 @@ dependencies {
 
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation("net.fabricmc.fabric-api:fabric-api:${project.property("fabric_version")}")
+
+    modImplementation("dev.babbaj:nether-pathfinder:1.4.1")
+    modImplementation("meteordevelopment:baritone:${project.property("minecraft_version")}-SNAPSHOT")
+    modImplementation("meteordevelopment:meteor-client:${project.property("meteor_version")}")
+    configurations.getByName("rusherhackApi")("org.rusherhack:rusherhack-api:1.20.4-SNAPSHOT")
 }
 
 tasks.processResources {
@@ -56,6 +75,9 @@ tasks.processResources {
             "loader_version" to project.property("loader_version"),
             "kotlin_loader_version" to project.property("kotlin_loader_version")
         )
+    }
+    filesMatching("rusherhack-plugin.json") {
+        expand("mod_version" to project.version)
     }
 }
 

@@ -3,7 +3,7 @@ package me.beanbag.nuker.utils
 import me.beanbag.nuker.Nuker.mc
 import me.beanbag.nuker.Nuker.radius
 import me.beanbag.nuker.Nuker.shape
-import me.beanbag.nuker.settings.VolumeShape
+import me.beanbag.nuker.settings.enumsettings.VolumeShape
 import me.beanbag.nuker.types.PosAndState
 import net.minecraft.block.BlockState
 import net.minecraft.fluid.WaterFluid
