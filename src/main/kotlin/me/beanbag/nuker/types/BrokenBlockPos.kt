@@ -1,6 +1,6 @@
 package me.beanbag.nuker.types
 
-import me.beanbag.nuker.Nuker.validateBreak
+import me.beanbag.nuker.modules.Nuker.validateBreak
 import me.beanbag.nuker.utils.BlockUtils.state
 import net.minecraft.util.math.BlockPos
 
