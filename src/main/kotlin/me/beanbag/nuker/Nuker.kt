@@ -3,18 +3,18 @@ package me.beanbag.nuker
 import me.beanbag.nuker.handlers.BrokenBlockHandler.onBlockUpdate
 import me.beanbag.nuker.handlers.BrokenBlockHandler.updateBlockQueue
 import me.beanbag.nuker.settings.Setting
-import me.beanbag.nuker.settings.enumsettings.FlattenMode
-import me.beanbag.nuker.settings.enumsettings.MineStyle
-import me.beanbag.nuker.settings.enumsettings.VolumeShape
+import me.beanbag.nuker.settings.enumsettings.*
+import me.beanbag.nuker.utils.BlockUtils.filterUnbreakableBlocks
 import me.beanbag.nuker.utils.BlockUtils.getBlockVolume
+import me.beanbag.nuker.utils.BlockUtils.filterImpossibleFlattenBlocks
+import me.beanbag.nuker.utils.BlockUtils.filterLiquidAffectingBlocks
 import net.minecraft.client.MinecraftClient
 import net.minecraft.network.packet.Packet
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.function.Consumer
-import java.util.function.Supplier
+import java.awt.Color
 
 object Nuker {
 
@@ -39,8 +39,21 @@ object Nuker {
     var baritoneSelection by Setting("Baritone Selection", "Only breaks blocks inside baritone selections", false, null) { true }
     var litematicaMode by Setting("Litematica", "Only breaks blocks that are incorrectly placed in schematics", false, null) { true }
 
+    var renders by Setting("Renders", "Draws animated boxes showing the current mining blocks and more", RenderType.Both, null) { true }
+    var renderAnimation by Setting("Render Animation", "Changes the way box renders are animated", RenderAnimation.Out, null) { renders.enabled() }
+    var fillColourMode by Setting("Fill Colour Mode", "Changes the box fill render colour style", ColourMode.Dynamic, null) { renders.enabled() && renders != RenderType.Line }
+    var staticFillColour by Setting("Static Fill Colour", "The colour used to render the static fill of the box faces", Color.RED, null) { renders.enabled() && renders != RenderType.Line && fillColourMode == ColourMode.Static }
+    var startFillColour by Setting("Start Fill Colour", "The colour used to render the start fill of the box faces", Color.RED, null) { renders.enabled() && renders != RenderType.Line && fillColourMode == ColourMode.Dynamic }
+    var endFillColour by Setting("End Fill Colour", "The colour used to render the end fill of the box faces", Color.GREEN, null) { renders.enabled() && renders != RenderType.Line && fillColourMode == ColourMode.Dynamic }
+    var outlineColourMode by Setting("Outline Colour Mode", "Changes the box outline render colour style", ColourMode.Dynamic, null) { renders.enabled() && renders != RenderType.Fill}
+    var staticOutlineColour by Setting("Static Outline Colour", "The colour used to render the outline of the box", Color.RED, null) { renders.enabled() && renders != RenderType.Fill && outlineColourMode == ColourMode.Static }
+    var startOutlineColour by Setting("Start Outline Colour", "The colour used to render the start outline of the box", Color.RED, null) { renders.enabled() && renders != RenderType.Fill && outlineColourMode == ColourMode.Dynamic }
+    var endOutlineColour by Setting("End Outline Colour", "The colour used to render the end outline of the box", Color.GREEN, null) { renders.enabled() && renders != RenderType.Fill && outlineColourMode == ColourMode.Dynamic }
+    var outlineWidth by Setting("Outline Width", "The width of the rendered box outline", 1.0f, 0.0f, 5.0f, 0.0f, 5.0f, 0.1f, null) { renders.enabled() && renders != RenderType.Fill }
+
     val mc: MinecraftClient = MinecraftClient.getInstance()
     var meteorIsPresent = false
+    var rusherIsPresent = false
     val LOGGER: Logger = LoggerFactory.getLogger("Nuker")
 
     fun onTick() {
@@ -51,6 +64,16 @@ object Nuker {
         if (onGround && !mc.player!!.isOnGround) return
 
         val blockVolume = getBlockVolume()
+
+        filterUnbreakableBlocks(blockVolume)
+
+        if (flattenMode.isEnabled()) {
+            filterImpossibleFlattenBlocks(blockVolume)
+        }
+
+        if (avoidLiquids) {
+            filterLiquidAffectingBlocks(blockVolume)
+        }
     }
 
     fun onPacketReceive(packet: Packet<*>) {
