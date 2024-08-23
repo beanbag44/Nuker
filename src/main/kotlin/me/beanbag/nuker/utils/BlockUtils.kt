@@ -1,5 +1,6 @@
 package me.beanbag.nuker.utils
 
+import baritone.api.BaritoneAPI
 import me.beanbag.nuker.Loader.Companion.mc
 import me.beanbag.nuker.modules.Nuker.crouchLowersFlatten
 import me.beanbag.nuker.modules.Nuker.flattenMode
@@ -106,7 +107,7 @@ object BlockUtils {
 
     fun filterLiquidAffectingBlocks(posAndStateList: ArrayList<PosAndState>) =
         posAndStateList.apply {
-            mc.world?.let { world ->
+            mc.world?.run {
                 val cachedGravityBlocks = hashSetOf<BlockPos>()
                 var scannerPos: BlockPos
 
@@ -152,6 +153,26 @@ object BlockUtils {
         } ?: return false
     }
 
+    fun filterBlocksToBaritoneSelections(posAndStateList: ArrayList<PosAndState>) =
+        posAndStateList.apply {
+            removeIf {
+                return@removeIf !isWithinABaritoneSelection(it.blockPos)
+            }
+        }
+
+    private fun isWithinABaritoneSelection(pos: BlockPos): Boolean {
+        BaritoneAPI.getProvider().allBaritones.forEach {
+            it.selectionManager.selections.forEach { sel ->
+                if (pos.x >= sel.min().x && pos.x <= sel.max().x
+                    && pos.y >= sel.min().y && pos.y <= sel.max().y
+                    && pos.z >= sel.min().z && pos.z <= sel.max().z) {
+                    return true
+                }
+            }
+        }
+
+        return false
+    }
     fun isBlockBroken(currentState: BlockState?, newState: BlockState): Boolean {
         currentState?.let { current ->
             if (isStateEmpty(current)) return false

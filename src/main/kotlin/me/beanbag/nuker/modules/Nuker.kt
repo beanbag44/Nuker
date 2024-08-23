@@ -6,6 +6,7 @@ import me.beanbag.nuker.handlers.BrokenBlockHandler.updateBlockQueue
 import me.beanbag.nuker.settings.Setting
 import me.beanbag.nuker.settings.SettingGroup
 import me.beanbag.nuker.settings.enumsettings.*
+import me.beanbag.nuker.utils.BlockUtils.filterBlocksToBaritoneSelections
 import me.beanbag.nuker.utils.BlockUtils.filterImpossibleFlattenBlocks
 import me.beanbag.nuker.utils.BlockUtils.filterLiquidAffectingBlocks
 import me.beanbag.nuker.utils.BlockUtils.filterUnbreakableBlocks
@@ -68,6 +69,14 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
         if (avoidLiquids) {
             filterLiquidAffectingBlocks(blockVolume)
+        }
+
+        if (baritoneSelection) {
+            filterBlocksToBaritoneSelections(blockVolume)
+        }
+
+        if (litematicaMode) {
+
         }
     }
 
