@@ -28,7 +28,8 @@ class Loader : ModInitializer {
             modules.values.forEach {
                 if (it.enabled) {
                     it.onTick()
-                }}
+                }
+            }
         }
 
         LOGGER.info("Initialized Nuker!")
