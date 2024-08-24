@@ -31,21 +31,29 @@ configurations {
 }
 
 repositories {
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = URI("https://api.modrinth.com/maven")
+            }
+        }
+        filter {
+            includeGroup("maven.modrinth")
+        }
+    }
     // Add repositories to retrieve artifacts from in here.
     // You should only use this when depending on other mods because
     // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html
     // for more information about repositories.
     maven {
-        name = "Modrinth"
-        url = URI("https://api.modrinth.com/maven")
-    }
-    maven(
         //releases repository will have the latest api version for last stable rusherhack release
         //snapshots will always be the latest api version
         //url = "https://maven.rusherhack.org/releases"
-        url = "https://maven.rusherhack.org/snapshots"
-    )
+        name = "Rusherhack"
+        url = URI("https://maven.rusherhack.org/snapshots")
+    }
     maven("https://maven.meteordev.org/releases") // Meteor
     maven("https://maven.meteordev.org/snapshots") // Baritone/ meteor
     maven("https://babbaj.github.io/maven/") //Nether Pathfinder
