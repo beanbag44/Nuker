@@ -1,6 +1,8 @@
 package me.beanbag.nuker.modules
 
 import me.beanbag.nuker.Loader.Companion.mc
+import me.beanbag.nuker.handlers.BreakingHandler.blockTimeouts
+import me.beanbag.nuker.handlers.BreakingHandler.updateBlockTimeouts
 import me.beanbag.nuker.handlers.BrokenBlockHandler.onBlockUpdate
 import me.beanbag.nuker.handlers.BrokenBlockHandler.updateBlockQueue
 import me.beanbag.nuker.settings.Setting
@@ -13,6 +15,7 @@ import me.beanbag.nuker.utils.BlockUtils.filterLiquidAffectingBlocks
 import me.beanbag.nuker.utils.BlockUtils.filterUnbreakableBlocks
 import me.beanbag.nuker.utils.BlockUtils.getBlockVolume
 import me.beanbag.nuker.utils.LitematicaUtils.updateSchematicMismatches
+import me.beanbag.nuker.utils.TimerUtils
 import net.minecraft.network.packet.Packet
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
@@ -54,7 +57,11 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
     var endOutlineColour by renderGroup.add(Setting<Color>("End Outline Colour", "The colour used to render the end outline of the box", Color.GREEN, null) { renders.enabled() && renders != RenderType.Fill && outlineColourMode == ColourMode.Dynamic })
     var outlineWidth by renderGroup.add(Setting<Float>("Outline Width", "The width of the rendered box outline", 1.0f, 0.0f, 5.0f, 0.0f, 5.0f, 0.1f, null) { renders.enabled() && renders != RenderType.Fill })
 
+    /**/
+
     override fun onTick() {
+        TimerUtils.tickTickTimerMaps()
+
         if (!enabled || !nullSafe()) return
 
         updateBlockQueue()
@@ -80,6 +87,11 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         if (litematicaMode) {
             updateSchematicMismatches()
             filterCorrectlyPlacedLitematicaBlocks(blockVolume)
+        }
+
+        updateBlockTimeouts()
+        blockVolume.removeIf {
+            blockTimeouts.values.contains(it.blockPos)
         }
     }
 
