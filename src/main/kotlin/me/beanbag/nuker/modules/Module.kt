@@ -13,7 +13,6 @@ abstract class Module(var name: String, var description: String) {
         return setting
     }
 
-    open fun onTick(){
-
+    open fun onTick() {
     }
 }
