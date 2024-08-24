@@ -15,6 +15,7 @@ class Loader : ModInitializer {
     companion object {
         val mc: MinecraftClient = MinecraftClient.getInstance()
         var meteorIsPresent = false
+        var rusherIsPresent = false
         val LOGGER: Logger = LoggerFactory.getLogger("Nuker")
 
         var modules: MutableMap<Class<out Module>, Module> =
