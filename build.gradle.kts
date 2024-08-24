@@ -31,6 +31,11 @@ configurations {
 }
 
 repositories {
+    // Add repositories to retrieve artifacts from in here.
+    // You should only use this when depending on other mods because
+    // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
+    // See https://docs.gradle.org/current/userguide/declaring_repositories.html
+    // for more information about repositories.
     exclusiveContent {
         forRepository {
             maven {
@@ -42,11 +47,6 @@ repositories {
             includeGroup("maven.modrinth")
         }
     }
-    // Add repositories to retrieve artifacts from in here.
-    // You should only use this when depending on other mods because
-    // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-    // See https://docs.gradle.org/current/userguide/declaring_repositories.html
-    // for more information about repositories.
     maven {
         //releases repository will have the latest api version for last stable rusherhack release
         //snapshots will always be the latest api version
