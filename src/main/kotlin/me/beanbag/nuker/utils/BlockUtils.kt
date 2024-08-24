@@ -138,7 +138,7 @@ object BlockUtils {
                         if (isAdjacentToLiquid(scannerPos)) break
                     }
 
-                    return@removeIf true
+                    true
                 }
             }
         }
@@ -158,7 +158,7 @@ object BlockUtils {
     fun filterBlocksToBaritoneSelections(posAndStateList: ArrayList<PosAndState>) =
         posAndStateList.apply {
             removeIf {
-                return@removeIf !isWithinABaritoneSelection(it.blockPos)
+                !isWithinABaritoneSelection(it.blockPos)
             }
         }
 
