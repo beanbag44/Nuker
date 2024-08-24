@@ -7,10 +7,12 @@ import me.beanbag.nuker.settings.Setting
 import me.beanbag.nuker.settings.SettingGroup
 import me.beanbag.nuker.settings.enumsettings.*
 import me.beanbag.nuker.utils.BlockUtils.filterBlocksToBaritoneSelections
+import me.beanbag.nuker.utils.BlockUtils.filterCorrectlyPlacedLitematicaBlocks
 import me.beanbag.nuker.utils.BlockUtils.filterImpossibleFlattenBlocks
 import me.beanbag.nuker.utils.BlockUtils.filterLiquidAffectingBlocks
 import me.beanbag.nuker.utils.BlockUtils.filterUnbreakableBlocks
 import me.beanbag.nuker.utils.BlockUtils.getBlockVolume
+import me.beanbag.nuker.utils.LitematicaUtils.updateSchematicMismatches
 import net.minecraft.network.packet.Packet
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
@@ -76,7 +78,8 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         }
 
         if (litematicaMode) {
-
+            updateSchematicMismatches()
+            filterCorrectlyPlacedLitematicaBlocks(blockVolume)
         }
     }
 

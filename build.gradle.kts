@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.net.URI
 
 plugins {
     kotlin("jvm") version "2.0.10"
@@ -35,6 +36,10 @@ repositories {
     // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html
     // for more information about repositories.
+    maven {
+        name = "Modrinth"
+        url = URI("https://api.modrinth.com/maven")
+    }
     maven(
         //releases repository will have the latest api version for last stable rusherhack release
         //snapshots will always be the latest api version
@@ -44,6 +49,10 @@ repositories {
     maven("https://maven.meteordev.org/releases") // Meteor
     maven("https://maven.meteordev.org/snapshots") // Baritone/ meteor
     maven("https://babbaj.github.io/maven/") //Nether Pathfinder
+}
+
+loom {
+    accessWidenerPath = file("src/main/resources/nuker.accesswidener")
 }
 
 dependencies {
@@ -59,6 +68,8 @@ dependencies {
     modImplementation("dev.babbaj:nether-pathfinder:1.4.1")
     modImplementation("meteordevelopment:baritone:${project.property("minecraft_version")}-SNAPSHOT")
     modImplementation("meteordevelopment:meteor-client:${project.property("meteor_version")}")
+    modImplementation("maven.modrinth:malilib:0.18.3")
+    modImplementation("maven.modrinth:litematica:0.17.3")
     configurations.getByName("rusherhackApi")("org.rusherhack:rusherhack-api:1.20.4-SNAPSHOT")
 }
 

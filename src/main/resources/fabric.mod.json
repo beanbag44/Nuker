@@ -3,9 +3,11 @@
   "id": "nuker",
   "version": "${version}",
   "name": "Nuker",
-  "description": "",
+  "description": "Epic nuking mod for nuking terrain",
   "authors": ["Beanbag"],
-  "contact": {},
+  "contact": {
+    "sources": "https://github.com/beanbag44/Nuker"
+  },
   "license": "MIT",
   "icon": "assets/icon.png",
   "environment": "client",
@@ -22,5 +24,6 @@
     "fabric-language-kotlin": ">=${kotlin_loader_version}",
     "fabric": "*",
     "minecraft": "${minecraft_version}"
-  }
+  },
+  "accessWidener": "nuker.accesswidener"
 }

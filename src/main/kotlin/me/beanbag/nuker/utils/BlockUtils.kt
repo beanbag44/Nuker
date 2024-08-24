@@ -9,6 +9,7 @@ import me.beanbag.nuker.modules.Nuker.shape
 import me.beanbag.nuker.settings.enumsettings.FlattenMode
 import me.beanbag.nuker.settings.enumsettings.VolumeShape
 import me.beanbag.nuker.types.PosAndState
+import me.beanbag.nuker.utils.LitematicaUtils.schematicMismatches
 import net.minecraft.block.BlockState
 import net.minecraft.block.FallingBlock
 import net.minecraft.fluid.WaterFluid
@@ -173,6 +174,14 @@ object BlockUtils {
 
         return false
     }
+
+    fun filterCorrectlyPlacedLitematicaBlocks(posAndStateList: ArrayList<PosAndState>) =
+        posAndStateList.apply {
+            removeIf {
+                !schematicMismatches.contains(it.blockPos)
+            }
+        }
+
     fun isBlockBroken(currentState: BlockState?, newState: BlockState): Boolean {
         currentState?.let { current ->
             if (isStateEmpty(current)) return false
