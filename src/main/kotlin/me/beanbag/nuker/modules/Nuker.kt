@@ -4,16 +4,18 @@ import me.beanbag.nuker.Loader.Companion.mc
 import me.beanbag.nuker.handlers.BreakingHandler.blockTimeouts
 import me.beanbag.nuker.handlers.BreakingHandler.updateBlockTimeouts
 import me.beanbag.nuker.handlers.BrokenBlockHandler.onBlockUpdate
-import me.beanbag.nuker.handlers.BrokenBlockHandler.updateBlockQueue
+import me.beanbag.nuker.handlers.BrokenBlockHandler.updateBrokenBlockQueue
 import me.beanbag.nuker.settings.Setting
 import me.beanbag.nuker.settings.SettingGroup
 import me.beanbag.nuker.settings.enumsettings.*
 import me.beanbag.nuker.utils.BlockUtils.filterBlocksToBaritoneSelections
 import me.beanbag.nuker.utils.BlockUtils.filterCorrectlyPlacedLitematicaBlocks
-import me.beanbag.nuker.utils.BlockUtils.filterImpossibleFlattenBlocks
+import me.beanbag.nuker.utils.BlockUtils.filterBlocksToFlatten
 import me.beanbag.nuker.utils.BlockUtils.filterLiquidAffectingBlocks
-import me.beanbag.nuker.utils.BlockUtils.filterUnbreakableBlocks
+import me.beanbag.nuker.utils.BlockUtils.filterBlocksToBreakable
+import me.beanbag.nuker.utils.BlockUtils.filterBlocksToCanal
 import me.beanbag.nuker.utils.BlockUtils.getBlockVolume
+import me.beanbag.nuker.utils.BlockUtils.sortBlockVolume
 import me.beanbag.nuker.utils.LitematicaUtils.updateSchematicMismatches
 import me.beanbag.nuker.utils.TimerUtils
 import net.minecraft.network.packet.Packet
@@ -64,16 +66,16 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
         if (!enabled || !nullSafe()) return
 
-        updateBlockQueue()
+        updateBrokenBlockQueue()
 
         if (onGround && !mc.player!!.isOnGround) return
 
         val blockVolume = getBlockVolume()
 
-        filterUnbreakableBlocks(blockVolume)
+        filterBlocksToBreakable(blockVolume)
 
         if (flattenMode.isEnabled()) {
-            filterImpossibleFlattenBlocks(blockVolume)
+            filterBlocksToFlatten(blockVolume)
         }
 
         if (avoidLiquids) {
@@ -89,10 +91,16 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
             filterCorrectlyPlacedLitematicaBlocks(blockVolume)
         }
 
+        if (canalMode) {
+            filterBlocksToCanal(blockVolume)
+        }
+
         updateBlockTimeouts()
         blockVolume.removeIf {
             blockTimeouts.values.contains(it.blockPos)
         }
+
+        sortBlockVolume(blockVolume)
     }
 
     fun onPacketReceive(packet: Packet<*>) {

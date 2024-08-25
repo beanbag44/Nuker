@@ -4,16 +4,20 @@ import baritone.api.BaritoneAPI
 import me.beanbag.nuker.Loader.Companion.mc
 import me.beanbag.nuker.modules.Nuker.crouchLowersFlatten
 import me.beanbag.nuker.modules.Nuker.flattenMode
+import me.beanbag.nuker.modules.Nuker.mineStyle
 import me.beanbag.nuker.modules.Nuker.radius
 import me.beanbag.nuker.modules.Nuker.shape
 import me.beanbag.nuker.settings.enumsettings.FlattenMode
+import me.beanbag.nuker.settings.enumsettings.MineStyle
 import me.beanbag.nuker.settings.enumsettings.VolumeShape
 import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.utils.LitematicaUtils.schematicIncorrectBlockPlacements
 import me.beanbag.nuker.utils.LitematicaUtils.schematicIncorrectStatePlacements
 import net.minecraft.block.BlockState
+import net.minecraft.block.Blocks
 import net.minecraft.block.FallingBlock
 import net.minecraft.fluid.WaterFluid
+import net.minecraft.registry.tag.BiomeTags
 import net.minecraft.state.property.Properties
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
@@ -59,7 +63,20 @@ object BlockUtils {
         return posList
     }
 
-    fun filterUnbreakableBlocks(posAndStateList: ArrayList<PosAndState>) =
+    fun sortBlockVolume(posAndStateList: ArrayList<PosAndState>): ArrayList<PosAndState> =
+        posAndStateList.apply {
+            mc.player?.let { player ->
+                when (mineStyle) {
+                    MineStyle.Closest -> sortBy { player.eyePos.distanceTo(it.blockPos.toCenterPos()) }
+                    MineStyle.Farthest -> sortBy { -player.eyePos.distanceTo(it.blockPos.toCenterPos()) }
+                    MineStyle.TopDown -> sortBy { -it.blockPos.y }
+                    MineStyle.BottomUp -> sortBy { it.blockPos.y }
+                    MineStyle.Random -> shuffle()
+                }
+            }
+        }
+
+    fun filterBlocksToBreakable(posAndStateList: ArrayList<PosAndState>) =
         posAndStateList.apply {
             removeIf {
                 it.blockState?.let { state ->
@@ -70,7 +87,7 @@ object BlockUtils {
             }
         }
 
-    fun filterImpossibleFlattenBlocks(posAndStateList: ArrayList<PosAndState>) =
+    fun filterBlocksToFlatten(posAndStateList: ArrayList<PosAndState>) =
         posAndStateList.apply {
             mc.player?.let { player ->
                 val playerPos = player.blockPos
@@ -181,6 +198,49 @@ object BlockUtils {
             removeIf {
                 !schematicIncorrectBlockPlacements.contains(it.blockPos)
                         && !schematicIncorrectStatePlacements.contains(it.blockPos)
+            }
+        }
+
+    fun filterBlocksToCanal(posAndStateList: ArrayList<PosAndState>) =
+        posAndStateList.apply {
+            mc.world?.let { world ->
+                removeIf {
+                    val x = it.blockPos.x
+                    val y = it.blockPos.y
+                    val z = it.blockPos.z
+                    val block = it.blockState?.block
+
+                    if (z < 0
+                        || (y < 59 || x !in -13..12)
+                        && (y < 60 || (x != 13 && x != -14))
+                        && (y < 62 || (x !in 13..15 && x !in -16..-14))
+                    ) {
+                        return@removeIf true
+                    }
+
+                    if ((x == 13 && y <= 61)
+                        || (x == -14 && y <= 61)
+                        || (y == 62 && (x == 14 || x == 13))
+                        || (y == 62 && (x == -15 || x == -14))
+                        && it.blockPos.getState(world).block == Blocks.OBSIDIAN) {
+                        return@removeIf true
+                    }
+
+                    if (y == 59) {
+                        val biome = world.getBiome(it.blockPos)
+                        val isInRiver = biome.isIn(BiomeTags.IS_RIVER)
+
+                        return@removeIf when {
+                            isInRiver && block == Blocks.CRYING_OBSIDIAN -> true
+                            !isInRiver && block == Blocks.OBSIDIAN -> true
+                            else -> false
+                        }
+                    }
+
+                    return@removeIf (y == 62 && x == 15)
+                        || (y == 62 && x == -16)
+                        && block == Blocks.CRYING_OBSIDIAN
+                }
             }
         }
 

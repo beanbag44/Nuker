@@ -4,6 +4,6 @@ enum class MineStyle {
     Closest,
     Farthest,
     TopDown,
-    DownUp,
+    BottomUp,
     Random
 }

@@ -33,7 +33,7 @@ object BrokenBlockHandler {
         }
     }
 
-    fun updateBlockQueue() {
+    fun updateBrokenBlockQueue() {
         blockQueue.keys.removeIf { timeAdded ->
             val timeout = if (validateBreak) 2000 else ghostBlockTimeout
 
