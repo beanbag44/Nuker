@@ -30,33 +30,37 @@ object BlockUtils {
 
     private fun getBlockSphere(): ArrayList<PosAndState> =
         getBlockCube().apply {
-            removeIf { posAndState ->
-                mc.player!!.eyePos.distanceTo(posAndState.blockPos.toCenterPos()) > radius
+            mc.player?.let { player ->
+                removeIf { posAndState ->
+                    player.eyePos.distanceTo(posAndState.blockPos.toCenterPos()) > radius
+                }
             }
         }
 
     private fun getBlockCube(): ArrayList<PosAndState> {
         val posList = arrayListOf<PosAndState>()
-        val radToInt = radius.toInt()
-        val radDecimal = radius - radToInt
-        val eyePos = mc.player!!.eyePos
-        for (x in -radToInt..radToInt) {
-            for (y in -radToInt..radToInt) {
-                for (z in -radToInt..radToInt) {
-                    val xRadDecimal = if (x > 0) radDecimal else -radDecimal
-                    val yRadDecimal = if (y > 0) radDecimal else -radDecimal
-                    val zRadDecimal = if (z > 0) radDecimal else -radDecimal
-                    val pos = BlockPos(
-                        (eyePos.x + x + xRadDecimal).toInt(),
-                        (eyePos.y + y + yRadDecimal).toInt(),
-                        (eyePos.z + z + zRadDecimal).toInt()
-                    )
-                    posList.add(
-                        PosAndState(
-                            pos,
-                            pos.state
+        mc.player?.let { player ->
+            val radToInt = radius.toInt()
+            val radDecimal = radius - radToInt
+            val eyePos = player.eyePos
+            for (x in -radToInt..radToInt) {
+                for (y in -radToInt..radToInt) {
+                    for (z in -radToInt..radToInt) {
+                        val xRadDecimal = if (x > 0) radDecimal else -radDecimal
+                        val yRadDecimal = if (y > 0) radDecimal else -radDecimal
+                        val zRadDecimal = if (z > 0) radDecimal else -radDecimal
+                        val pos = BlockPos(
+                            (eyePos.x + x + xRadDecimal).toInt(),
+                            (eyePos.y + y + yRadDecimal).toInt(),
+                            (eyePos.z + z + zRadDecimal).toInt()
                         )
-                    )
+                        posList.add(
+                            PosAndState(
+                                pos,
+                                pos.state
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -78,12 +82,14 @@ object BlockUtils {
 
     fun filterBlocksToBreakable(posAndStateList: ArrayList<PosAndState>) =
         posAndStateList.apply {
-            removeIf {
-                it.blockState?.let { state ->
-                    state.getHardness(mc.world, it.blockPos) == -1f
-                            || state.block.hardness == 600f
-                            || isStateEmpty(state)
-                } ?: true
+            mc.world?.let { world ->
+                removeIf {
+                    it.blockState?.let { state ->
+                        state.getHardness(world, it.blockPos) == -1f
+                                || state.block.hardness == 600f
+                                || isStateEmpty(state)
+                    } ?: true
+                }
             }
         }
 
@@ -104,7 +110,7 @@ object BlockUtils {
                     return@apply
                 }
 
-                val playerLookDir = mc.player?.horizontalFacing
+                val playerLookDir = player.horizontalFacing
                 val smartFlattenDir = if (flattenMode == FlattenMode.Smart) {
                     playerLookDir
                 } else {
@@ -126,37 +132,35 @@ object BlockUtils {
 
     fun filterLiquidAffectingBlocks(posAndStateList: ArrayList<PosAndState>) =
         posAndStateList.apply {
-            mc.world?.run {
-                val cachedGravityBlocks = hashSetOf<BlockPos>()
-                var scannerPos: BlockPos
+            val cachedGravityBlocks = hashSetOf<BlockPos>()
+            var scannerPos: BlockPos
 
-                removeIf {
-                    if (cachedGravityBlocks.contains(it.blockPos)) {
-                        return@removeIf false
-                    }
+            removeIf {
+                if (cachedGravityBlocks.contains(it.blockPos)) {
+                    return@removeIf false
+                }
 
-                    if (isAdjacentToLiquid(it.blockPos)) return@removeIf true
+                if (isAdjacentToLiquid(it.blockPos)) return@removeIf true
 
-                    scannerPos = it.blockPos.up()
+                scannerPos = it.blockPos.up()
+
+                if (scannerPos.state?.block !is FallingBlock) return@removeIf false
+
+                cachedGravityBlocks.add(scannerPos)
+
+                if (isAdjacentToLiquid(scannerPos)) return@removeIf true
+
+                while (true) {
+                    scannerPos = scannerPos.up()
 
                     if (scannerPos.state?.block !is FallingBlock) return@removeIf false
 
                     cachedGravityBlocks.add(scannerPos)
 
-                    if (isAdjacentToLiquid(scannerPos)) return@removeIf true
-
-                    while (true) {
-                        scannerPos = scannerPos.up()
-
-                        if (scannerPos.state?.block !is FallingBlock) return@removeIf false
-
-                        cachedGravityBlocks.add(scannerPos)
-
-                        if (isAdjacentToLiquid(scannerPos)) break
-                    }
-
-                    true
+                    if (isAdjacentToLiquid(scannerPos)) break
                 }
+
+                true
             }
         }
 

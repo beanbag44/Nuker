@@ -1,6 +1,6 @@
 package me.beanbag.nuker.utils
 
-import me.beanbag.nuker.Nuker.renderAnimation
+import me.beanbag.nuker.modules.Nuker.renderAnimation
 import me.beanbag.nuker.settings.enumsettings.RenderAnimation
 import me.beanbag.nuker.utils.LerpUtils.lerp
 import net.minecraft.util.math.Box
