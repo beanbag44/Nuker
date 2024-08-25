@@ -64,43 +64,45 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
     override fun onTick() {
         TimerUtils.tickTickTimerMaps()
 
-        if (!enabled || !nullSafe()) return
+        if (!enabled) return
 
         updateBrokenBlockQueue()
 
-        if (onGround && !mc.player!!.isOnGround) return
+        mc.player?.let { player ->
+            if (onGround && !player.isOnGround) return
 
-        val blockVolume = getBlockVolume()
+            val blockVolume = getBlockVolume()
 
-        filterBlocksToBreakable(blockVolume)
+            filterBlocksToBreakable(blockVolume)
 
-        if (flattenMode.isEnabled()) {
-            filterBlocksToFlatten(blockVolume)
+            if (flattenMode.isEnabled()) {
+                filterBlocksToFlatten(blockVolume)
+            }
+
+            if (avoidLiquids) {
+                filterLiquidAffectingBlocks(blockVolume)
+            }
+
+            if (baritoneSelection) {
+                filterBlocksToBaritoneSelections(blockVolume)
+            }
+
+            if (litematicaMode) {
+                updateSchematicMismatches()
+                filterCorrectlyPlacedLitematicaBlocks(blockVolume)
+            }
+
+            if (canalMode) {
+                filterBlocksToCanal(blockVolume)
+            }
+
+            updateBlockTimeouts()
+            blockVolume.removeIf {
+                blockTimeouts.values.contains(it.blockPos)
+            }
+
+            sortBlockVolume(blockVolume)
         }
-
-        if (avoidLiquids) {
-            filterLiquidAffectingBlocks(blockVolume)
-        }
-
-        if (baritoneSelection) {
-            filterBlocksToBaritoneSelections(blockVolume)
-        }
-
-        if (litematicaMode) {
-            updateSchematicMismatches()
-            filterCorrectlyPlacedLitematicaBlocks(blockVolume)
-        }
-
-        if (canalMode) {
-            filterBlocksToCanal(blockVolume)
-        }
-
-        updateBlockTimeouts()
-        blockVolume.removeIf {
-            blockTimeouts.values.contains(it.blockPos)
-        }
-
-        sortBlockVolume(blockVolume)
     }
 
     fun onPacketReceive(packet: Packet<*>) {
@@ -116,10 +118,4 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
             }
         }
     }
-
-    fun nullSafe() =
-        mc.player != null
-                && mc.world != null
-                && mc.interactionManager != null
-                && mc.networkHandler != null
 }
