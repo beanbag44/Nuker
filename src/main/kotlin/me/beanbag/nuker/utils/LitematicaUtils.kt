@@ -1,6 +1,7 @@
 package me.beanbag.nuker.utils
 
 import fi.dy.masa.litematica.data.DataManager.getSchematicPlacementManager
+import me.beanbag.nuker.mixins.litematica.ISchematicVerifierAccessor
 import net.minecraft.util.math.BlockPos
 
 object LitematicaUtils {
@@ -13,8 +14,9 @@ object LitematicaUtils {
 
         for (placement in getSchematicPlacementManager().allSchematicsPlacements) {
             if (!placement.isEnabled) continue
-            schematicIncorrectBlockPlacements.addAll(placement.schematicVerifier.wrongBlocksPositions.values())
-            schematicIncorrectStatePlacements.addAll(placement.schematicVerifier.wrongStatesPositions.values())
+            val schematicVerifier = placement.schematicVerifier as ISchematicVerifierAccessor
+            schematicIncorrectBlockPlacements.addAll(schematicVerifier.wrongBlocksPositions.values())
+            schematicIncorrectStatePlacements.addAll(schematicVerifier.wrongStatesPositions.values())
         }
     }
 }
