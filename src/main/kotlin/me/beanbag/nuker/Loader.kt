@@ -1,6 +1,8 @@
 package me.beanbag.nuker
 
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap
+import me.beanbag.nuker.events.PacketEvents
+import me.beanbag.nuker.events.RenderEvents
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.loader.api.FabricLoader
@@ -9,6 +11,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import me.beanbag.nuker.modules.Module
 import me.beanbag.nuker.modules.Nuker
+import net.minecraft.util.ActionResult
 
 class Loader : ModInitializer {
 
@@ -31,6 +34,12 @@ class Loader : ModInitializer {
                     it.onTick()
                 }
             }
+        }
+        RenderEvents.RENDER3D.register {
+        }
+        PacketEvents.RECEIVE.register { packet ->
+            Nuker.onPacketReceive(packet)
+            ActionResult.PASS
         }
 
         LOGGER.info("Initialized Nuker!")

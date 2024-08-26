@@ -54,12 +54,14 @@ object BlockUtils {
                             (eyePos.y + y + yRadDecimal).toInt(),
                             (eyePos.z + z + zRadDecimal).toInt()
                         )
-                        posList.add(
-                            PosAndState(
-                                pos,
-                                pos.state
+                        mc.world?.let { world ->
+                            posList.add(
+                                PosAndState(
+                                    pos,
+                                    pos.getState(world)
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }

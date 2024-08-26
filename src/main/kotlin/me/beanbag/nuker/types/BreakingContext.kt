@@ -3,6 +3,7 @@ package me.beanbag.nuker.types
 import me.beanbag.nuker.Loader.Companion.mc
 import me.beanbag.nuker.Loader.Companion.meteorIsPresent
 import me.beanbag.nuker.Loader.Companion.rusherIsPresent
+import me.beanbag.nuker.modules.Nuker.breakMode
 import me.beanbag.nuker.modules.Nuker.breakThreshold
 import me.beanbag.nuker.modules.Nuker.endFillColour
 import me.beanbag.nuker.modules.Nuker.endOutlineColour
@@ -15,6 +16,7 @@ import me.beanbag.nuker.modules.Nuker.startFillColour
 import me.beanbag.nuker.modules.Nuker.startOutlineColour
 import me.beanbag.nuker.modules.Nuker.staticFillColour
 import me.beanbag.nuker.modules.Nuker.staticOutlineColour
+import me.beanbag.nuker.settings.enumsettings.BreakMode
 import me.beanbag.nuker.settings.enumsettings.ColourMode
 import me.beanbag.nuker.settings.enumsettings.RenderAnimation
 import me.beanbag.nuker.settings.enumsettings.RenderType
@@ -30,9 +32,10 @@ import meteordevelopment.meteorclient.utils.render.color.Color as MeteorColour
 
 class BreakingContext(
     val pos: BlockPos,
-    var state: BlockState,
+    val state: BlockState,
     var currentBreakDelta: Float,
-    var bestTool: Int
+    var bestTool: Int,
+    val startedWithDoubleBreak: Boolean
 ) {
     var mineTicks: Int = 0
     var breakType = BreakType.Primary
@@ -48,14 +51,18 @@ class BreakingContext(
     }
 
     val miningProgress: Float
-        get() = additiveBreakDelta
+        get() = if (breakMode == BreakMode.Total) {
+            mineTicks * currentBreakDelta
+        } else {
+            additiveBreakDelta
+        }
 
     val previousMiningProgress: Float
-        get() = additiveBreakDelta - currentBreakDelta
-
-    fun transformProgress(percentage: Float) {
-        additiveBreakDelta *= percentage
-    }
+        get() = if (breakMode == BreakMode.Total) {
+            (mineTicks - 1) * previousBreakDelta
+        } else {
+            additiveBreakDelta - currentBreakDelta
+        }
 
     fun updateBreakDeltas(newBreakDelta: Float) {
         previousBreakDelta = currentBreakDelta
@@ -149,11 +156,11 @@ class BreakingContext(
             }
         }
     }
+}
 
-    enum class BreakType {
-        Primary, Secondary;
+enum class BreakType {
+    Primary, Secondary;
 
-        fun isPrimary() =
-            this == Primary
-    }
+    fun isPrimary() =
+        this == Primary
 }

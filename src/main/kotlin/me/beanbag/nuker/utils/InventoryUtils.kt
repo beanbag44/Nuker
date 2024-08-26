@@ -7,11 +7,23 @@ import net.minecraft.enchantment.Enchantments
 import net.minecraft.entity.effect.StatusEffectUtil
 import net.minecraft.entity.effect.StatusEffects
 import net.minecraft.item.ItemStack
+import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket
 import net.minecraft.registry.tag.FluidTags
 import net.minecraft.util.math.BlockPos
 
 object InventoryUtils {
-    private fun getBestTool(state: BlockState, pos: BlockPos): Int {
+    fun swapTo(slot: Int): Boolean {
+        if (mc.player?.inventory?.selectedSlot == slot
+            || slot !in 0..8) {
+            return false
+        }
+
+        mc.player?.inventory?.selectedSlot = slot
+        mc.networkHandler?.sendPacket(UpdateSelectedSlotC2SPacket(slot))
+        return true
+    }
+
+    fun getBestTool(state: BlockState, pos: BlockPos): Int {
         mc.player?.let { player ->
             val selectedSlot = player.inventory.selectedSlot
             var bestTool = selectedSlot
@@ -30,7 +42,7 @@ object InventoryUtils {
         return 0
     }
 
-    private fun calcBreakDelta(state: BlockState, pos: BlockPos, toolSlot: Int): Float {
+    fun calcBreakDelta(state: BlockState, pos: BlockPos, toolSlot: Int): Float {
         mc.world?.let { world ->
             mc.player?.let { player ->
                 val f: Float = state.getHardness(world, pos)
