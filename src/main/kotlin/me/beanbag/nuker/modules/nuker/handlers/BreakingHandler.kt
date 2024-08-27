@@ -12,6 +12,7 @@ import me.beanbag.nuker.modules.nuker.Nuker.validateBreak
 import me.beanbag.nuker.modules.nuker.enumsettings.*
 import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.TimeoutSet
+import me.beanbag.nuker.utils.BlockUtils.isBlockBroken
 import me.beanbag.nuker.utils.BlockUtils.state
 import me.beanbag.nuker.utils.InventoryUtils.calcBreakDelta
 import me.beanbag.nuker.utils.InventoryUtils.getBestTool
@@ -180,6 +181,17 @@ object BreakingHandler {
                 if (miningProgress > threshold) {
                     onBlockBreak(breakingContexts.indexOf(this))
                 }
+            }
+        }
+    }
+
+    fun onBlockUpdate(pos: BlockPos, state: BlockState) {
+        breakingContexts.forEach {
+            it?.let { ctx ->
+                if (ctx.pos != pos || !isBlockBroken(state, ctx.state)) return@forEach
+
+                mc.interactionManager?.breakBlock(pos)
+                nullifyBreakingContext(breakingContexts.indexOf(ctx))
             }
         }
     }

@@ -1,12 +1,13 @@
 package me.beanbag.nuker.modules.nuker
 
 import me.beanbag.nuker.Loader.Companion.mc
-import me.beanbag.nuker.modules.nuker.handlers.BrokenBlockHandler.onBlockUpdate
 import me.beanbag.nuker.modules.Module
 import me.beanbag.nuker.modules.nuker.handlers.BreakingHandler.blockTimeouts
 import me.beanbag.nuker.modules.nuker.handlers.BreakingHandler.checkAttemptBreaks
 import me.beanbag.nuker.modules.nuker.handlers.BreakingHandler.updateBreakingContexts
 import me.beanbag.nuker.modules.nuker.enumsettings.*
+import me.beanbag.nuker.modules.nuker.handlers.BreakingHandler
+import me.beanbag.nuker.modules.nuker.handlers.BrokenBlockHandler
 import me.beanbag.nuker.settings.Setting
 import me.beanbag.nuker.settings.SettingGroup
 import me.beanbag.nuker.types.PosAndState
@@ -164,12 +165,14 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
     fun onPacketReceive(packet: Packet<*>) {
         when (packet) {
             is BlockUpdateS2CPacket -> {
-                onBlockUpdate(packet.pos, packet.state)
+                BrokenBlockHandler.onBlockUpdate(packet.pos, packet.state)
+                BreakingHandler.onBlockUpdate(packet.pos, packet.state)
             }
 
             is ChunkDeltaUpdateS2CPacket -> {
                 packet.visitUpdates { pos, state ->
-                    onBlockUpdate(pos, state)
+                    BrokenBlockHandler.onBlockUpdate(pos, state)
+                    BreakingHandler.onBlockUpdate(pos, state)
                 }
             }
         }
