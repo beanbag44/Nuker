@@ -1,4 +1,4 @@
-package me.beanbag.nuker.settings.enumsettings
+package me.beanbag.nuker.modules.nuker.enumsettings
 
 enum class FlattenMode {
     None,

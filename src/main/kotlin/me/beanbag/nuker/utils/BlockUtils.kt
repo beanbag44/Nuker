@@ -2,15 +2,8 @@ package me.beanbag.nuker.utils
 
 import baritone.api.BaritoneAPI
 import me.beanbag.nuker.Loader.Companion.mc
-import me.beanbag.nuker.modules.Nuker.crouchLowersFlatten
-import me.beanbag.nuker.modules.Nuker.flattenMode
-import me.beanbag.nuker.modules.Nuker.mineStyle
-import me.beanbag.nuker.modules.Nuker.radius
-import me.beanbag.nuker.modules.Nuker.shape
-import me.beanbag.nuker.settings.enumsettings.FlattenMode
-import me.beanbag.nuker.settings.enumsettings.MineStyle
-import me.beanbag.nuker.settings.enumsettings.VolumeShape
 import me.beanbag.nuker.types.PosAndState
+import me.beanbag.nuker.types.VolumeSort
 import me.beanbag.nuker.utils.LitematicaUtils.schematicIncorrectBlockPlacements
 import me.beanbag.nuker.utils.LitematicaUtils.schematicIncorrectStatePlacements
 import net.minecraft.block.BlockState
@@ -21,47 +14,42 @@ import net.minecraft.registry.tag.BiomeTags
 import net.minecraft.state.property.Properties
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
+import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
 import java.util.ArrayList
 
 object BlockUtils {
-    fun getBlockVolume(): ArrayList<PosAndState> =
-        if (shape == VolumeShape.Sphere) getBlockSphere() else getBlockCube()
-
-    private fun getBlockSphere(): ArrayList<PosAndState> =
-        getBlockCube().apply {
+    fun getBlockSphere(center: Vec3d, radius: Double): ArrayList<PosAndState> =
+        getBlockCube(center, radius).apply {
             mc.player?.let { player ->
                 removeIf { posAndState ->
-                    player.eyePos.distanceTo(posAndState.blockPos.toCenterPos()) > radius
+                    center.distanceTo(posAndState.blockPos.toCenterPos()) > radius
                 }
             }
         }
 
-    private fun getBlockCube(): ArrayList<PosAndState> {
+    fun getBlockCube(center: Vec3d, radius: Double): ArrayList<PosAndState> {
         val posList = arrayListOf<PosAndState>()
-        mc.player?.let { player ->
-            val radToInt = radius.toInt()
-            val radDecimal = radius - radToInt
-            val eyePos = player.eyePos
-            for (x in -radToInt..radToInt) {
-                for (y in -radToInt..radToInt) {
-                    for (z in -radToInt..radToInt) {
-                        val xRadDecimal = if (x > 0) radDecimal else -radDecimal
-                        val yRadDecimal = if (y > 0) radDecimal else -radDecimal
-                        val zRadDecimal = if (z > 0) radDecimal else -radDecimal
-                        val pos = BlockPos(
-                            (eyePos.x + x + xRadDecimal).toInt(),
-                            (eyePos.y + y + yRadDecimal).toInt(),
-                            (eyePos.z + z + zRadDecimal).toInt()
-                        )
-                        mc.world?.let { world ->
-                            posList.add(
-                                PosAndState(
-                                    pos,
-                                    pos.getState(world)
-                                )
+        val radToInt = radius.toInt()
+        val radDecimal = radius - radToInt
+        for (x in -radToInt..radToInt) {
+            for (y in -radToInt..radToInt) {
+                for (z in -radToInt..radToInt) {
+                    val xRadDecimal = if (x > 0) radDecimal else -radDecimal
+                    val yRadDecimal = if (y > 0) radDecimal else -radDecimal
+                    val zRadDecimal = if (z > 0) radDecimal else -radDecimal
+                    val pos = BlockPos(
+                        (center.x + x + xRadDecimal).toInt(),
+                        (center.y + y + yRadDecimal).toInt(),
+                        (center.z + z + zRadDecimal).toInt()
+                    )
+                    mc.world?.let { world ->
+                        posList.add(
+                            PosAndState(
+                                pos,
+                                pos.getState(world)
                             )
-                        }
+                        )
                     }
                 }
             }
@@ -69,16 +57,14 @@ object BlockUtils {
         return posList
     }
 
-    fun sortBlockVolume(posAndStateList: ArrayList<PosAndState>): ArrayList<PosAndState> =
+    fun sortBlockVolume(posAndStateList: ArrayList<PosAndState>, center: Vec3d, sortStyle: VolumeSort): ArrayList<PosAndState> =
         posAndStateList.apply {
-            mc.player?.let { player ->
-                when (mineStyle) {
-                    MineStyle.Closest -> sortBy { player.eyePos.distanceTo(it.blockPos.toCenterPos()) }
-                    MineStyle.Farthest -> sortBy { -player.eyePos.distanceTo(it.blockPos.toCenterPos()) }
-                    MineStyle.TopDown -> sortBy { -it.blockPos.y }
-                    MineStyle.BottomUp -> sortBy { it.blockPos.y }
-                    MineStyle.Random -> shuffle()
-                }
+            when (sortStyle) {
+                VolumeSort.Closest -> sortBy { center.distanceTo(it.blockPos.toCenterPos()) }
+                VolumeSort.Farthest -> sortBy { -center.distanceTo(it.blockPos.toCenterPos()) }
+                VolumeSort.TopDown -> sortBy { -it.blockPos.y }
+                VolumeSort.BottomUp -> sortBy { it.blockPos.y }
+                VolumeSort.Random -> shuffle()
             }
         }
 
@@ -86,53 +72,15 @@ object BlockUtils {
         posAndStateList.apply {
             mc.world?.let { world ->
                 removeIf {
-                    it.blockState?.let { state ->
-                        state.getHardness(world, it.blockPos) == -1f
-                                || state.block.hardness == 600f
-                                || isStateEmpty(state)
-                    } ?: true
+                    val state = it.blockState
+                    state.getHardness(world, it.blockPos) == -1f
+                            || state.block.hardness == 600f
+                            || isStateEmpty(state)
                 }
             }
         }
 
-    fun filterBlocksToFlatten(posAndStateList: ArrayList<PosAndState>) =
-        posAndStateList.apply {
-            mc.player?.let { player ->
-                val playerPos = player.blockPos
-                val flattenLevel = if (crouchLowersFlatten && player.isSneaking) {
-                    playerPos.y - 1
-                } else {
-                    playerPos.y
-                }
-
-                if (!flattenMode.isSmart()) {
-                    removeIf {
-                        it.blockPos.y < flattenLevel
-                    }
-                    return@apply
-                }
-
-                val playerLookDir = player.horizontalFacing
-                val smartFlattenDir = if (flattenMode == FlattenMode.Smart) {
-                    playerLookDir
-                } else {
-                    playerLookDir?.opposite
-                }
-
-                removeIf {
-                    if (it.blockPos.y >= flattenLevel) return@removeIf false
-
-                    val zeroedPos = it.blockPos.add(-playerPos.x, -playerPos.y, -playerPos.z)
-
-                    return@removeIf (zeroedPos.x  >= 0 && smartFlattenDir == Direction.EAST)
-                            || (zeroedPos.z >= 0 && smartFlattenDir == Direction.SOUTH)
-                            || (zeroedPos.x <= 0 && smartFlattenDir == Direction.WEST)
-                            || (zeroedPos.z <= 0 && smartFlattenDir == Direction.NORTH)
-                }
-            }
-        }
-
-    fun filterLiquidAffectingBlocks(posAndStateList: ArrayList<PosAndState>) =
+    fun filterLiquidSupportingBlocks(posAndStateList: ArrayList<PosAndState>) =
         posAndStateList.apply {
             val cachedGravityBlocks = hashSetOf<BlockPos>()
             var scannerPos: BlockPos
@@ -211,10 +159,11 @@ object BlockUtils {
         posAndStateList.apply {
             mc.world?.let { world ->
                 removeIf {
-                    val x = it.blockPos.x
-                    val y = it.blockPos.y
-                    val z = it.blockPos.z
-                    val block = it.blockState?.block
+                    val pos = it.blockPos
+                    val x = pos.x
+                    val y = pos.y
+                    val z = pos.z
+                    val block = it.blockState.block
 
                     if (z < 0
                         || (y < 59 || x !in -13..12)
@@ -228,12 +177,12 @@ object BlockUtils {
                         || (x == -14 && y <= 61)
                         || (y == 62 && (x == 14 || x == 13))
                         || (y == 62 && (x == -15 || x == -14))
-                        && it.blockPos.getState(world).block == Blocks.OBSIDIAN) {
+                        && pos.getState(world).block == Blocks.OBSIDIAN) {
                         return@removeIf true
                     }
 
                     if (y == 59) {
-                        val biome = world.getBiome(it.blockPos)
+                        val biome = world.getBiome(pos)
                         val isInRiver = biome.isIn(BiomeTags.IS_RIVER)
 
                         return@removeIf when {

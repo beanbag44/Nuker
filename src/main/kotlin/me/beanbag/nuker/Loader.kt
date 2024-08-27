@@ -10,7 +10,7 @@ import net.minecraft.client.MinecraftClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import me.beanbag.nuker.modules.Module
-import me.beanbag.nuker.modules.Nuker
+import me.beanbag.nuker.modules.nuker.Nuker
 import net.minecraft.util.ActionResult
 
 class Loader : ModInitializer {

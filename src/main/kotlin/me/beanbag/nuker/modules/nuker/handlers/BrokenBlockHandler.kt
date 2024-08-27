@@ -1,9 +1,8 @@
-package me.beanbag.nuker.handlers
+package me.beanbag.nuker.modules.nuker.handlers
 
 import me.beanbag.nuker.Loader.Companion.mc
-import me.beanbag.nuker.modules.Nuker.ghostBlockTimeout
-import me.beanbag.nuker.modules.Nuker.validateBreak
-import me.beanbag.nuker.types.BrokenBlockPos
+import me.beanbag.nuker.modules.nuker.Nuker.ghostBlockTimeout
+import me.beanbag.nuker.modules.nuker.Nuker.validateBreak
 import me.beanbag.nuker.types.TimeoutSet
 import me.beanbag.nuker.utils.BlockUtils.isBlockBroken
 import me.beanbag.nuker.utils.BlockUtils.state
@@ -35,5 +34,9 @@ object BrokenBlockHandler {
 
             return@removeIf true
         }
+    }
+
+    class BrokenBlockPos(blockPos: BlockPos, var broken: Boolean) : BlockPos(blockPos.x, blockPos.y, blockPos.z) {
+        val previousState = if (!validateBreak) blockPos.state else null
     }
 }

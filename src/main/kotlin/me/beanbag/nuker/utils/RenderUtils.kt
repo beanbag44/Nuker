@@ -1,12 +1,11 @@
 package me.beanbag.nuker.utils
 
-import me.beanbag.nuker.modules.Nuker.renderAnimation
-import me.beanbag.nuker.settings.enumsettings.RenderAnimation
+import me.beanbag.nuker.modules.nuker.enumsettings.RenderAnimation
 import me.beanbag.nuker.utils.LerpUtils.lerp
 import net.minecraft.util.math.Box
 
 object RenderUtils {
-    fun getLerpBox(box: Box, factor: Float): Box {
+    fun getLerpBox(box: Box, factor: Float, renderAnimation: RenderAnimation): Box {
         val boxCenter = Box(box.center, box.center)
         when (renderAnimation) {
             RenderAnimation.Out -> {
