@@ -41,6 +41,10 @@ object BreakingHandler {
         blockVolume.forEach { block ->
             val blockPos = block.blockPos
 
+            for (ctx in breakingContexts) {
+                if (ctx?.pos == blockPos) return@forEach
+            }
+
             if (isAtMaximumCurrentBreakingContexts()) return
 
             val bestTool = getBestTool(block.blockState, blockPos)
@@ -179,7 +183,7 @@ object BreakingHandler {
                 }
 
                 if (miningProgress > threshold) {
-                    onBlockBreak(breakingContexts.indexOf(this))
+                    onBlockBreak(index)
                 }
             }
         }
