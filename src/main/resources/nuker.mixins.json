@@ -8,7 +8,8 @@
     "litematica.ISchematicVerifierAccessor"
   ],
   "client": [
-    "MixinGameRenderer"
+    "MixinGameRenderer",
+    "MixinScreen"
   ],
   "injectors": {
     "defaultRequire": 1

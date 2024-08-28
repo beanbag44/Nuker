@@ -3,6 +3,7 @@ package me.beanbag.nuker
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap
 import me.beanbag.nuker.events.PacketEvents
 import me.beanbag.nuker.events.RenderEvents
+import me.beanbag.nuker.handlers.ChatHandler
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.loader.api.FabricLoader
@@ -43,5 +44,6 @@ class Loader : ModInitializer {
         }
 
         LOGGER.info("Initialized Nuker!")
+        ChatHandler()
     }
 }
