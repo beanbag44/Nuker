@@ -82,21 +82,14 @@ object BlockUtils {
 
     fun filterLiquidSupportingBlocks(posAndStateList: ArrayList<PosAndState>) =
         posAndStateList.apply {
-            val cachedGravityBlocks = hashSetOf<BlockPos>()
             var scannerPos: BlockPos
 
             removeIf {
-                if (cachedGravityBlocks.contains(it.blockPos)) {
-                    return@removeIf false
-                }
-
                 if (isAdjacentToLiquid(it.blockPos)) return@removeIf true
 
                 scannerPos = it.blockPos.up()
 
                 if (scannerPos.state?.block !is FallingBlock) return@removeIf false
-
-                cachedGravityBlocks.add(scannerPos)
 
                 if (isAdjacentToLiquid(scannerPos)) return@removeIf true
 
@@ -104,8 +97,6 @@ object BlockUtils {
                     scannerPos = scannerPos.up()
 
                     if (scannerPos.state?.block !is FallingBlock) return@removeIf false
-
-                    cachedGravityBlocks.add(scannerPos)
 
                     if (isAdjacentToLiquid(scannerPos)) break
                 }
