@@ -33,5 +33,6 @@ class Loader : ModInitializer {
         }
 
         LOGGER.info("Initialized Nuker!")
+        ChatHandler()
     }
 }

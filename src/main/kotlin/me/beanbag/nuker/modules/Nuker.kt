@@ -21,7 +21,7 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
     settings
      */
 
-    val generalGroup = SettingGroup("General", "General settings for nuker")
+    val generalGroup = addGroup(SettingGroup("General", "General settings for nuker"))
     var radius by generalGroup.add(Setting<Float>("Radius", "The radius around the player blocks can be broken", 5f, 0f, 6f, 0f, 6f, 0.1f, null) { true })
     var shape by generalGroup.add(Setting<VolumeShape>("Shape", "The shape used to select the blocks to break", VolumeShape.Sphere, null) { true })
     var mineStyle by generalGroup.add(Setting<MineStyle>("Mine Style", "The order which blocks are broken in", MineStyle.Closest, null) { true })
@@ -38,7 +38,7 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
     var baritoneSelection by generalGroup.add(Setting<Boolean>("Baritone Selection", "Only breaks blocks inside baritone selections", false, null) { true })
     var litematicaMode by generalGroup.add(Setting<Boolean>("Litematica", "Only breaks blocks that are incorrectly placed in schematics", false, null) { true })
 
-    val renderGroup = SettingGroup("Renders", "Render settings for nuker")
+    val renderGroup = addGroup(SettingGroup("Renders", "Render settings for nuker"))
     var renders by renderGroup.add(Setting<RenderType>("Renders", "Draws animated boxes showing the current mining blocks and more", RenderType.Both, null) { true })
     var renderAnimation by renderGroup.add(Setting<RenderAnimation>("Render Animation", "Changes the way box renders are animated", RenderAnimation.Out, null) { renders.enabled() })
     var fillColourMode by renderGroup.add(Setting<ColourMode>("Fill Colour Mode", "Changes the box fill render colour style", ColourMode.Dynamic, null) { renders.enabled() && renders != RenderType.Line })
