@@ -45,19 +45,7 @@ class ChatHandler {
                     )
                 ) {
                     printHeader()
-                    sendChatLine(Text.of("Click on a module or type \"${COMMAND_PREFIX}help [module]\" for more details"))
-                    for (loaderModule in Loader.modules.values) {
-                        sendChatLine(
-                            Text.empty().append(Text.literal(toCamelCaseName(loaderModule.name)).styled {
-                                it.withClickEvent(ExecutableClickEvent {
-                                    printHeader()
-                                    sendChatLine(moduleHelpText(loaderModule))
-                                })
-                                .withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, moduleHelpText(loaderModule)))
-                                .withUnderline(true)
-                            }).append(Text.literal(" - ${loaderModule.description}").styled { it.withColor(Formatting.GRAY) })
-                        )
-                    }
+                    printModuleListHelp()
                 } else if (parts.size == 2 && module != null) {
                     printHeader()
                     sendChatLine(moduleHelpText(module))
@@ -74,18 +62,7 @@ class ChatHandler {
                 val module = if (parts.size > 1) getModuleByName(parts[1]) else null
                 if (parts.size == 1) {
                     printHeader()
-                    //generic list
-                    printHeader()
-                    for (loaderModule in Loader.modules.values) {
-                        sendChatLine(Text.empty().append(Text.literal(loaderModule.name).styled {
-                            it.withClickEvent(ExecutableClickEvent {
-                                printHeader()
-                                sendChatLine(moduleListText(loaderModule))
-                            })
-                            .withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, moduleListText(loaderModule)))
-                            .withUnderline(true)
-                        }).append(Text.literal(" - ").styled { it.withColor(Formatting.GRAY) }).append(enabledText(loaderModule.enabled)))
-                    }
+                    printModuleList()
                 } else if (parts.size == 2 && module != null) {
                     printHeader()
                     sendChatLine(moduleListText(module))
@@ -109,7 +86,6 @@ class ChatHandler {
                 printHeader()
                 sendChatLine(Text.of("TODO set the setting and print its new value"))
                 //TODO set the setting and print its new value
-
             }
 
             return@register ActionResult.FAIL
@@ -152,14 +128,61 @@ class ChatHandler {
     private fun printMainHelp() {
         sendChatLine(Text.of("Hovering over modules/settings will show more details.\n"))
         sendChatLine(Text.of("Available commands:\n"))
-        sendChatLine(Text.literal("${COMMAND_PREFIX}help").append(Text.literal(" - Shows this list").styled { it.withColor(Formatting.GRAY) }))
-        sendChatLine(Text.literal("${COMMAND_PREFIX}help modules").append(Text.literal(" - Lists modules and their descriptions").styled { it.withColor(Formatting.GRAY) }))
+        sendChatLine(Text.empty().append(Text.literal("${COMMAND_PREFIX}help").styled {
+            it.withClickEvent(ExecutableClickEvent { printMainHelp() })
+                .withUnderline(true)
+                .withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of("Click to run this command")))
+        }).append(Text.literal(" - Shows this list").styled { it.withColor(Formatting.GRAY) }))
+        sendChatLine(Text.empty().append(Text.literal("${COMMAND_PREFIX}help modules").styled {
+            it.withClickEvent(ExecutableClickEvent {
+                printHeader()
+                printModuleListHelp()
+            })
+                .withUnderline(true)
+                .withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of("Click to run this command")))
+        }).append(Text.literal(" - Lists modules and their descriptions").styled { it.withColor(Formatting.GRAY) }))
         sendChatLine(Text.literal("${COMMAND_PREFIX}help [module]").append(Text.literal(" - Lists module settings and their descriptions").styled { it.withColor(Formatting.GRAY) }))
         sendChatLine(Text.literal("${COMMAND_PREFIX}help [module] [setting]").append(Text.literal(" - Lists details about the setting").styled { it.withColor(Formatting.GRAY) }))
-        sendChatLine(Text.literal("${COMMAND_PREFIX}list").append(Text.literal(" - Lists modules and if they are on or off").styled { it.withColor(Formatting.GRAY) }))
+        sendChatLine(Text.empty().append(Text.literal("${COMMAND_PREFIX}list").styled {
+            it.withClickEvent(ExecutableClickEvent {
+                printHeader()
+                printModuleList()
+            })
+                .withUnderline(true)
+                .withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of("Click to run this command")))
+        }).append(Text.literal(" - Lists modules and if they are on or off").styled { it.withColor(Formatting.GRAY) }))
         sendChatLine(Text.literal("${COMMAND_PREFIX}list [module]").append(Text.literal(" - Lists module settings and their current value").styled { it.withColor(Formatting.GRAY) }))
         sendChatLine(Text.literal("${COMMAND_PREFIX}[module]").append(Text.literal(" - Toggles a module on or off").styled { it.withColor(Formatting.GRAY) }))
         sendChatLine(Text.literal("${COMMAND_PREFIX}[module] [setting] [value]").append(Text.literal(" - Sets a setting to a value").styled { it.withColor(Formatting.GRAY) }))
+    }
+
+    private fun printModuleListHelp() {
+        sendChatLine(Text.of("Click on a module or type \"${COMMAND_PREFIX}help [module]\" for more details"))
+        for (loaderModule in Loader.modules.values) {
+            sendChatLine(
+                Text.empty().append(Text.literal(toCamelCaseName(loaderModule.name)).styled {
+                    it.withClickEvent(ExecutableClickEvent {
+                        printHeader()
+                        sendChatLine(moduleHelpText(loaderModule))
+                    })
+                        .withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, moduleHelpText(loaderModule)))
+                        .withUnderline(true)
+                }).append(Text.literal(" - ${loaderModule.description}").styled { it.withColor(Formatting.GRAY) })
+            )
+        }
+    }
+
+    private fun printModuleList() {
+        for (loaderModule in Loader.modules.values) {
+            sendChatLine(Text.empty().append(Text.literal(loaderModule.name).styled {
+                it.withClickEvent(ExecutableClickEvent {
+                    printHeader()
+                    sendChatLine(moduleListText(loaderModule))
+                })
+                    .withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, moduleListText(loaderModule)))
+                    .withUnderline(true)
+            }).append(Text.literal(" - ").styled { it.withColor(Formatting.GRAY) }).append(enabledText(loaderModule.enabled)))
+        }
     }
 
     private fun moduleHelpText(module: Module) : Text {
