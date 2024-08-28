@@ -166,7 +166,7 @@ class ChatHandler {
         val text = Text.literal("${toCamelCaseName(module.name)} - ${module.description}\n")
 
         for(settingGroup in module.settingGroups) {
-            text.append(Text.literal(settingGroup.name + "\n").styled { it.withColor(modColor) }).append(Text.literal(" - ${settingGroup.description}\n").styled { it.withColor(Formatting.GRAY) })
+            text.append(Text.literal(settingGroup.name).styled { it.withColor(modColor) }).append(Text.literal(" - ${settingGroup.description}\n").styled { it.withColor(Formatting.GRAY) })
             for(setting in settingGroup.settings) {
                 text.append(Text.literal(" " + toCamelCaseName(setting.getName()))).append(Text.literal(" - ${setting.getDescription()}\n").styled { it.withColor(Formatting.GRAY) })
             }
