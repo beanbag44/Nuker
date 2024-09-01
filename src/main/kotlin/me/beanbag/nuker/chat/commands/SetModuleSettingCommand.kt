@@ -1,6 +1,6 @@
 package me.beanbag.nuker.chat.commands
 
-import me.beanbag.nuker.chat.ChatHandler.COMMAND_PREFIX
+import me.beanbag.nuker.ModConfigs.COMMAND_PREFIX
 import me.beanbag.nuker.chat.ICommand
 import me.beanbag.nuker.chat.ICommandArgument
 import me.beanbag.nuker.chat.command.arguments.ModuleSettingValueArgument

@@ -1,7 +1,8 @@
 package me.beanbag.nuker.chat.commands
 
+import me.beanbag.nuker.ModConfigs
+import me.beanbag.nuker.ModConfigs.COMMAND_PREFIX
 import me.beanbag.nuker.chat.ChatHandler
-import me.beanbag.nuker.chat.ChatHandler.COMMAND_PREFIX
 import me.beanbag.nuker.chat.ChatHandler.sendChatLine
 import me.beanbag.nuker.chat.ExecutableClickEvent
 import me.beanbag.nuker.chat.ICommand
@@ -26,7 +27,7 @@ class HelpCommand : ICommand {
         ChatHandler.printHeader()
         sendChatLine(Text.of("Hovering over modules/settings will show more details.\n"))
         sendChatLine(Text.of("Available commands:\n"))
-        for (commandImplementation in ChatHandler.commands) {
+        for (commandImplementation in ModConfigs.commands) {
             sendChatLine(commandImplementation.helpText)
         }
     }

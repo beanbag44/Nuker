@@ -4,11 +4,6 @@ import me.beanbag.nuker.chat.ICommandArgument
 import me.beanbag.nuker.chat.MatchType
 
 class LiteralArgument(private val argument:String) : ICommandArgument{
-    override val placeholder: String
-        get() = argument
-    override val subArgumentCount: Int
-        get() = 1
-
     override fun getMatch(toMatch: List<String>): MatchType {
         if (toMatch.isEmpty()) {
             return MatchType.NONE

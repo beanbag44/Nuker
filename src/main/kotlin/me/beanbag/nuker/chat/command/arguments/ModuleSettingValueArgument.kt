@@ -4,8 +4,6 @@ import me.beanbag.nuker.chat.ICommandArgument
 import me.beanbag.nuker.chat.MatchType
 
 class ModuleSettingValueArgument : ICommandArgument {
-    override val placeholder: String
-        get() = "[module] [setting]"
     override val subArgumentCount: Int
         get() = 2
 
@@ -23,6 +21,10 @@ class ModuleSettingValueArgument : ICommandArgument {
         if (settingMatch == MatchType.NONE || settingMatch == MatchType.PARTIAL && toMatch.size == 2) {
             return settingMatch
         }
+
+        val module = ModuleArgument().getModule(toMatch[0])!!
+        val setting = ModuleSettingArgument().getSetting(module, toMatch[1])!!
+
         //TODO: check if value can be parsed to setting type
         return MatchType.NONE
     }

@@ -1,29 +1,16 @@
 package me.beanbag.nuker.chat
 
 import me.beanbag.nuker.Loader.Companion.mc
-import me.beanbag.nuker.chat.commands.*
+import me.beanbag.nuker.ModConfigs.COMMAND_PREFIX
+import me.beanbag.nuker.ModConfigs.MOD_NAME
+import me.beanbag.nuker.ModConfigs.commands
+import me.beanbag.nuker.ModConfigs.modColor
 import me.beanbag.nuker.events.PacketEvents
 import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket
 import net.minecraft.text.Text
 import net.minecraft.util.ActionResult
-import net.minecraft.util.Formatting
 
 object ChatHandler {
-
-    val modColor = Formatting.BLUE.colorValue!!
-    private const val MOD_NAME = "Nuker"
-    const val COMMAND_PREFIX = "&&"
-
-    val commands: List<ICommand> = listOf(
-        HelpCommand(),
-        HelpModuleCommand(),
-        HelpModulesCommand(),
-        HelpModuleSettingCommand(),
-        ListCommand(),
-        ListModuleCommand(),
-        ToggleModuleCommand(),
-        SetModuleSettingCommand(),
-    )
 
     fun setup() {
         PacketEvents.SEND.register { packet ->

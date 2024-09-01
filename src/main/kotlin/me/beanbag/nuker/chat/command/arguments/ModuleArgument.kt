@@ -7,11 +7,6 @@ import me.beanbag.nuker.chat.MatchType
 import me.beanbag.nuker.modules.Module
 
 class ModuleArgument : ICommandArgument {
-    override val placeholder: String
-        get() = "[module]"
-    override val subArgumentCount: Int
-        get() = 1
-
     override fun getMatch(toMatch: List<String>): MatchType {
         if (toMatch.isEmpty()) {
             return MatchType.NONE

@@ -7,8 +7,6 @@ import me.beanbag.nuker.modules.Module
 import me.beanbag.nuker.settings.Setting
 
 class ModuleSettingArgument : ICommandArgument {
-    override val placeholder: String
-        get() = "[module] [setting]"
     override val subArgumentCount: Int
         get() = 2
 

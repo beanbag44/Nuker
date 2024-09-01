@@ -1,8 +1,8 @@
 package me.beanbag.nuker.chat
 
 interface ICommandArgument {
-    val placeholder:String
     val subArgumentCount:Int
+        get() = 1
 
     fun getMatch(toMatch: List<String>): MatchType
 
