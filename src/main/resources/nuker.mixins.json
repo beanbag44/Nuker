@@ -4,10 +4,13 @@
   "package": "me.beanbag.nuker.mixins",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "MixinClientConnection"
+    "MixinClientConnection",
+    "litematica.ISchematicVerifierAccessor"
   ],
   "client": [
-    "MixinGameRenderer"
+    "MixinChatInputSuggester",
+    "MixinGameRenderer",
+    "MixinScreen"
   ],
   "injectors": {
     "defaultRequire": 1

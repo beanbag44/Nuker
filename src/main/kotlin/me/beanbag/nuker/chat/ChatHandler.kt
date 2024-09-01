@@ -1,0 +1,68 @@
+package me.beanbag.nuker.chat
+
+import me.beanbag.nuker.Loader.Companion.mc
+import me.beanbag.nuker.chat.commands.*
+import me.beanbag.nuker.events.PacketEvents
+import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket
+import net.minecraft.text.Text
+import net.minecraft.util.ActionResult
+import net.minecraft.util.Formatting
+
+object ChatHandler {
+
+    val modColor = Formatting.BLUE.colorValue!!
+    private const val MOD_NAME = "Nuker"
+    const val COMMAND_PREFIX = "&&"
+
+    val commands: List<ICommand> = listOf(
+        HelpCommand(),
+        HelpModuleCommand(),
+        HelpModulesCommand(),
+        HelpModuleSettingCommand(),
+        ListCommand(),
+        ListModuleCommand(),
+        ToggleModuleCommand(),
+        SetModuleSettingCommand(),
+    )
+
+    fun setup() {
+        PacketEvents.SEND.register { packet ->
+            if (packet !is ChatMessageC2SPacket || !packet.chatMessage.startsWith(COMMAND_PREFIX)) {
+                return@register ActionResult.PASS
+            }
+            val commandParts = packet.chatMessage.substring(COMMAND_PREFIX.length).lowercase().split(" ")
+            commands.firstOrNull {
+                it.isMatch(commandParts)
+            }?.execute(packet.chatMessage.substring(COMMAND_PREFIX.length).split(" ").filter { it.isNotBlank() })
+
+            return@register ActionResult.FAIL
+        }
+    }
+
+
+    fun getSuggestions(userInput: String): List<String> {
+        val suggestions: List<String> = commands.flatMap { it.getSuggestions(userInput) }.distinct()
+        return suggestions
+    }
+
+    fun printHeader() {
+        sendChatLine(
+            Text.literal("=========== ")
+                .append(Text.literal("[").append(Text.literal(MOD_NAME).withColor(modColor)).append(Text.of("] ")))
+                .append(Text.literal(" ==========="))
+        )
+    }
+
+    fun toCamelCaseName(name: String): String {
+        return name.split(" ")
+            .joinToString("") { word ->
+                word.replaceFirstChar {
+                    if (it.isLowerCase()) it.titlecase() else it.toString()
+                }
+            }
+    }
+
+    fun sendChatLine(message: Text) {
+        mc.inGameHud.chatHud.addMessage(message)
+    }
+}
