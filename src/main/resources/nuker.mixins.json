@@ -8,6 +8,7 @@
     "litematica.ISchematicVerifierAccessor"
   ],
   "client": [
+    "MixinChatInputSuggester",
     "MixinGameRenderer",
     "MixinScreen"
   ],
