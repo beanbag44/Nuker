@@ -1,6 +1,6 @@
 package me.beanbag.nuker.chat
 
-import me.beanbag.nuker.chat.ChatHandler.COMMAND_PREFIX
+import me.beanbag.nuker.ModConfigs.COMMAND_PREFIX
 import net.minecraft.text.Text
 
 interface ICommand {

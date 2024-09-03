@@ -5,7 +5,7 @@ import me.beanbag.nuker.chat.MatchType
 
 class ModuleSettingValueArgument : ICommandArgument {
     override val subArgumentCount: Int
-        get() = 2
+        get() = 3
 
     override fun getMatch(toMatch: List<String>): MatchType {
         if (toMatch.isEmpty()) {
@@ -22,10 +22,18 @@ class ModuleSettingValueArgument : ICommandArgument {
             return settingMatch
         }
 
+        if (toMatch.size < 3) {
+            return MatchType.PARTIAL
+        }
         val module = ModuleArgument().getModule(toMatch[0])!!
         val setting = ModuleSettingArgument().getSetting(module, toMatch[1])!!
-
-        //TODO: check if value can be parsed to setting type
+        val value = setting.valueFromString(toMatch[2])
+        if (value != null) {
+            return MatchType.FULL
+        }
+        if (setting.possibleValues() != null && setting.possibleValues()!!.any { it.lowercase().startsWith(toMatch[2].lowercase()) }) {
+            return MatchType.PARTIAL
+        }
         return MatchType.NONE
     }
 
@@ -39,7 +47,7 @@ class ModuleSettingValueArgument : ICommandArgument {
         val module = ModuleArgument().getModule(toMatch[0]) ?: return listOf()
         val setting = ModuleSettingArgument().getSetting(module, toMatch[1]) ?: return listOf()
 
-        //TODO: Implement getting setting values
-        return listOf("TODO")
+        val allPossibleValues = setting.possibleValues()
+        return allPossibleValues?.filter { it.lowercase().startsWith(toMatch[2].lowercase()) } ?: listOf()
     }
 }
