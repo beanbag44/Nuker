@@ -5,7 +5,7 @@ import com.mojang.brigadier.context.StringRange;
 import com.mojang.brigadier.suggestion.Suggestion;
 import com.mojang.brigadier.suggestion.Suggestions;
 import me.beanbag.nuker.ModConfigs;
-import me.beanbag.nuker.chat.ChatHandler;
+import me.beanbag.nuker.command.ChatHandler;
 import net.minecraft.client.gui.screen.ChatInputSuggestor;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.command.CommandSource;

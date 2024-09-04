@@ -3,8 +3,8 @@ package me.beanbag.nuker.utils
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
-import me.beanbag.nuker.Loader
 import me.beanbag.nuker.ModConfigs
+import me.beanbag.nuker.ModConfigs.modules
 import net.fabricmc.loader.api.FabricLoader
 import java.io.File
 import java.nio.file.Path
@@ -24,7 +24,7 @@ object FileManager {
 
     fun saveModuleConfigs() {
         val modulesObject = JsonObject()
-        for (module in Loader.modules.values) {
+        for (module in modules.values) {
             modulesObject.add(module.name, module.toJson())
         }
         getConfigDir().toFile().mkdirs()
@@ -40,10 +40,9 @@ object FileManager {
         val configFile = configFile()
         if (!configFile.exists()) return
 
-        val Gson = Gson()
-        val rootObject = Gson.fromJson(configFile.readText(), JsonObject::class.java)
+        val rootObject = Gson().fromJson(configFile.readText(), JsonObject::class.java)
         val modulesObject = rootObject.getAsJsonObject("modules")
-        for (module in Loader.modules.values) {
+        for (module in modules.values) {
             val moduleObject = modulesObject.getAsJsonObject(module.name)
             if (moduleObject != null) {
                 module.fromJson(moduleObject)

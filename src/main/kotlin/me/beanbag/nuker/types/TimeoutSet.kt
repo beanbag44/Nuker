@@ -9,7 +9,7 @@ class TimeoutSet<T>(private var timeout: Supplier<Int>) {
     private var onTimeout: Consumer<T>? = null
 
     fun put(value: T) {
-        map.put(TickCounter(), value)
+        map[TickCounter()] = value
     }
 
     fun values() =

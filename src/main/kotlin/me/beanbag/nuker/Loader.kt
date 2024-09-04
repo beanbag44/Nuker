@@ -1,31 +1,20 @@
 package me.beanbag.nuker
 
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap
+import me.beanbag.nuker.ModConfigs.LOGGER
+import me.beanbag.nuker.ModConfigs.MOD_NAME
+import me.beanbag.nuker.ModConfigs.meteorIsPresent
+import me.beanbag.nuker.ModConfigs.modules
+import me.beanbag.nuker.command.ChatHandler
 import me.beanbag.nuker.events.PacketEvents
 import me.beanbag.nuker.events.RenderEvents
-import me.beanbag.nuker.chat.ChatHandler
+import me.beanbag.nuker.module.modules.nuker.Nuker
+import me.beanbag.nuker.utils.FileManager
 import net.fabricmc.api.ModInitializer
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents
 import net.fabricmc.loader.api.FabricLoader
-import net.minecraft.client.MinecraftClient
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import me.beanbag.nuker.modules.Module
-import me.beanbag.nuker.modules.nuker.Nuker
-import me.beanbag.nuker.utils.FileManager
 import net.minecraft.util.ActionResult
 
 class Loader : ModInitializer {
-
-    companion object {
-        val mc: MinecraftClient = MinecraftClient.getInstance()
-        var meteorIsPresent = false
-        var rusherIsPresent = false
-        val LOGGER: Logger = LoggerFactory.getLogger("Nuker")
-
-        var modules: MutableMap<Class<out Module>, Module> =
-            listOf(Nuker).associateByTo(Reference2ReferenceOpenHashMap()) { it.javaClass }
-    }
 
     override fun onInitialize() {
         FileManager.loadModuleConfigs()
@@ -45,7 +34,7 @@ class Loader : ModInitializer {
             ActionResult.PASS
         }
 
-        LOGGER.info("Initialized Nuker!")
+        LOGGER.info("Initialized $MOD_NAME")
         ChatHandler.setup()
     }
 }

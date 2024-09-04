@@ -1,6 +1,6 @@
 package me.beanbag.nuker.utils
 
-import me.beanbag.nuker.Loader.Companion.mc
+import me.beanbag.nuker.ModConfigs.mc
 import net.minecraft.block.BlockState
 import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.enchantment.Enchantments

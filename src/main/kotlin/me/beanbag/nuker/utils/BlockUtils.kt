@@ -1,7 +1,7 @@
 package me.beanbag.nuker.utils
 
 import baritone.api.BaritoneAPI
-import me.beanbag.nuker.Loader.Companion.mc
+import me.beanbag.nuker.ModConfigs.mc
 import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.VolumeSort
 import me.beanbag.nuker.utils.LitematicaUtils.schematicIncorrectBlockPlacements

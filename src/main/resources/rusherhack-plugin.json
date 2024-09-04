@@ -1,0 +1,13 @@
+{
+  "Plugin-Class": "me.beanbag.nuker.external.rusher.RusherLoader",
+  "Name": "Epic Nuker",
+  "Version": "${mod_version}",
+  "Description": "Epic nuking mod for nuking terrain",
+  "Authors": [
+    "Beanbag",
+    "PoTheMagicDragon"
+  ],
+  "Minecraft-Versions": [
+    "1.20.4"
+  ]
+}

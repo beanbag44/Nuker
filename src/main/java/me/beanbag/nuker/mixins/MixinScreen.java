@@ -1,6 +1,6 @@
 package me.beanbag.nuker.mixins;
 
-import me.beanbag.nuker.chat.ExecutableClickEvent;
+import me.beanbag.nuker.command.ExecutableClickEvent;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Style;
 import org.spongepowered.asm.mixin.Mixin;
