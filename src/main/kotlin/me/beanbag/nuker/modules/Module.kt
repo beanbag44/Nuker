@@ -1,10 +1,13 @@
 package me.beanbag.nuker.modules
 
+import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 import me.beanbag.nuker.ModConfigs.modColor
 import me.beanbag.nuker.chat.ChatHandler.toCamelCaseName
 import me.beanbag.nuker.chat.ExecutableClickEvent
 import me.beanbag.nuker.chat.commands.HelpModuleSettingCommand
 import me.beanbag.nuker.settings.*
+import me.beanbag.nuker.utils.IJsonable
 import net.minecraft.block.Block
 import net.minecraft.text.HoverEvent
 import net.minecraft.text.Text
@@ -12,10 +15,10 @@ import net.minecraft.util.Formatting
 import java.awt.Color
 import java.util.function.Consumer
 
-abstract class Module(var name: String, var description: String) {
+abstract class Module(var name: String, var description: String) : IJsonable {
     var settingGroups: MutableList<SettingGroup> = ArrayList()
-
-    var enabled by BoolSetting("Enabled", "Enables or disables the module", false, null, visible = { true })
+    private val enabledGroup = SettingGroup("Enabled", "Settings for enabling or disabling the module")
+    var enabled by setting(enabledGroup,"Enabled", "Enables or disables the module", false, null, visible = { true })
 
     protected fun addGroup(setting: SettingGroup): SettingGroup {
         settingGroups.add(setting)
@@ -134,4 +137,27 @@ abstract class Module(var name: String, var description: String) {
         step: Int? = null,
     ) = group.add(IntSetting(name, description, defaultValue, onChange, visible, min, max, sliderMin, sliderMax, step))
 
+    override fun toJson(): JsonElement {
+        val settings = settingGroups.flatMap { it.settings }
+        val obj = JsonObject()
+        for (setting in settings) {
+            obj.add(setting.getName(), setting.toJson())
+        }
+        obj.add("enabled", enabledGroup.settings[0].toJson())
+        return obj
+    }
+
+    override fun fromJson(json: JsonElement) {
+        val settings = settingGroups.flatMap { it.settings }
+        for (setting in settings) {
+            val settingJson = json.asJsonObject.get(setting.getName())
+            if (settingJson != null) {
+                setting.fromJson(settingJson)
+            }
+        }
+        val enabledJson = json.asJsonObject.get("enabled")
+        if (enabledJson != null) {
+            enabledGroup.settings[0].fromJson(enabledJson)
+        }
+    }
 }

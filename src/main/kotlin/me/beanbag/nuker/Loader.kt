@@ -12,6 +12,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import me.beanbag.nuker.modules.Module
 import me.beanbag.nuker.modules.nuker.Nuker
+import me.beanbag.nuker.utils.FileManager
 import net.minecraft.util.ActionResult
 
 class Loader : ModInitializer {
@@ -27,6 +28,7 @@ class Loader : ModInitializer {
     }
 
     override fun onInitialize() {
+        FileManager.loadModuleConfigs()
         meteorIsPresent = FabricLoader.getInstance().getModContainer("meteor-client").isPresent
 
         ClientTickEvents.START_CLIENT_TICK.register {

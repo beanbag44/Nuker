@@ -1,7 +1,11 @@
 package me.beanbag.nuker.settings
 
+import com.google.gson.JsonElement
+import com.google.gson.JsonPrimitive
 import me.beanbag.nuker.chat.ChatHandler.toCamelCaseName
 import me.beanbag.nuker.settings.enumsettings.Describable
+import me.beanbag.nuker.utils.FileManager
+import me.beanbag.nuker.utils.IJsonable
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 import java.util.function.Consumer
@@ -16,7 +20,7 @@ abstract class AbstractSetting<T : Any>(
     private val defaultValue: T,
     onChange: MutableList<Consumer<T>>?,
     private var visible: Supplier<Boolean>
-) {
+) : IJsonable {
     private var value: T = defaultValue
     private var onChange: MutableList<Consumer<T>> = onChange ?: mutableListOf()
 
@@ -24,16 +28,18 @@ abstract class AbstractSetting<T : Any>(
         value
 
     operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
-        if (this.value != value) {
-            this.value = value
-            onChange.forEach { it.accept(value) }
-        }
+        setValueImplementation(value)
     }
 
     fun setValue(value: T) {
+        setValueImplementation(value)
+    }
+
+    private fun setValueImplementation(value: T) {
         if (this.value != value) {
             this.value = value
             onChange.forEach { it.accept(value) }
+            FileManager.saveModuleConfigs()
         }
     }
 
@@ -44,7 +50,7 @@ abstract class AbstractSetting<T : Any>(
     fun isVisible() = visible.get()
 
     fun setValueFromString(value: String) {
-        valueFromString(value)?.let { this.value = it }
+        valueFromString(value)?.let { setValueImplementation(it) }
     }
 
     abstract fun valueFromString(value: String): T?
@@ -73,4 +79,11 @@ abstract class AbstractSetting<T : Any>(
         return text
     }
 
+    override fun toJson(): JsonElement {
+        return JsonPrimitive(valueToString())
+    }
+
+    override fun fromJson(json: JsonElement) {
+        valueFromString(json.asString)?.let { value = it }
+    }
 }
