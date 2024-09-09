@@ -1,9 +1,9 @@
 package me.beanbag.nuker.module.modules.nuker
 
-import me.beanbag.CoreConfig.module.modules.CoreConfig.handlers.BreakingHandler
-import me.beanbag.CoreConfig.module.modules.CoreConfig.handlers.BreakingHandler.blockTimeouts
-import me.beanbag.CoreConfig.module.modules.CoreConfig.handlers.BreakingHandler.checkAttemptBreaks
-import me.beanbag.CoreConfig.module.modules.CoreConfig.handlers.BreakingHandler.updateBreakingContexts
+import me.beanbag.nuker.handlers.BreakingHandler
+import me.beanbag.nuker.handlers.BreakingHandler.blockTimeouts
+import me.beanbag.nuker.handlers.BreakingHandler.checkAttemptBreaks
+import me.beanbag.nuker.handlers.BreakingHandler.updateBreakingContexts
 import me.beanbag.nuker.ModConfigs.mc
 import me.beanbag.nuker.handlers.BrokenBlockHandler
 import me.beanbag.nuker.module.Module

@@ -1,9 +1,8 @@
-package me.beanbag.CoreConfig.module.modules.CoreConfig.handlers
+package me.beanbag.nuker.handlers
 
 
 import me.beanbag.nuker.ModConfigs
 import me.beanbag.nuker.ModConfigs.mc
-import me.beanbag.nuker.handlers.BrokenBlockHandler
 import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.*
 import me.beanbag.nuker.types.PosAndState
