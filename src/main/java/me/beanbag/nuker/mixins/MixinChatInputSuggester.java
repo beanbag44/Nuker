@@ -5,7 +5,7 @@ import com.mojang.brigadier.context.StringRange;
 import com.mojang.brigadier.suggestion.Suggestion;
 import com.mojang.brigadier.suggestion.Suggestions;
 import me.beanbag.nuker.ModConfigs;
-import me.beanbag.nuker.command.ChatHandler;
+import me.beanbag.nuker.handlers.ChatHandler;
 import net.minecraft.client.gui.screen.ChatInputSuggestor;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.command.CommandSource;
@@ -39,7 +39,6 @@ public abstract class MixinChatInputSuggester {
 
     @Shadow public abstract void show(boolean narrateFirstSuggestion);
 
-    //yes I did take this entire function from baritone, what about it?
     @Inject(method = "refresh", at = @At("HEAD"), cancellable = true)
     private void refresh(CallbackInfo ci) {
         // Anything that is present in the input text before the cursor position
@@ -58,15 +57,14 @@ public abstract class MixinChatInputSuggester {
 
             this.parse = null; // stop coloring
 
-            if (this.completingSuggestions) { // Suppress suggestions update when cycling suggestions.
+            if (this.completingSuggestions) { // aka, the user is tabbing through the suggestion list
                 return;
             }
 
             this.textField.setSuggestion(null); // clear old suggestions
             this.window = null;
-            // TODO: Support populating the command usage
+            // TODO: Support populating the usage text
             this.messages.clear();
-
 
             StringRange range = StringRange.between(prefix.lastIndexOf(" ") + 1, prefix.length()); // if there is no space this starts at 0
 
@@ -78,7 +76,7 @@ public abstract class MixinChatInputSuggester {
 
             this.pendingSuggestions = new CompletableFuture<>();
             this.pendingSuggestions.complete(suggestions);
-            this.show(true); // actually populate the suggestions list from the suggestions future
+            this.show(true);
         }
     }
 }

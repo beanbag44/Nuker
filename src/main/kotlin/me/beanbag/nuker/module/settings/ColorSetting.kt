@@ -4,9 +4,9 @@ import meteordevelopment.meteorclient.utils.render.color.SettingColor
 import java.awt.Color
 import java.util.function.Consumer
 import java.util.function.Supplier
-import org.rusherhack.core.setting.Setting as RusherSetting
-import org.rusherhack.client.api.setting.ColorSetting as RusherColorSetting
 import meteordevelopment.meteorclient.settings.Setting as MeteorSetting
+import org.rusherhack.client.api.setting.ColorSetting as RusherColorSetting
+import org.rusherhack.core.setting.Setting as RusherSetting
 
 class ColorSetting(
     name: String,

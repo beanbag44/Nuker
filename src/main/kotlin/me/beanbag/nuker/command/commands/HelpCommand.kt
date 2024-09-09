@@ -2,12 +2,11 @@ package me.beanbag.nuker.command.commands
 
 import me.beanbag.nuker.ModConfigs
 import me.beanbag.nuker.ModConfigs.COMMAND_PREFIX
-import me.beanbag.nuker.command.ChatHandler
-import me.beanbag.nuker.command.ChatHandler.sendChatLine
 import me.beanbag.nuker.command.ExecutableClickEvent
 import me.beanbag.nuker.command.ICommand
 import me.beanbag.nuker.command.ICommandArgument
 import me.beanbag.nuker.command.arguments.LiteralArgument
+import me.beanbag.nuker.handlers.ChatHandler
 import net.minecraft.text.HoverEvent
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
@@ -25,10 +24,10 @@ class HelpCommand : ICommand {
 
     override fun execute(command: List<String>) {
         ChatHandler.printHeader()
-        sendChatLine(Text.of("Hovering over modules/settings will show more details.\n"))
-        sendChatLine(Text.of("Available commands:\n"))
+        ChatHandler.sendChatLine(Text.of("Hovering over modules/settings will show more details.\n"))
+        ChatHandler.sendChatLine(Text.of("Available commands:\n"))
         for (commandImplementation in ModConfigs.commands) {
-            sendChatLine(commandImplementation.helpText)
+            ChatHandler.sendChatLine(commandImplementation.helpText)
         }
     }
 }

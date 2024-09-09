@@ -1,5 +1,6 @@
 package me.beanbag.nuker.events
 
+import me.beanbag.nuker.events.RenderEvents.Render3D
 import net.fabricmc.fabric.api.event.Event
 import net.fabricmc.fabric.api.event.EventFactory
 

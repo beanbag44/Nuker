@@ -3,6 +3,7 @@ package me.beanbag.nuker.module.settings
 import net.minecraft.block.Block
 import net.minecraft.registry.Registries
 import net.minecraft.util.Identifier
+import org.rusherhack.core.setting.NullSetting
 import java.util.function.Consumer
 import meteordevelopment.meteorclient.settings.Setting as MeteorSetting
 import org.rusherhack.core.setting.Setting as RusherSetting
@@ -33,11 +34,25 @@ class BlockListSetting(
         Registries.BLOCK.ids.map { it.toString().replace("minecraft:", "") }
 
 
-    override fun toRusherSetting(): RusherSetting<*>? {
-        TODO("Not yet implemented")
+    override fun toRusherSetting(): RusherSetting<*> {
+        val rhSetting = NullSetting(getName(), getDescription())
+
+        rhSetting.setVisibility { isVisible() }
+
+        return rhSetting
     }
 
     override fun toMeteorSetting(): MeteorSetting<*>? {
-        TODO("Not yet implemented")
+        val builder = meteordevelopment.meteorclient.settings.BlockListSetting.Builder()
+            .name(getName())
+            .description(getDescription())
+            .defaultValue(getDefaultValue())
+            .onChanged { value: List<Block> -> setValue(value) }
+            .visible { isVisible() }
+
+        val meteorSetting = builder.build()
+        getOnChange().add(Consumer{value -> meteorSetting.set(value)})
+
+        return meteorSetting
     }
 }

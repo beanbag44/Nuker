@@ -1,8 +1,8 @@
 package me.beanbag.nuker.module.settings
 import org.rusherhack.core.setting.BooleanSetting
 import java.util.function.Consumer
-import org.rusherhack.core.setting.Setting as RusherSetting
 import meteordevelopment.meteorclient.settings.Setting as MeteorSetting
+import org.rusherhack.core.setting.Setting as RusherSetting
 
 class BoolSetting(
     name: String,

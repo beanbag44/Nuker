@@ -16,7 +16,6 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
-import java.util.ArrayList
 
 object BlockUtils {
     fun getBlockSphere(center: Vec3d, radius: Double): ArrayList<PosAndState> =

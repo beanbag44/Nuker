@@ -1,8 +1,8 @@
-package me.beanbag.nuker.module.modules.nuker.handlers
+package me.beanbag.nuker.handlers
 
 import me.beanbag.nuker.ModConfigs.mc
-import me.beanbag.nuker.module.modules.nuker.Nuker.ghostBlockTimeout
-import me.beanbag.nuker.module.modules.nuker.Nuker.validateBreak
+import me.beanbag.nuker.module.modules.CoreConfig.ghostBlockTimeout
+import me.beanbag.nuker.module.modules.CoreConfig.validateBreak
 import me.beanbag.nuker.types.TimeoutSet
 import me.beanbag.nuker.utils.BlockUtils.isBlockBroken
 import me.beanbag.nuker.utils.BlockUtils.state

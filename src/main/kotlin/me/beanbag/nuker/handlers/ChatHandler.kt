@@ -1,9 +1,9 @@
-package me.beanbag.nuker.command
+package me.beanbag.nuker.handlers
 
-import me.beanbag.nuker.ModConfigs.mc
 import me.beanbag.nuker.ModConfigs.COMMAND_PREFIX
 import me.beanbag.nuker.ModConfigs.MOD_NAME
 import me.beanbag.nuker.ModConfigs.commands
+import me.beanbag.nuker.ModConfigs.mc
 import me.beanbag.nuker.ModConfigs.modColor
 import me.beanbag.nuker.events.PacketEvents
 import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket

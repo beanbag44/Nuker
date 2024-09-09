@@ -1,14 +1,10 @@
-package me.beanbag.nuker.module.modules.nuker.handlers
+package me.beanbag.CoreConfig.module.modules.CoreConfig.handlers
+
 
 import me.beanbag.nuker.ModConfigs
 import me.beanbag.nuker.ModConfigs.mc
-import me.beanbag.nuker.module.modules.nuker.Nuker
-import me.beanbag.nuker.module.modules.nuker.Nuker.blockTimeout
-import me.beanbag.nuker.module.modules.nuker.Nuker.breakThreshold
-import me.beanbag.nuker.module.modules.nuker.Nuker.doubleBreak
-import me.beanbag.nuker.module.modules.nuker.Nuker.packetLimit
-import me.beanbag.nuker.module.modules.nuker.Nuker.radius
-import me.beanbag.nuker.module.modules.nuker.Nuker.validateBreak
+import me.beanbag.nuker.handlers.BrokenBlockHandler
+import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.*
 import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.TimeoutSet
@@ -30,7 +26,7 @@ import org.rusherhack.client.api.RusherHackAPI
 import java.awt.Color
 
 object BreakingHandler {
-    val blockTimeouts = TimeoutSet<BlockPos> { blockTimeout }.apply { subscribeOnTickUpdate() }
+    val blockTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockTimeout }.apply { subscribeOnTickUpdate() }
     private var breakingContexts = arrayOfNulls<BreakingContext>(2)
     private var packetCounter = 0
 
@@ -66,7 +62,7 @@ object BreakingHandler {
 
             packetCounter += breakPacketCount
 
-            if (packetCounter > packetLimit) return
+            if (packetCounter > CoreConfig.packetLimit) return
 
             breakingContexts[0] = BreakingContext(
                 blockPos,
@@ -86,7 +82,7 @@ object BreakingHandler {
                 startPacketBreaking(blockPos)
             }
 
-            if (breakDelta >= breakThreshold) {
+            if (breakDelta >= CoreConfig.breakThreshold) {
                 onBlockBreak(0)
             }
 
@@ -100,9 +96,9 @@ object BreakingHandler {
                 stopBreakPacket(pos)
             }
 
-            BrokenBlockHandler.putBrokenBlock(pos, !validateBreak)
+            BrokenBlockHandler.putBrokenBlock(pos, !CoreConfig.validateBreak)
 
-            if (!validateBreak) {
+            if (!CoreConfig.validateBreak) {
                 mc.interactionManager?.breakBlock(pos)
             }
         }
@@ -131,7 +127,7 @@ object BreakingHandler {
         )
 
     private fun isAtMaximumCurrentBreakingContexts(): Boolean {
-        if (doubleBreak) {
+        if (CoreConfig.doubleBreak) {
             if (breakingContexts.all { it != null }) {
                 return true
             }
@@ -159,7 +155,7 @@ object BreakingHandler {
                 val index = breakingContexts.indexOf(this)
 
                 mc.player?.let { player ->
-                    if (player.eyePos.distanceTo(pos.toCenterPos()) > radius) {
+                    if (player.eyePos.distanceTo(pos.toCenterPos()) > CoreConfig.radius) {
                         nullifyBreakingContext(index)
                         return@forEach
                     }
@@ -177,7 +173,7 @@ object BreakingHandler {
                 updateBreakDeltas(calcBreakDelta(state, pos, bestTool))
 
                 val threshold = if (breakType.isPrimary()) {
-                    breakThreshold
+                    CoreConfig.breakThreshold
                 } else {
                     1f
                 }
@@ -229,21 +225,21 @@ object BreakingHandler {
         var lastLerpFillColour: Color? = null
         var lastLerpOutlineColour: Color? = null
 
-        var boxList = if (Nuker.renders.enabled()) {
+        var boxList = if (CoreConfig.renders.enabled()) {
             state.getOutlineShape(mc.world, pos).boundingBoxes.toSet()
         } else {
             null
         }
 
         val miningProgress: Float
-            get() = if (Nuker.breakMode == BreakMode.Total) {
+            get() = if (CoreConfig.breakMode == BreakMode.Total) {
                 mineTicks * currentBreakDelta
             } else {
                 additiveBreakDelta
             }
 
         val previousMiningProgress: Float
-            get() = if (Nuker.breakMode == BreakMode.Total) {
+            get() = if (CoreConfig.breakMode == BreakMode.Total) {
                 (mineTicks - 1) * previousBreakDelta
             } else {
                 additiveBreakDelta - currentBreakDelta
@@ -260,40 +256,40 @@ object BreakingHandler {
         }
 
         fun drawRenders(meteorRenderer: Renderer3D?) {
-            val threshold = if (breakType.isPrimary()) 2f - breakThreshold else 1f
+            val threshold = if (breakType.isPrimary()) 2f - CoreConfig.breakThreshold else 1f
             val previousFactor = previousMiningProgress * threshold
             val nextFactor = miningProgress * threshold
             val currentFactor = LerpUtils.lerp(previousFactor, nextFactor, mc.tickDelta)
 
-            val fillColour = if (Nuker.fillColourMode == ColourMode.Dynamic) {
-                val lerpColour = LerpUtils.lerp(Nuker.startFillColour, Nuker.endFillColour, currentFactor.toDouble())
+            val fillColour = if (CoreConfig.fillColourMode == ColourMode.Dynamic) {
+                val lerpColour = LerpUtils.lerp(CoreConfig.startFillColour, CoreConfig.endFillColour, currentFactor.toDouble())
                 lastLerpFillColour = lerpColour
                 lerpColour
             } else {
-                Nuker.staticFillColour
+                CoreConfig.staticFillColour
             }
 
-            val outlineColour = if (Nuker.outlineColourMode == ColourMode.Dynamic) {
+            val outlineColour = if (CoreConfig.outlineColourMode == ColourMode.Dynamic) {
                 val lerpColour =
-                    LerpUtils.lerp(Nuker.startOutlineColour, Nuker.endOutlineColour, currentFactor.toDouble())
+                    LerpUtils.lerp(CoreConfig.startOutlineColour, CoreConfig.endOutlineColour, currentFactor.toDouble())
                 lastLerpOutlineColour = lerpColour
                 lerpColour
             } else {
-                Nuker.staticOutlineColour
+                CoreConfig.staticOutlineColour
             }
 
             boxList?.forEach { box ->
                 val positionedBox = box.offset(pos)
 
-                val renderBox = if (Nuker.renderAnimation == RenderAnimation.Static) {
+                val renderBox = if (CoreConfig.renderAnimation == RenderAnimation.Static) {
                     positionedBox
                 } else {
-                    RenderUtils.getLerpBox(positionedBox, currentFactor, Nuker.renderAnimation)
+                    RenderUtils.getLerpBox(positionedBox, currentFactor, CoreConfig.renderAnimation)
                 }
 
                 when {
                     ModConfigs.meteorIsPresent -> {
-                        val shapeMode = when (Nuker.renders) {
+                        val shapeMode = when (CoreConfig.renders) {
                             RenderType.Both -> ShapeMode.Both
                             RenderType.Fill -> ShapeMode.Sides
                             RenderType.Line -> ShapeMode.Lines
@@ -310,7 +306,7 @@ object BreakingHandler {
                     }
 
                     ModConfigs.rusherIsPresent -> {
-                        if (Nuker.renders != RenderType.Line) {
+                        if (CoreConfig.renders != RenderType.Line) {
                             RusherHackAPI.getRenderer3D().drawBox(
                                 renderBox.minX,
                                 renderBox.minY,
@@ -324,8 +320,8 @@ object BreakingHandler {
                             )
                         }
 
-                        if (Nuker.renders != RenderType.Fill) {
-                            RusherHackAPI.getRenderer3D().setLineWidth(Nuker.outlineWidth)
+                        if (CoreConfig.renders != RenderType.Fill) {
+                            RusherHackAPI.getRenderer3D().setLineWidth(CoreConfig.outlineWidth)
                             RusherHackAPI.getRenderer3D().drawBox(
                                 renderBox.minX,
                                 renderBox.minY,

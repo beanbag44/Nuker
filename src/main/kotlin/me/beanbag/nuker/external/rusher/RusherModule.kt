@@ -1,9 +1,9 @@
 package me.beanbag.nuker.external.rusher
 
+import me.beanbag.nuker.module.Module
 import org.rusherhack.client.api.feature.module.ModuleCategory
 import org.rusherhack.client.api.feature.module.ToggleableModule
 import org.rusherhack.core.setting.NullSetting
-import me.beanbag.nuker.module.Module
 
 class RusherModule(name: String?, description: String?, var module: Module) :
     ToggleableModule(name, description, ModuleCategory.WORLD) {
@@ -11,7 +11,10 @@ class RusherModule(name: String?, description: String?, var module: Module) :
     init {
         for (settingGroup in module.settingGroups) {
             val rhSettingGroup = NullSetting(settingGroup.name, settingGroup.description)
-            settingGroup.settings.forEach{setting -> rhSettingGroup.addSubSettings(setting.toRusherSetting())}
+            settingGroup.settings.forEach{setting ->
+                rhSettingGroup.addSubSettings(setting.toRusherSetting())
+            }
+            registerSettings(rhSettingGroup)
         }
     }
 

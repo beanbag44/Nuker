@@ -2,13 +2,11 @@ package me.beanbag.nuker.command.commands
 
 import me.beanbag.nuker.ModConfigs
 import me.beanbag.nuker.ModConfigs.COMMAND_PREFIX
-import me.beanbag.nuker.command.ChatHandler
-import me.beanbag.nuker.command.ChatHandler.sendChatLine
-import me.beanbag.nuker.command.ChatHandler.toCamelCaseName
 import me.beanbag.nuker.command.ExecutableClickEvent
 import me.beanbag.nuker.command.ICommand
 import me.beanbag.nuker.command.ICommandArgument
 import me.beanbag.nuker.command.arguments.LiteralArgument
+import me.beanbag.nuker.handlers.ChatHandler
 import net.minecraft.text.HoverEvent
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
@@ -30,12 +28,12 @@ class HelpModulesCommand: ICommand {
 
     override fun execute(command: List<String>) {
         ChatHandler.printHeader()
-        sendChatLine(Text.of("Click on a module or type \"${COMMAND_PREFIX}help [module]\" for more details"))
+        ChatHandler.sendChatLine(Text.of("Click on a module or type \"${COMMAND_PREFIX}help [module]\" for more details"))
         for (loaderModule in ModConfigs.modules.values) {
-            sendChatLine(
-                Text.empty().append(Text.literal(toCamelCaseName(loaderModule.name)).styled {
+            ChatHandler.sendChatLine(
+                Text.empty().append(Text.literal(ChatHandler.toCamelCaseName(loaderModule.name)).styled {
                     it.withClickEvent(ExecutableClickEvent {
-                        sendChatLine(loaderModule.helpText())
+                        ChatHandler.sendChatLine(loaderModule.helpText())
                     })
                         .withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, loaderModule.helpText()))
                         .withUnderline(true)

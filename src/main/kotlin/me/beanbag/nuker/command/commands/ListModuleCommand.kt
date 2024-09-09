@@ -2,13 +2,11 @@ package me.beanbag.nuker.command.commands
 
 import me.beanbag.nuker.ModConfigs.COMMAND_PREFIX
 import me.beanbag.nuker.ModConfigs.modColor
-import me.beanbag.nuker.command.ChatHandler
-import me.beanbag.nuker.command.ChatHandler.sendChatLine
-import me.beanbag.nuker.command.ChatHandler.toCamelCaseName
 import me.beanbag.nuker.command.ICommand
 import me.beanbag.nuker.command.ICommandArgument
 import me.beanbag.nuker.command.arguments.LiteralArgument
 import me.beanbag.nuker.command.arguments.ModuleArgument
+import me.beanbag.nuker.handlers.ChatHandler
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 
@@ -27,15 +25,15 @@ class ListModuleCommand : ICommand {
 
 
         val text =
-            Text.literal("${toCamelCaseName(module.name)} - ").append(module.enabledText()).append(Text.literal("\n"))
+            Text.literal("${ChatHandler.toCamelCaseName(module.name)} - ").append(module.enabledText()).append(Text.literal("\n"))
 
         for (settingGroup in module.settingGroups) {
             text.append(Text.literal("${settingGroup.name}\n").styled { it.withColor(modColor) })
             for (setting in settingGroup.settings) {
-                text.append(Text.literal(" " + toCamelCaseName(setting.getName())))
+                text.append(Text.literal(" " + ChatHandler.toCamelCaseName(setting.getName())))
                     .append(Text.literal(" - ${setting.valueToString()}\n").styled { it.withColor(Formatting.GRAY) })
             }
         }
-        sendChatLine(text)
+        ChatHandler.sendChatLine(text)
     }
 }

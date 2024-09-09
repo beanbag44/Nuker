@@ -15,7 +15,7 @@ class MeteorLoader : MeteorAddon() {
     }
 
     override fun onInitialize() {
-        LogUtils.getLogger().info("Initializing CanalTools Addon")
+        LogUtils.getLogger().info("Initializing $MOD_NAME Addon")
 
         for (module in ModConfigs.modules.values) {
             val meteorModule: Module = MeteorModule(module)

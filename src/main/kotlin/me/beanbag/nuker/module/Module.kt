@@ -3,9 +3,9 @@ package me.beanbag.nuker.module
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import me.beanbag.nuker.ModConfigs.modColor
-import me.beanbag.nuker.command.ChatHandler.toCamelCaseName
 import me.beanbag.nuker.command.ExecutableClickEvent
 import me.beanbag.nuker.command.commands.HelpModuleSettingCommand
+import me.beanbag.nuker.handlers.ChatHandler
 import me.beanbag.nuker.module.settings.*
 import me.beanbag.nuker.utils.IJsonable
 import net.minecraft.block.Block
@@ -29,7 +29,7 @@ abstract class Module(var name: String, var description: String) : IJsonable {
     }
 
     fun helpText(): Text {
-        val text = Text.literal("${toCamelCaseName(name)} - ${description}\n")
+        val text = Text.literal("${ChatHandler.toCamelCaseName(name)} - ${description}\n")
 
         for (settingGroup in settingGroups) {
             text.append(Text.literal(settingGroup.name).styled { it.withColor(modColor) })
@@ -39,10 +39,10 @@ abstract class Module(var name: String, var description: String) : IJsonable {
                     )
                 })
             for (setting in settingGroup.settings) {
-                text.append(Text.literal(" " + toCamelCaseName(setting.getName())).styled {
+                text.append(Text.literal(" " + ChatHandler.toCamelCaseName(setting.getName())).styled {
                     it.withUnderline(true)
                         .withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, setting.helpText()))
-                        .withClickEvent(ExecutableClickEvent { HelpModuleSettingCommand().execute(listOf("help", toCamelCaseName(name), toCamelCaseName(setting.getName()))) })
+                        .withClickEvent(ExecutableClickEvent { HelpModuleSettingCommand().execute(listOf("help", ChatHandler.toCamelCaseName(name), ChatHandler.toCamelCaseName(setting.getName()))) })
                 })
                     .append(Text.literal(" - ${setting.getDescription()}\n").styled {
                         it.withColor(
@@ -58,6 +58,8 @@ abstract class Module(var name: String, var description: String) : IJsonable {
         return Text.literal(if (enabled) "Enabled" else "Disabled")
             .styled { it.withColor(if (enabled) Formatting.GREEN else Formatting.RED) }
     }
+
+    fun group(name: String, description: String) = addGroup(SettingGroup(name, description))
 
     fun setting(
         group: SettingGroup,

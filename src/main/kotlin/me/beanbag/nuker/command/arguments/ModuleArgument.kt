@@ -1,9 +1,9 @@
 package me.beanbag.nuker.command.arguments
 
 import me.beanbag.nuker.ModConfigs
-import me.beanbag.nuker.command.ChatHandler
 import me.beanbag.nuker.command.ICommandArgument
 import me.beanbag.nuker.command.MatchType
+import me.beanbag.nuker.handlers.ChatHandler
 import me.beanbag.nuker.module.Module
 
 class ModuleArgument : ICommandArgument {
