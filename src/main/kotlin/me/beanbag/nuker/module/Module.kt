@@ -17,7 +17,7 @@ import java.util.function.Consumer
 
 abstract class Module(var name: String, var description: String) : IJsonable {
     var settingGroups: MutableList<SettingGroup> = ArrayList()
-    private val enabledGroup = SettingGroup("Enabled", "Settings for enabling or disabling the module")
+    val enabledGroup = SettingGroup("Enabled", "Settings for enabling or disabling the module")
     var enabled by setting(enabledGroup,"Enabled", "Enables or disables the module", false, null, visible = { true })
 
     protected fun addGroup(setting: SettingGroup): SettingGroup {

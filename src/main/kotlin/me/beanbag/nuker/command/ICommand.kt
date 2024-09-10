@@ -16,7 +16,7 @@ interface ICommand {
                 return false
             }
             val matchType = arg.getMatch(command.subList(commandIndex, command.size))
-            if (matchType == MatchType.NONE) {
+            if (matchType != MatchType.FULL) {
                 return false
             }
             commandIndex += arg.subArgumentCount
