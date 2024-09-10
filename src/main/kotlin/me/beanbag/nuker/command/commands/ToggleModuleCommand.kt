@@ -1,10 +1,10 @@
 package me.beanbag.nuker.command.commands
 
 import me.beanbag.nuker.ModConfigs.COMMAND_PREFIX
-import me.beanbag.nuker.command.ChatHandler.sendChatLine
 import me.beanbag.nuker.command.ICommand
 import me.beanbag.nuker.command.ICommandArgument
 import me.beanbag.nuker.command.arguments.ModuleArgument
+import me.beanbag.nuker.handlers.ChatHandler
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 
@@ -18,6 +18,6 @@ class ToggleModuleCommand : ICommand {
     override fun execute(command: List<String>) {
         val module = ModuleArgument().getModule(command[0])!!
         module.enabled = !module.enabled
-        sendChatLine(Text.literal("${module.name} is now ").append(module.enabledText()))
+        ChatHandler.sendChatLine(Text.literal("${module.name} is now ").append(module.enabledText()))
     }
 }

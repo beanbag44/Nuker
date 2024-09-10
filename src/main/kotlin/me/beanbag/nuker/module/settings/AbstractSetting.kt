@@ -2,7 +2,7 @@ package me.beanbag.nuker.module.settings
 
 import com.google.gson.JsonElement
 import com.google.gson.JsonPrimitive
-import me.beanbag.nuker.command.ChatHandler.toCamelCaseName
+import me.beanbag.nuker.handlers.ChatHandler
 import me.beanbag.nuker.utils.FileManager
 import me.beanbag.nuker.utils.IJsonable
 import net.minecraft.text.Text
@@ -60,7 +60,7 @@ abstract class AbstractSetting<T : Any>(
     abstract fun toMeteorSetting(): MeteorSetting<*>?
 
     fun helpText(): Text {
-        val text = Text.literal("${toCamelCaseName(name)} - ${description}\n")
+        val text = Text.literal("${ChatHandler.toCamelCaseName(name)} - ${description}\n")
         if (value is Enum<*>) {
             text.append(Text.literal("Possible values:\n"))
             for (enum in (value as Enum<*>).declaringJavaClass.enumConstants) {

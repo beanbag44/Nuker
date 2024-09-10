@@ -2,12 +2,11 @@ package me.beanbag.nuker.command.commands
 
 import me.beanbag.nuker.ModConfigs
 import me.beanbag.nuker.ModConfigs.COMMAND_PREFIX
-import me.beanbag.nuker.command.ChatHandler.printHeader
-import me.beanbag.nuker.command.ChatHandler.sendChatLine
 import me.beanbag.nuker.command.ExecutableClickEvent
 import me.beanbag.nuker.command.ICommand
 import me.beanbag.nuker.command.ICommandArgument
 import me.beanbag.nuker.command.arguments.LiteralArgument
+import me.beanbag.nuker.handlers.ChatHandler
 import net.minecraft.text.HoverEvent
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
@@ -25,9 +24,9 @@ class ListCommand : ICommand {
     override val args: List<ICommandArgument> = listOf(LiteralArgument("list"))
 
     override fun execute(command: List<String>) {
-        printHeader()
+        ChatHandler.printHeader()
         for (loaderModule in ModConfigs.modules.values) {
-            sendChatLine(Text.empty().append(Text.literal(loaderModule.name).styled {
+            ChatHandler.sendChatLine(Text.empty().append(Text.literal(loaderModule.name).styled {
                 it.withClickEvent(ExecutableClickEvent {
                     ListModuleCommand().execute(listOf(loaderModule.name))
                 })
