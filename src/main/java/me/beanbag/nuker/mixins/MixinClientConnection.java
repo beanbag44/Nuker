@@ -1,7 +1,7 @@
 package me.beanbag.nuker.mixins;
 
 import io.netty.channel.ChannelHandlerContext;
-import me.beanbag.nuker.events.PacketEvents;
+import me.beanbag.nuker.eventsystem.events.PacketEvents;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.PacketCallbacks;
 import net.minecraft.network.packet.Packet;

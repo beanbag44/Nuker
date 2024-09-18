@@ -1,7 +1,7 @@
-package me.beanbag.nuker.events
+package me.beanbag.nuker.eventsystem.events
 
-import me.beanbag.nuker.events.PacketEvents.PacketReceive
-import me.beanbag.nuker.events.PacketEvents.PacketSend
+import me.beanbag.nuker.eventsystem.events.PacketEvents.PacketReceive
+import me.beanbag.nuker.eventsystem.events.PacketEvents.PacketSend
 import net.fabricmc.fabric.api.event.Event
 import net.fabricmc.fabric.api.event.EventFactory
 import net.minecraft.network.packet.Packet

@@ -100,7 +100,7 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
             } else {
                 getBlockCube(this.eyePos, CoreConfig.radius)
             }
-        } ?: ArrayList<PosAndState>()
+        } ?: ArrayList()
 
     private fun filterBlocksToFlatten(posAndStateList: ArrayList<PosAndState>) =
         posAndStateList.apply {

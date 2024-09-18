@@ -1,6 +1,6 @@
 package me.beanbag.nuker.mixins;
 
-import me.beanbag.nuker.events.RenderEvents;
+import me.beanbag.nuker.eventsystem.events.RenderEvents;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import org.spongepowered.asm.mixin.Mixin;

@@ -4,8 +4,8 @@ import me.beanbag.nuker.ModConfigs.LOGGER
 import me.beanbag.nuker.ModConfigs.MOD_NAME
 import me.beanbag.nuker.ModConfigs.meteorIsPresent
 import me.beanbag.nuker.ModConfigs.modules
-import me.beanbag.nuker.events.PacketEvents
-import me.beanbag.nuker.events.RenderEvents
+import me.beanbag.nuker.eventsystem.events.PacketEvents
+import me.beanbag.nuker.eventsystem.events.RenderEvents
 import me.beanbag.nuker.handlers.ChatHandler
 import me.beanbag.nuker.module.modules.nuker.Nuker
 import me.beanbag.nuker.utils.FileManager

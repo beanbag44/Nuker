@@ -5,7 +5,7 @@ import me.beanbag.nuker.ModConfigs.MOD_NAME
 import me.beanbag.nuker.ModConfigs.commands
 import me.beanbag.nuker.ModConfigs.mc
 import me.beanbag.nuker.ModConfigs.modColor
-import me.beanbag.nuker.events.PacketEvents
+import me.beanbag.nuker.eventsystem.events.PacketEvents
 import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket
 import net.minecraft.text.Text
 import net.minecraft.util.ActionResult
