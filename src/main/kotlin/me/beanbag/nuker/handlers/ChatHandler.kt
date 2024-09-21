@@ -5,24 +5,33 @@ import me.beanbag.nuker.ModConfigs.MOD_NAME
 import me.beanbag.nuker.ModConfigs.commands
 import me.beanbag.nuker.ModConfigs.mc
 import me.beanbag.nuker.ModConfigs.modColor
-import me.beanbag.nuker.eventsystem.events.PacketEvents
+import me.beanbag.nuker.eventsystem.CallbackHolder
+import me.beanbag.nuker.eventsystem.EventBus
+import me.beanbag.nuker.eventsystem.events.PacketEvent
 import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket
 import net.minecraft.text.Text
 import net.minecraft.util.ActionResult
 
 object ChatHandler {
 
-    fun setup() {
-        PacketEvents.SEND.register { packet ->
+    private val callbackHolder = CallbackHolder()
+
+    init {
+        EventBus.addCallbackHolder(callbackHolder)
+
+        callbackHolder.addCallback<PacketEvent.Send.Pre> { event ->
+            val packet = event.packet
+
             if (packet !is ChatMessageC2SPacket || !packet.chatMessage.startsWith(COMMAND_PREFIX)) {
-                return@register ActionResult.PASS
+                return@addCallback
             }
             val commandParts = packet.chatMessage.substring(COMMAND_PREFIX.length).lowercase().split(" ")
             commands.firstOrNull {
                 it.isMatch(commandParts)
             }?.execute(packet.chatMessage.substring(COMMAND_PREFIX.length).split(" ").filter { it.isNotBlank() })
 
-            return@register ActionResult.FAIL
+            event.cancel()
+            return@addCallback
         }
     }
 

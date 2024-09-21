@@ -5,6 +5,8 @@ import me.beanbag.nuker.handlers.BreakingHandler.blockTimeouts
 import me.beanbag.nuker.handlers.BreakingHandler.checkAttemptBreaks
 import me.beanbag.nuker.handlers.BreakingHandler.updateBreakingContexts
 import me.beanbag.nuker.ModConfigs.mc
+import me.beanbag.nuker.eventsystem.events.PacketEvent
+import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.handlers.BrokenBlockHandler
 import me.beanbag.nuker.module.Module
 import me.beanbag.nuker.module.modules.CoreConfig
@@ -47,53 +49,55 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
     /**/
 
-    override fun onTick() {
-        TimerUtils.tickTickTimerMaps()
+    init {
+        addListener<TickEvent.Pre> {
+            TimerUtils.tickTickTimerMaps()
 
-        if (!enabled) return
+            if (!enabled) return@addListener
 
-        updateTimeoutMaps()
-        updateBreakingContexts()
+            updateTimeoutMaps()
+            updateBreakingContexts()
 
-        mc.player?.let { player ->
-            if (CoreConfig.onGround && !player.isOnGround) return
+            mc.player?.let { player ->
+                if (CoreConfig.onGround && !player.isOnGround) return@addListener
 
-            val blockVolume = getBlockVolume()
+                val blockVolume = getBlockVolume()
 
-            filterBlocksToBreakable(blockVolume)
+                filterBlocksToBreakable(blockVolume)
 
-            if (flattenMode.isEnabled()) {
-                filterBlocksToFlatten(blockVolume)
+                if (flattenMode.isEnabled()) {
+                    filterBlocksToFlatten(blockVolume)
+                }
+
+                if (avoidLiquids) {
+                    filterLiquidSupportingBlocks(blockVolume)
+                }
+
+                if (baritoneSelection) {
+                    filterBlocksToBaritoneSelections(blockVolume)
+                }
+
+                if (litematicaMode) {
+                    updateSchematicMismatches()
+                    filterCorrectlyPlacedLitematicaBlocks(blockVolume)
+                }
+
+                if (canalMode) {
+                    filterBlocksToCanal(blockVolume)
+                }
+
+                blockVolume.removeIf {
+                    blockTimeouts.values().contains(it.blockPos)
+                }
+
+                sortBlockVolume(blockVolume, player.eyePos, mineStyle)
+
+                checkAttemptBreaks(blockVolume)
             }
-
-            if (avoidLiquids) {
-                filterLiquidSupportingBlocks(blockVolume)
-            }
-
-            if (baritoneSelection) {
-                filterBlocksToBaritoneSelections(blockVolume)
-            }
-
-            if (litematicaMode) {
-                updateSchematicMismatches()
-                filterCorrectlyPlacedLitematicaBlocks(blockVolume)
-            }
-
-            if (canalMode) {
-                filterBlocksToCanal(blockVolume)
-            }
-
-            blockVolume.removeIf {
-                blockTimeouts.values().contains(it.blockPos)
-            }
-
-            sortBlockVolume(blockVolume, player.eyePos, mineStyle)
-
-            checkAttemptBreaks(blockVolume)
         }
     }
 
-    private fun getBlockVolume(): ArrayList<PosAndState> =
+    private fun getBlockVolume() =
         mc.player?.run {
             if (shape == VolumeShape.Sphere) {
                 getBlockSphere(this.eyePos, CoreConfig.radius)
@@ -138,20 +142,4 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
                 }
             }
         }
-
-    fun onPacketReceive(packet: Packet<*>) {
-        when (packet) {
-            is BlockUpdateS2CPacket -> {
-                BrokenBlockHandler.onBlockUpdate(packet.pos, packet.state)
-                BreakingHandler.onBlockUpdate(packet.pos, packet.state)
-            }
-
-            is ChunkDeltaUpdateS2CPacket -> {
-                packet.visitUpdates { pos, state ->
-                    BrokenBlockHandler.onBlockUpdate(pos, state)
-                    BreakingHandler.onBlockUpdate(pos, state)
-                }
-            }
-        }
-    }
 }

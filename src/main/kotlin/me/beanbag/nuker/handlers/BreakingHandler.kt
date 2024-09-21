@@ -1,8 +1,10 @@
 package me.beanbag.nuker.handlers
 
-
 import me.beanbag.nuker.ModConfigs
 import me.beanbag.nuker.ModConfigs.mc
+import me.beanbag.nuker.eventsystem.CallbackHolder
+import me.beanbag.nuker.eventsystem.EventBus
+import me.beanbag.nuker.eventsystem.events.PacketEvent
 import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.*
 import me.beanbag.nuker.types.PosAndState
@@ -19,6 +21,8 @@ import meteordevelopment.meteorclient.renderer.Renderer3D
 import meteordevelopment.meteorclient.renderer.ShapeMode
 import net.minecraft.block.BlockState
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket
+import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
+import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import org.rusherhack.client.api.RusherHackAPI
@@ -28,6 +32,24 @@ object BreakingHandler {
     val blockTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockTimeout }.apply { subscribeOnTickUpdate() }
     private var breakingContexts = arrayOfNulls<BreakingContext>(2)
     private var packetCounter = 0
+
+    private val callbackHolder = CallbackHolder()
+
+    init {
+        EventBus.addCallbackHolder(callbackHolder)
+
+        callbackHolder.addCallback<PacketEvent.Receive.Pre> { event ->
+            val packet = event.packet
+
+            if (packet is BlockUpdateS2CPacket) {
+                onBlockUpdate(packet.pos, packet.state)
+            } else if (packet is ChunkDeltaUpdateS2CPacket) {
+                packet.visitUpdates { pos, state ->
+                    onBlockUpdate(pos, state)
+                }
+            }
+        }
+    }
 
     fun checkAttemptBreaks(blockVolume: List<PosAndState>) {
         packetCounter = 0

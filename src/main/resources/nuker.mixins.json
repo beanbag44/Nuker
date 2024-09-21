@@ -10,6 +10,7 @@
   "client": [
     "MixinChatInputSuggester",
     "MixinGameRenderer",
+    "MixinMinecraftClient",
     "MixinScreen"
   ],
   "injectors": {

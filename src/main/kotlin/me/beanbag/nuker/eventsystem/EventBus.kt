@@ -4,27 +4,21 @@ import me.beanbag.nuker.eventsystem.events.Event
 import me.beanbag.nuker.eventsystem.events.ICancellable
 
 object EventBus {
-    val callbackHolderMap = hashMapOf<Class<out Event>, ArrayList<Pair<Class<*>, (Event) -> Unit>>>()
+    private val callbackHolders = hashSetOf<CallbackHolder>()
 
-    inline fun <reified T: Event> subscribe(callbackHolder: Class<*>, noinline callback: (Event) -> Unit) {
-        callbackHolderMap.getOrPut(T::class.java) { arrayListOf() }
-            .add(Pair(callbackHolder, callback))
+    fun addCallbackHolder(callbackHolder: CallbackHolder) {
+        callbackHolders.add(callbackHolder)
     }
 
-    fun unsubscribe(clazz: Class<*>) {
-        callbackHolderMap.values.forEach {
-            it.removeIf { callbackPair ->
-                callbackPair.first == clazz
-            }
-        }
-    }
-
-    fun post(event: Event) {
-        callbackHolderMap[event::class.java]?.let { callbackList ->
-            for (pair in callbackList) {
-                pair.second.invoke(event)
+    fun post(event: Event): Event {
+        for (callbackHolder in callbackHolders) {
+            if (!callbackHolder.isSubscribed()) continue
+            for (callback in callbackHolder.callbacks) {
+                if (event::class.java != callback.key::class.java) continue
+                callback.value.invoke(event)
                 if (event is ICancellable && event.isCanceled()) break
             }
         }
+        return event
     }
 }

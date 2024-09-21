@@ -4,8 +4,8 @@ import me.beanbag.nuker.ModConfigs.LOGGER
 import me.beanbag.nuker.ModConfigs.MOD_NAME
 import me.beanbag.nuker.ModConfigs.meteorIsPresent
 import me.beanbag.nuker.ModConfigs.modules
-import me.beanbag.nuker.eventsystem.events.PacketEvents
-import me.beanbag.nuker.eventsystem.events.RenderEvents
+import me.beanbag.nuker.eventsystem.events.PacketEvent
+import me.beanbag.nuker.eventsystem.events.RenderEvent
 import me.beanbag.nuker.handlers.ChatHandler
 import me.beanbag.nuker.module.modules.nuker.Nuker
 import me.beanbag.nuker.utils.FileManager
@@ -20,21 +20,6 @@ class Loader : ModInitializer {
         FileManager.loadModuleConfigs()
         meteorIsPresent = FabricLoader.getInstance().getModContainer("meteor-client").isPresent
 
-        ClientTickEvents.START_CLIENT_TICK.register {
-            modules.values.forEach {
-                if (it.enabled) {
-                    it.onTick()
-                }
-            }
-        }
-        RenderEvents.RENDER3D.register {
-        }
-        PacketEvents.RECEIVE.register { packet ->
-            Nuker.onPacketReceive(packet)
-            ActionResult.PASS
-        }
-
         LOGGER.info("Initialized $MOD_NAME")
-        ChatHandler.setup()
     }
 }
