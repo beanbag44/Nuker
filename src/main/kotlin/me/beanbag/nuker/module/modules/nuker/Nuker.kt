@@ -21,8 +21,6 @@ import me.beanbag.nuker.utils.BlockUtils.getBlockCube
 import me.beanbag.nuker.utils.BlockUtils.getBlockSphere
 import me.beanbag.nuker.utils.BlockUtils.sortBlockVolume
 import me.beanbag.nuker.utils.LitematicaUtils.updateSchematicMismatches
-import me.beanbag.nuker.utils.TimerUtils
-import me.beanbag.nuker.utils.TimerUtils.updateTimeoutMaps
 import net.minecraft.util.math.Direction
 
 object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
