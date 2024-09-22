@@ -28,6 +28,6 @@ class MeteorLoader : MeteorAddon() {
     }
 
     override fun getPackage(): String {
-        return "me.beanbag.nuker.external.meteor"
+        return "me.beanbag.nuker"
     }
 }
