@@ -36,4 +36,12 @@ object ModConfigs {
         listOf(
             Nuker,
         ).associateByTo(Reference2ReferenceOpenHashMap()) { it.javaClass }
+
+    fun getModuleByName(name: String): Module? {
+        return modules.values.find { it.name.equals(name, true) }
+    }
+
+    fun getModuleByClass(clazz: Class<out Module>): Module? {
+        return modules[clazz]
+    }
 }
