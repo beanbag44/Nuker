@@ -4,7 +4,6 @@ import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap
 import me.beanbag.nuker.command.ICommand
 import me.beanbag.nuker.command.commands.*
 import me.beanbag.nuker.module.Module
-import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.Nuker
 import net.minecraft.client.MinecraftClient
 import net.minecraft.util.Formatting
@@ -36,6 +35,5 @@ object ModConfigs {
     var modules: MutableMap<Class<out Module>, Module> =
         listOf(
             Nuker,
-            CoreConfig,
         ).associateByTo(Reference2ReferenceOpenHashMap()) { it.javaClass }
 }

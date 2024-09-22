@@ -1,13 +1,10 @@
 package me.beanbag.nuker.module.modules.nuker
 
-import me.beanbag.nuker.handlers.BreakingHandler
+import me.beanbag.nuker.ModConfigs.mc
+import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.handlers.BreakingHandler.blockTimeouts
 import me.beanbag.nuker.handlers.BreakingHandler.checkAttemptBreaks
 import me.beanbag.nuker.handlers.BreakingHandler.updateBreakingContexts
-import me.beanbag.nuker.ModConfigs.mc
-import me.beanbag.nuker.eventsystem.events.PacketEvent
-import me.beanbag.nuker.eventsystem.events.TickEvent
-import me.beanbag.nuker.handlers.BrokenBlockHandler
 import me.beanbag.nuker.module.Module
 import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.FlattenMode
@@ -26,9 +23,6 @@ import me.beanbag.nuker.utils.BlockUtils.sortBlockVolume
 import me.beanbag.nuker.utils.LitematicaUtils.updateSchematicMismatches
 import me.beanbag.nuker.utils.TimerUtils
 import me.beanbag.nuker.utils.TimerUtils.updateTimeoutMaps
-import net.minecraft.network.packet.Packet
-import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
-import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
 import net.minecraft.util.math.Direction
 
 object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
@@ -94,6 +88,9 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
                 checkAttemptBreaks(blockVolume)
             }
+        }
+        for (settingGroup in CoreConfig.settingGroups) {
+            settingGroups.add(settingGroup)
         }
     }
 
