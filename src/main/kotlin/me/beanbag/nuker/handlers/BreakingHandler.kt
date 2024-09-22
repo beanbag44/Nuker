@@ -113,7 +113,7 @@ object BreakingHandler {
 
     private fun onBlockBreak(contextIndex: Int) {
         breakingContexts[contextIndex]?.apply {
-            if (breakType.isPrimary()) {
+            if (breakType.isPrimary() && CoreConfig.breakThreshold <= 1) {
                 stopBreakPacket(pos)
             }
 

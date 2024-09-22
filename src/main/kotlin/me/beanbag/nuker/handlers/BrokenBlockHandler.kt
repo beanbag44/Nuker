@@ -46,7 +46,7 @@ object BrokenBlockHandler {
         blockQueue.put(BrokenBlockPos(pos, broken))
     }
 
-    fun onBlockUpdate(pos: BlockPos, state: BlockState) {
+    private fun onBlockUpdate(pos: BlockPos, state: BlockState) {
         blockQueue.values().removeIf { queueBlockPos ->
             if (queueBlockPos != pos) return@removeIf false
 

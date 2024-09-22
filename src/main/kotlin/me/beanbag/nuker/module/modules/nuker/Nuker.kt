@@ -45,11 +45,8 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
     init {
         addListener<TickEvent.Pre> {
-            TimerUtils.tickTickTimerMaps()
-
             if (!enabled) return@addListener
 
-            updateTimeoutMaps()
             updateBreakingContexts()
 
             mc.player?.let { player ->
