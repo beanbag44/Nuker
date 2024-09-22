@@ -159,6 +159,32 @@ abstract class Module(var name: String, var description: String) : IJsonable {
         sliderMax: Int? = null,
     ) = group.add(IntSetting(name, description, defaultValue, onChange, visible, min, max, sliderMin, sliderMax))
 
+    // To support Java
+    fun setting(
+        group: SettingGroup, name: String, description: String, defaultValue: List<Block>
+    ) = setting(group, name, description, defaultValue, null)
+
+    fun setting(
+        group: SettingGroup, name: String, description: String, defaultValue: Boolean
+    ) = setting(group, name, description, defaultValue, null)
+
+    fun setting(
+        group: SettingGroup, name: String, description: String, defaultValue: Color
+    ) = setting(group, name, description, defaultValue, null)
+
+    fun setting(
+        group: SettingGroup, name: String, description: String, defaultValue: Double
+    ) = setting(group, name, description, defaultValue, null)
+
+    fun setting(
+        group: SettingGroup, name: String, description: String, defaultValue: Float
+    ) = setting(group, name, description, defaultValue, null)
+
+    fun setting(
+        group: SettingGroup, name: String, description: String, defaultValue: Int
+    ) = setting(group, name, description, defaultValue, null)
+
+
     override fun toJson(): JsonElement {
         val settings = settingGroups.flatMap { it.settings }
         val obj = JsonObject()

@@ -11,6 +11,10 @@ class CallbackHolder {
         callbacks[T::class.java] = callback as (Event) -> Unit
     }
 
+    fun<T: Event> addCallback(clazz: Class<out Event>, callback: (T) -> Unit) {
+        callbacks[clazz] = callback as (Event) -> Unit
+    }
+
     fun unsubscribe() {
         subscribed = false
     }
