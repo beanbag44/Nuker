@@ -206,7 +206,7 @@ object BreakingHandler {
         }
     }
 
-    fun onBlockUpdate(pos: BlockPos, state: BlockState) {
+    private fun onBlockUpdate(pos: BlockPos, state: BlockState) {
         breakingContexts.forEach {
             it?.let { ctx ->
                 if (ctx.pos != pos || !isBlockBroken(state, ctx.state)) return@forEach
