@@ -20,8 +20,8 @@ class SetModuleSettingCommand : ICommand {
     override val args: List<ICommandArgument> = listOf(ModuleSettingValueArgument())
 
     override fun execute(command: List<String>) {
-        val module = ModuleArgument().getModule(command[0])!!
-        val setting = ModuleSettingArgument().getSetting(module, command[1])!!
+        val module = ModuleArgument().getModule(command[0]) ?: return
+        val setting = ModuleSettingArgument().getSetting(module, command[1]) ?: return
         val value = setting.valueFromString(command[2])
         if (value != null) {
             setting.setValueFromString(command[2])

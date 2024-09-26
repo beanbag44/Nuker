@@ -6,9 +6,7 @@ import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.VolumeSort
 import me.beanbag.nuker.utils.LitematicaUtils.schematicIncorrectBlockPlacements
 import me.beanbag.nuker.utils.LitematicaUtils.schematicIncorrectStatePlacements
-import net.minecraft.block.BlockState
-import net.minecraft.block.Blocks
-import net.minecraft.block.FallingBlock
+import net.minecraft.block.*
 import net.minecraft.fluid.WaterFluid
 import net.minecraft.registry.tag.BiomeTags
 import net.minecraft.state.property.Properties
@@ -16,14 +14,14 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
+import kotlin.collections.ArrayList
 
 object BlockUtils {
     fun getBlockSphere(center: Vec3d, radius: Double): ArrayList<PosAndState> =
         getBlockCube(center, radius).apply {
-            mc.player?.let { player ->
-                removeIf { posAndState ->
-                    center.distanceTo(posAndState.blockPos.toCenterPos()) > radius
-                }
+            removeIf { posAndState ->
+                val closestPoint = posAndState.blockState.getOutlineShape(mc.world, posAndState.blockPos).getClosestPointTo(center)
+                center.distanceTo(if(closestPoint.isPresent) closestPoint.get() else posAndState.blockPos.toCenterPos()) > radius
             }
         }
 
@@ -218,4 +216,31 @@ object BlockUtils {
 
     fun BlockPos.getState(world: World): BlockState =
         world.getBlockState(this)
+
+
+    fun isBlockSign(pos: BlockPos?): Boolean {
+
+        val block = mc.world?.getBlockState(pos)?.block
+
+        return block is AbstractSignBlock
+                || block is AbstractBannerBlock
+    }
+
+    fun isNextToSign(pos: BlockPos): Boolean {
+        if (isBlockSign(pos.north())) return true
+        if (isBlockSign(pos.south())) return true
+        if (isBlockSign(pos.east())) return true
+        if (isBlockSign(pos.west())) return true
+        if (isBlockSign(BlockPos(pos.up()))) return true
+
+        return false
+    }
+}
+
+fun BlockPos.closestCorner(toPos: Vec3d) : Vec3d {
+    val x = if (toPos.x > x) x.toDouble() + 0.001 else x.toDouble() + 0.999
+    val y = if (toPos.y > y) y.toDouble() + 0.001 else y.toDouble() + 0.999
+    val z = if (toPos.z > z) z.toDouble() + 0.001 else z.toDouble() + 0.999
+
+    return Vec3d(x, y, z)
 }

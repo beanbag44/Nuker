@@ -16,7 +16,7 @@ class ToggleModuleCommand : ICommand {
     override val args: List<ICommandArgument> = listOf(ModuleArgument())
 
     override fun execute(command: List<String>) {
-        val module = ModuleArgument().getModule(command[0])!!
+        val module = ModuleArgument().getModule(command[0]) ?: return
         module.enabled = !module.enabled
         ChatHandler.sendChatLine(Text.literal("${module.name} is now ").append(module.enabledText()))
     }

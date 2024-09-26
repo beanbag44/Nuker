@@ -33,7 +33,7 @@ class ColorSetting(
         val rhSetting = RusherColorSetting(getName(), getDescription(), getValue())
 
         rhSetting.setVisibility { isVisible() }
-        rhSetting.onChange{value -> setValue(value!!)}
+        rhSetting.onChange{value -> setValue(value)}
         getOnChange().add(Consumer{value -> rhSetting.value = value})
 
         return rhSetting

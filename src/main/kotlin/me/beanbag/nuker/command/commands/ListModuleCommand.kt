@@ -21,7 +21,7 @@ class ListModuleCommand : ICommand {
 
     override fun execute(command: List<String>) {
         ChatHandler.printHeader()
-        val module = ModuleArgument().getModule(command[1])!!
+        val module = ModuleArgument().getModule(command[1])?: return
 
 
         val text =

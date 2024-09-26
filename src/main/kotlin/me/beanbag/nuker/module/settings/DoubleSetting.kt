@@ -29,7 +29,7 @@ class DoubleSetting(
         val rhSetting = NumberSetting(getName(), getDescription(), getValue(), min?: 0.0, max?: 100.0)
 
         rhSetting.setVisibility { isVisible() }
-        rhSetting.onChange{value -> setValue(value!!)}
+        rhSetting.onChange{value -> setValue(value) }
         getOnChange().add(Consumer{value -> rhSetting.value = value})
 
         return rhSetting
@@ -40,13 +40,13 @@ class DoubleSetting(
             .name(getName())
             .description(getDescription())
             .defaultValue(getValue())
-            .onChanged { value: Double? -> setValue(value!!) }
+            .onChanged { value -> setValue(value) }
             .visible { isVisible() }
-        if (min != null) builder.min(min!!.toDouble())
-        if (max != null) builder.max(max!!.toDouble())
-        if (sliderMin != null) builder.sliderMin(sliderMin!!.toDouble())
-        if (sliderMax != null) builder.sliderMax(sliderMax!!.toDouble())
-        if (step != null) builder.decimalPlaces(decimalPlacesFromNum(step!!))
+        min?.let { builder.min(it) }
+        max?.let { builder.max(it) }
+        sliderMin?.let { builder.sliderMin(it) }
+        sliderMax?.let { builder.sliderMax(it) }
+        step?.let { builder.decimalPlaces(decimalPlacesFromNum(it)) }
 
         val meteorSetting = builder.build()
         getOnChange().add(Consumer{value -> meteorSetting.set(value)})

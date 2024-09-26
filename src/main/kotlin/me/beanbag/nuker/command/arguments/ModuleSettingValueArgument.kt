@@ -25,13 +25,13 @@ class ModuleSettingValueArgument : ICommandArgument {
         if (toMatch.size < 3) {
             return MatchType.PARTIAL
         }
-        val module = ModuleArgument().getModule(toMatch[0])!!
-        val setting = ModuleSettingArgument().getSetting(module, toMatch[1])!!
+        val module = ModuleArgument().getModule(toMatch[0])?: return MatchType.PARTIAL
+        val setting = ModuleSettingArgument().getSetting(module, toMatch[1])?: return MatchType.PARTIAL
         val value = setting.valueFromString(toMatch[2])
         if (value != null) {
             return MatchType.FULL
         }
-        if (setting.possibleValues() != null && setting.possibleValues()!!.any { it.lowercase().startsWith(toMatch[2].lowercase()) }) {
+        if (setting.possibleValues()?.any { it.lowercase().startsWith(toMatch[2].lowercase()) } == true) {
             return MatchType.PARTIAL
         }
         return MatchType.NONE

@@ -23,7 +23,7 @@ class HelpModuleCommand : ICommand{
 
     override fun execute(command: List<String>) {
         ChatHandler.printHeader()
-        val module = ModuleArgument().getModule(command[1])!!
-        ChatHandler.sendChatLine(module.helpText())
+        val module = ModuleArgument().getModule(command[1])
+        module?.let { ChatHandler.sendChatLine(it.helpText()) }
     }
 }

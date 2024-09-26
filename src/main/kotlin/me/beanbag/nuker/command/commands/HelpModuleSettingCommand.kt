@@ -22,8 +22,8 @@ class HelpModuleSettingCommand : ICommand {
 
     override fun execute(command: List<String>) {
         ChatHandler.printHeader()
-        val module = ModuleArgument().getModule(command[1])!!
-        val setting = ModuleSettingArgument().getSetting(module, command[2])!!
+        val module = ModuleArgument().getModule(command[1])?: return
+        val setting = ModuleSettingArgument().getSetting(module, command[2])?: return
         ChatHandler.sendChatLine(setting.helpText())
     }
 }

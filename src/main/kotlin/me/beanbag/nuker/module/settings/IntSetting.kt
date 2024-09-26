@@ -29,7 +29,7 @@ class IntSetting(
         val rhSetting = NumberSetting(getName(), getDescription(), getValue(), min?: 0, max?: 100)
 
         rhSetting.setVisibility { isVisible() }
-        rhSetting.onChange{value -> setValue(value!!)}
+        rhSetting.onChange{value -> setValue(value)}
         getOnChange().add(Consumer{value -> rhSetting.value = value})
 
         return rhSetting
@@ -40,12 +40,12 @@ class IntSetting(
             .name(getName())
             .description(getDescription())
             .defaultValue(getValue())
-            .onChanged { value: Int? -> setValue(value!!) }
+            .onChanged { value -> setValue(value) }
             .visible { isVisible() }
-        if (min != null) builder.min(min!!)
-        if (max != null) builder.max(max!!)
-        if (sliderMin != null) builder.sliderMin(sliderMin!!)
-        if (sliderMax != null) builder.sliderMax(sliderMax!!)
+        min?.let { builder.min(it) }
+        max?.let { builder.max(it) }
+        sliderMin?.let { builder.sliderMin(it) }
+        sliderMax?.let { builder.sliderMax(it) }
 
         val meteorSetting = builder.build()
         getOnChange().add(Consumer{value -> meteorSetting.set(value)})

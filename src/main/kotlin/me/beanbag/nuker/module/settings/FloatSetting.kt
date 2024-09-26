@@ -29,7 +29,7 @@ class FloatSetting(
         val rhSetting = NumberSetting(getName(), getDescription(), getValue(), min?: 0.0f, max?: 100.0f)
 
         rhSetting.setVisibility { isVisible() }
-        rhSetting.onChange{value -> setValue(value!!)}
+        rhSetting.onChange{value -> setValue(value)}
         getOnChange().add(Consumer{value -> rhSetting.value = value})
 
         return rhSetting
@@ -40,13 +40,13 @@ class FloatSetting(
             .name(getName())
             .description(getDescription())
             .defaultValue(getValue().toDouble())
-            .onChanged { value: Double? -> setValue(value!!.toFloat()) }
+            .onChanged { value -> setValue(value.toFloat()) }
             .visible { isVisible() }
-        if (min != null) builder.min(min!!.toDouble())
-        if (max != null) builder.max(max!!.toDouble())
-        if (sliderMin != null) builder.sliderMin(sliderMin!!.toDouble())
-        if (sliderMax != null) builder.sliderMax(sliderMax!!.toDouble())
-        if (step != null) builder.decimalPlaces(decimalPlacesFromNum(step!!))
+        min?.let { builder.min(it.toDouble()) }
+        max?.let { builder.max(it.toDouble()) }
+        sliderMin?.let { builder.sliderMin(it.toDouble()) }
+        sliderMax?.let { builder.sliderMax(it.toDouble()) }
+        step?.let { builder.decimalPlaces(decimalPlacesFromNum(it)) }
 
         val meteorSetting = builder.build()
         getOnChange().add(Consumer{value -> meteorSetting.set(value.toDouble())})

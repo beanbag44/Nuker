@@ -9,10 +9,11 @@ import net.minecraft.client.MinecraftClient
 import net.minecraft.util.Formatting
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.awt.Color
 
 object ModConfigs {
     //Mod specific
-    val modColor = Formatting.BLUE.colorValue!!
+    val modColor = Formatting.BLUE.colorValue ?: Color(0, 0, 255).rgb
     const val MOD_NAME = "Nuker"
     const val COMMAND_PREFIX = "&&"
 
