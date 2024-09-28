@@ -14,14 +14,15 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import net.minecraft.util.math.Vec3d
 import net.minecraft.world.World
-import kotlin.collections.ArrayList
+import kotlin.jvm.optionals.getOrNull
 
 object BlockUtils {
     fun getBlockSphere(center: Vec3d, radius: Double): ArrayList<PosAndState> =
         getBlockCube(center, radius).apply {
             removeIf { posAndState ->
-                val closestPoint = posAndState.blockState.getOutlineShape(mc.world, posAndState.blockPos).getClosestPointTo(center)
-                center.distanceTo(if(closestPoint.isPresent) closestPoint.get() else posAndState.blockPos.toCenterPos()) > radius
+                val posVec3d = Vec3d(posAndState.blockPos.x.toDouble(), posAndState.blockPos.y.toDouble(), posAndState.blockPos.z.toDouble())
+                val closestPoint = posAndState.blockState.getOutlineShape(mc.world, posAndState.blockPos).getClosestPointTo(center).getOrNull()?.add(posVec3d)
+                center.distanceTo(closestPoint ?: posAndState.blockPos.toCenterPos()) > radius
             }
         }
 
