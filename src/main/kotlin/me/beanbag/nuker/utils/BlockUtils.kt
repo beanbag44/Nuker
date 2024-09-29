@@ -2,17 +2,21 @@ package me.beanbag.nuker.utils
 
 import baritone.api.BaritoneAPI
 import me.beanbag.nuker.ModConfigs.mc
+import me.beanbag.nuker.module.modules.nuker.enumsettings.FlattenMode
 import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.VolumeSort
 import me.beanbag.nuker.utils.LitematicaUtils.schematicIncorrectBlockPlacements
 import me.beanbag.nuker.utils.LitematicaUtils.schematicIncorrectStatePlacements
 import net.minecraft.block.*
+import net.minecraft.fluid.FlowableFluid
+import net.minecraft.fluid.LavaFluid
 import net.minecraft.fluid.WaterFluid
 import net.minecraft.registry.tag.BiomeTags
 import net.minecraft.state.property.Properties
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import net.minecraft.util.math.Vec3d
+import net.minecraft.util.math.Vec3i
 import net.minecraft.world.World
 import kotlin.jvm.optionals.getOrNull
 
@@ -28,28 +32,12 @@ object BlockUtils {
 
     fun getBlockCube(center: Vec3d, radius: Double): ArrayList<PosAndState> {
         val posList = arrayListOf<PosAndState>()
-        val radToInt = radius.toInt()
-        val radDecimal = radius - radToInt
-        for (x in -radToInt..radToInt) {
-            for (y in -radToInt..radToInt) {
-                for (z in -radToInt..radToInt) {
-                    val xRadDecimal = if (x > 0) radDecimal else -radDecimal
-                    val yRadDecimal = if (y > 0) radDecimal else -radDecimal
-                    val zRadDecimal = if (z > 0) radDecimal else -radDecimal
-                    val pos = BlockPos(
-                        (center.x + x + xRadDecimal).toInt(),
-                        (center.y + y + yRadDecimal).toInt(),
-                        (center.z + z + zRadDecimal).toInt()
-                    )
-                    mc.world?.let { world ->
-                        posList.add(
-                            PosAndState(
-                                pos,
-                                pos.getState(world)
-                            )
-                        )
-                    }
-                }
+        val min = BlockPos((center.x - radius).toInt(), (center.y - radius).toInt(), (center.z - radius).toInt())
+        val max = BlockPos((center.x + radius).toInt(), (center.y + radius).toInt(), (center.z + radius).toInt())
+
+        allPosInBounds(min, max).map { pos ->
+            mc.world?.let { world ->
+                posList.add(PosAndState(pos, pos.getState(world)))
             }
         }
         return posList
@@ -79,41 +67,48 @@ object BlockUtils {
         }
 
     fun filterLiquidSupportingBlocks(posAndStateList: ArrayList<PosAndState>) =
+        posAndStateList.removeIf { willReleaseLiquids(it) }
+
+    fun filterBlocksToFlatten(
+        posAndStateList: ArrayList<PosAndState>,
+        crouchLowersFlatten: Boolean,
+        flattenMode: FlattenMode
+    ) =
         posAndStateList.apply {
-            var scannerPos: BlockPos
-
-            removeIf {
-                if (isAdjacentToLiquid(it.blockPos)) return@removeIf true
-
-                scannerPos = it.blockPos.up()
-
-                if (scannerPos.state?.block !is FallingBlock) return@removeIf false
-
-                if (isAdjacentToLiquid(scannerPos)) return@removeIf true
-
-                while (true) {
-                    scannerPos = scannerPos.up()
-
-                    if (scannerPos.state?.block !is FallingBlock) return@removeIf false
-
-                    if (isAdjacentToLiquid(scannerPos)) break
+            mc.player?.let { player ->
+                val playerPos = player.blockPos
+                val flattenLevel = if (crouchLowersFlatten && player.isSneaking) {
+                    playerPos.y - 1
+                } else {
+                    playerPos.y
                 }
 
-                true
+                if (!flattenMode.isSmart()) {
+                    removeIf {
+                        it.blockPos.y < flattenLevel
+                    }
+                    return@apply
+                }
+
+                val playerLookDir = player.horizontalFacing
+                val smartFlattenDir = if (flattenMode == FlattenMode.Smart) {
+                    playerLookDir
+                } else {
+                    playerLookDir?.opposite
+                }
+
+                removeIf {
+                    if (it.blockPos.y >= flattenLevel) return@removeIf false
+
+                    val zeroedPos = it.blockPos.add(-playerPos.x, -playerPos.y, -playerPos.z)
+
+                    return@removeIf (zeroedPos.x >= 0 && smartFlattenDir == Direction.EAST)
+                            || (zeroedPos.z >= 0 && smartFlattenDir == Direction.SOUTH)
+                            || (zeroedPos.x <= 0 && smartFlattenDir == Direction.WEST)
+                            || (zeroedPos.z <= 0 && smartFlattenDir == Direction.NORTH)
+                }
             }
         }
-
-    private fun isAdjacentToLiquid(blockPos: BlockPos): Boolean {
-        mc.world?.let { world ->
-            Direction.entries.forEach { direction ->
-                if (direction == Direction.DOWN) return@forEach
-
-                if (!blockPos.offset(direction).getState(world).fluidState.isEmpty) return true
-            }
-
-            return false
-        } ?: return false
-    }
 
     fun filterBlocksToBaritoneSelections(posAndStateList: ArrayList<PosAndState>) =
         posAndStateList.apply {
@@ -205,7 +200,7 @@ object BlockUtils {
         } ?: return false
     }
 
-    private fun isStateEmpty(state: BlockState) =
+    fun isStateEmpty(state: BlockState) =
         state.isAir || (
                 (!state.properties.contains(Properties.WATERLOGGED)
                         || !state.get(Properties.WATERLOGGED))
@@ -219,23 +214,120 @@ object BlockUtils {
         world.getBlockState(this)
 
 
-    fun isBlockSign(pos: BlockPos?): Boolean {
-
+    fun isSignOrBanner(pos: BlockPos): Boolean {
         val block = mc.world?.getBlockState(pos)?.block
-
-        return block is AbstractSignBlock
-                || block is AbstractBannerBlock
+        return block is AbstractSignBlock || block is AbstractBannerBlock
     }
 
-    fun isNextToSign(pos: BlockPos): Boolean {
-        if (isBlockSign(pos.north())) return true
-        if (isBlockSign(pos.south())) return true
-        if (isBlockSign(pos.east())) return true
-        if (isBlockSign(pos.west())) return true
-        if (isBlockSign(BlockPos(pos.up()))) return true
+    private fun willReleaseAdjacentLiquids(block:PosAndState) : Boolean {
+        mc.world?.let { world ->
+            for(direction in Direction.entries) {
+                if (direction == Direction.DOWN) continue
 
+                val adjacentPos = block.blockPos.add(direction.vector)
+                val adjacent = PosAndState.from(adjacentPos, world)
+                val fluidState = adjacent.blockState.fluidState
+                val fluid = fluidState.fluid
+
+                if (fluidState.isEmpty || fluid !is FlowableFluid) continue
+
+                if (direction == Direction.UP) return true
+
+                if (adjacent.blockState.block is Waterloggable && !fluidState.isEmpty) { return true }
+
+                val levelDecreasePerBlock =
+                    when (fluid) {
+                        is WaterFluid -> fluid.getLevelDecreasePerBlock(world)
+                        is LavaFluid -> fluid.getLevelDecreasePerBlock(world)
+                        else -> 0
+                    }
+
+                if (fluidState.level - levelDecreasePerBlock > 0) {
+                    return true
+                }
+            }
+        }
         return false
     }
+
+
+    fun willReleaseLiquids(block: PosAndState): Boolean {
+        val blocksThatWillUpdate = blocksThatWillUpdate(block)
+        return blocksThatWillUpdate.any { willReleaseAdjacentLiquids(it) }
+    }
+
+    private fun isSupportingAdjacentSignOrBanner(pos: BlockPos): Boolean {
+        mc.world?.let { world ->
+            for (direction in Direction.entries) {
+                val adjacentPos = pos.add(direction.vector)
+                val state = world.getBlockState(adjacentPos)
+                val block = state.block
+                if (block is AbstractSignBlock) {
+                    if (block is SignBlock && direction == Direction.UP) {
+                        return true
+                    } else if (block is WallSignBlock && direction == (state.get(WallBannerBlock.FACING) as Direction)) {
+                        return true
+                    } else if (block is HangingSignBlock && direction == Direction.DOWN) {
+                        return true
+                    }
+                    //Note, we don't check WallHangingSign because it will persist if the "supporting" block is destroyed
+                }
+                if (block is AbstractBannerBlock) {
+                    if (block is WallBannerBlock && direction == (state.get(WallBannerBlock.FACING) as Direction)) {
+                        return true
+                    } else if (block is BannerBlock && direction == Direction.UP) {
+                        return  true
+                    }
+                }
+            }
+        }
+       return false
+    }
+
+    fun blocksThatWillUpdate(block:PosAndState) : List<PosAndState> {
+        val blocksThatWillUpdate = hashSetOf<PosAndState>()
+        val checkQueue = hashSetOf(block)
+
+        mc.world?.let { world ->
+            while(checkQueue.isNotEmpty()) {
+                val currentPos = checkQueue.first()
+                checkQueue.remove(currentPos)
+                blocksThatWillUpdate.add(currentPos)
+                for (direction in Direction.entries) {
+                    val adjacentPos = currentPos.blockPos.add(direction.vector)
+                    val adjacent = PosAndState.from(adjacentPos, world)
+                    if (adjacent.blockState.block is FallingBlock) {
+                        if (blocksThatWillUpdate.contains(adjacent)) {
+                            continue
+                        }
+                        if (direction == Direction.UP) {
+                            checkQueue.add(adjacent)
+                        } else if (FallingBlock.canFallThrough(world.getBlockState(adjacentPos.down()))) {
+                            checkQueue.add(adjacent)
+                        }
+                    }
+                }
+            }
+        }
+
+        return blocksThatWillUpdate.toList()
+    }
+
+    fun isSupportingSignOrBanner(block: PosAndState): Boolean =
+        blocksThatWillUpdate(block).any { isSupportingAdjacentSignOrBanner(it.blockPos) }
+
+    fun allPosInBounds(pos1: BlockPos, pos2: BlockPos): List<BlockPos> = forEachXYZ(pos1, pos2) { BlockPos(it) }
+
+    private fun <T> forEachXYZ(min: Vec3i, max: Vec3i, action: (Vec3i) -> T): List<T> =
+        (min.x..max.x).flatMap { x ->
+            (min.y..max.y).flatMap { y ->
+                (min.z..max.z).map { z ->
+                    action(Vec3i(x, y, z))
+                }
+            }
+        }
+
+
 }
 
 fun BlockPos.closestCorner(toPos: Vec3d) : Vec3d {

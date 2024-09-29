@@ -12,9 +12,11 @@ import me.beanbag.nuker.module.modules.nuker.enumsettings.VolumeShape
 import me.beanbag.nuker.module.settings.SettingGroup
 import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.VolumeSort
+import me.beanbag.nuker.utils.BlockUtils
 import me.beanbag.nuker.utils.BlockUtils.filterBlocksToBaritoneSelections
 import me.beanbag.nuker.utils.BlockUtils.filterBlocksToBreakable
 import me.beanbag.nuker.utils.BlockUtils.filterBlocksToCanal
+import me.beanbag.nuker.utils.BlockUtils.filterBlocksToFlatten
 import me.beanbag.nuker.utils.BlockUtils.filterCorrectlyPlacedLitematicaBlocks
 import me.beanbag.nuker.utils.BlockUtils.filterLiquidSupportingBlocks
 import me.beanbag.nuker.utils.BlockUtils.getBlockCube
@@ -55,7 +57,7 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
                 filterBlocksToBreakable(blockVolume)
 
                 if (flattenMode.isEnabled()) {
-                    filterBlocksToFlatten(blockVolume)
+                    filterBlocksToFlatten(blockVolume, crouchLowersFlatten, flattenMode)
                 }
 
                 if (avoidLiquids) {
@@ -97,41 +99,4 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
                 getBlockCube(this.eyePos, CoreConfig.radius)
             }
         } ?: ArrayList()
-
-    private fun filterBlocksToFlatten(posAndStateList: ArrayList<PosAndState>) =
-        posAndStateList.apply {
-            mc.player?.let { player ->
-                val playerPos = player.blockPos
-                val flattenLevel = if (crouchLowersFlatten && player.isSneaking) {
-                    playerPos.y - 1
-                } else {
-                    playerPos.y
-                }
-
-                if (!flattenMode.isSmart()) {
-                    removeIf {
-                        it.blockPos.y < flattenLevel
-                    }
-                    return@apply
-                }
-
-                val playerLookDir = player.horizontalFacing
-                val smartFlattenDir = if (flattenMode == FlattenMode.Smart) {
-                    playerLookDir
-                } else {
-                    playerLookDir?.opposite
-                }
-
-                removeIf {
-                    if (it.blockPos.y >= flattenLevel) return@removeIf false
-
-                    val zeroedPos = it.blockPos.add(-playerPos.x, -playerPos.y, -playerPos.z)
-
-                    return@removeIf (zeroedPos.x >= 0 && smartFlattenDir == Direction.EAST)
-                            || (zeroedPos.z >= 0 && smartFlattenDir == Direction.SOUTH)
-                            || (zeroedPos.x <= 0 && smartFlattenDir == Direction.WEST)
-                            || (zeroedPos.z <= 0 && smartFlattenDir == Direction.NORTH)
-                }
-            }
-        }
 }
