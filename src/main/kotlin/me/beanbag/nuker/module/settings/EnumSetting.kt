@@ -44,10 +44,11 @@ class EnumSetting<T : Enum<T>>(
     }
 
     override fun toMeteorSetting(): MeteorSetting<*>? {
+        println("Enum: ${getValue()} ${getValue().declaringJavaClass} ${getValue().declaringJavaClass.enumConstants}")
         val builder = meteordevelopment.meteorclient.settings.EnumSetting.Builder<T>()
             .name(getName())
             .description(getDescriptionWithEnum())
-            .defaultValue(getValue())
+            .defaultValue(getDefaultValue())
             .onChanged { value: T -> setValue(value) }
             .visible { isVisible() }
         val meteorSetting = builder.build()

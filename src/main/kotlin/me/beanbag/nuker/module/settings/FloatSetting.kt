@@ -39,7 +39,7 @@ class FloatSetting(
         val builder = meteordevelopment.meteorclient.settings.DoubleSetting.Builder()
             .name(getName())
             .description(getDescription())
-            .defaultValue(getValue().toDouble())
+            .defaultValue(getDefaultValue().toDouble())
             .onChanged { value -> setValue(value.toFloat()) }
             .visible { isVisible() }
         min?.let { builder.min(it.toDouble()) }

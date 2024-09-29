@@ -39,7 +39,7 @@ class IntSetting(
         val builder = meteordevelopment.meteorclient.settings.IntSetting.Builder()
             .name(getName())
             .description(getDescription())
-            .defaultValue(getValue())
+            .defaultValue(getDefaultValue())
             .onChanged { value -> setValue(value) }
             .visible { isVisible() }
         min?.let { builder.min(it) }

@@ -39,7 +39,7 @@ class DoubleSetting(
         val builder = meteordevelopment.meteorclient.settings.DoubleSetting.Builder()
             .name(getName())
             .description(getDescription())
-            .defaultValue(getValue())
+            .defaultValue(getDefaultValue())
             .onChanged { value -> setValue(value) }
             .visible { isVisible() }
         min?.let { builder.min(it) }
