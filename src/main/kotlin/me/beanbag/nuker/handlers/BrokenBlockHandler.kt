@@ -9,6 +9,7 @@ import me.beanbag.nuker.module.modules.CoreConfig.validateBreak
 import me.beanbag.nuker.types.TimeoutSet
 import me.beanbag.nuker.utils.BlockUtils.isBlockBroken
 import me.beanbag.nuker.utils.BlockUtils.state
+import me.beanbag.nuker.utils.ThreadUtils
 import me.beanbag.nuker.utils.TimerUtils.subscribeOnTickUpdate
 import net.minecraft.block.BlockState
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
@@ -52,7 +53,9 @@ object BrokenBlockHandler {
 
             if (!queueBlockPos.broken) {
                 if (!isBlockBroken(queueBlockPos.state, state)) return@removeIf false
-                mc.interactionManager?.breakBlock(pos)
+                ThreadUtils.runOnMainThread {
+                    mc.interactionManager?.breakBlock(pos)
+                }
             }
 
             return@removeIf true

@@ -16,6 +16,7 @@ import me.beanbag.nuker.utils.InventoryUtils.getBestTool
 import me.beanbag.nuker.utils.InventoryUtils.swapTo
 import me.beanbag.nuker.utils.LerpUtils
 import me.beanbag.nuker.utils.RenderUtils
+import me.beanbag.nuker.utils.ThreadUtils
 import me.beanbag.nuker.utils.TimerUtils.subscribeOnTickUpdate
 import meteordevelopment.meteorclient.renderer.Renderer3D
 import meteordevelopment.meteorclient.renderer.ShapeMode
@@ -120,7 +121,9 @@ object BreakingHandler {
             BrokenBlockHandler.putBrokenBlock(pos, !CoreConfig.validateBreak)
 
             if (!CoreConfig.validateBreak) {
-                mc.interactionManager?.breakBlock(pos)
+                ThreadUtils.runOnMainThread {
+                    mc.interactionManager?.breakBlock(pos)
+                }
             }
         }
         nullifyBreakingContext(contextIndex)
@@ -210,8 +213,9 @@ object BreakingHandler {
         breakingContexts.forEach {
             it?.let { ctx ->
                 if (ctx.pos != pos || !isBlockBroken(state, ctx.state)) return@forEach
-
-                mc.interactionManager?.breakBlock(pos)
+                ThreadUtils.runOnMainThread {
+                    mc.interactionManager?.breakBlock(pos)
+                }
                 nullifyBreakingContext(breakingContexts.indexOf(ctx))
             }
         }

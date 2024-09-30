@@ -1,11 +1,12 @@
 package me.beanbag.nuker.types
 
 import me.beanbag.nuker.utils.TimerUtils.subscribeTickTimerMap
+import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 import java.util.function.Supplier
 
 class TimeoutSet<T>(private var timeout: Supplier<Int>) {
-    private val map = hashMapOf<TickCounter, T>().apply { subscribeTickTimerMap() }
+    private val map = ConcurrentHashMap<TickCounter, T>().apply { subscribeTickTimerMap() }
     private var onTimeout: Consumer<T>? = null
 
     fun put(value: T) {
