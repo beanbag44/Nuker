@@ -78,11 +78,8 @@ object BreakingHandler {
                 if (this.bestTool != bestTool) return@forEach
             }
 
-            var requiredShift = false
-
             breakingContexts[0]?.run {
                 breakingContexts.shiftPrimaryDown()
-                requiredShift = true
             }
 
             val breakDelta = calcBreakDelta(block.blockState, blockPos, bestTool)
@@ -98,7 +95,6 @@ object BreakingHandler {
                 block.blockState,
                 breakDelta,
                 bestTool,
-                requiredShift
             )
 
             if (breakingContexts[1] == null) {
@@ -159,13 +155,8 @@ object BreakingHandler {
 
     private fun isAtMaximumCurrentBreakingContexts(): Boolean {
         if (CoreConfig.doubleBreak) {
-            if (breakingContexts.all { it != null }) {
+            if (breakingContexts.any { it?.breakType?.isPrimary() == false }) {
                 return true
-            }
-            breakingContexts[0]?.run {
-                if (startedWithDoubleBreak) {
-                    return true
-                }
             }
         } else {
             if (breakingContexts.firstOrNull() != null) return false
@@ -248,7 +239,6 @@ object BreakingHandler {
         val state: BlockState,
         var currentBreakDelta: Float,
         var bestTool: Int,
-        val startedWithDoubleBreak: Boolean
     ) {
         var mineTicks: Int = 0
         var breakType = BreakType.Primary
