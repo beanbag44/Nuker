@@ -21,7 +21,7 @@ object LerpUtils {
         )
 
     fun lerp(start: Int, end: Int, factor: Double, min: Int, max: Int) =
-        start + ((end - start) * (factor * 100).toInt().coerceIn(min, max))
+        (start + ((end - start) * factor).toInt()).coerceIn(min, max)
 
     fun lerp(colour1: Color, colour2: Color, factor: Double) =
         Color(

@@ -21,6 +21,7 @@ class MeteorLoader : MeteorAddon() {
             val meteorModule: Module = MeteorModule(module)
             Modules.get().add(meteorModule)
         }
+        MeteorEventSubscriber().subscribe()
     }
 
     override fun onRegisterCategories() {

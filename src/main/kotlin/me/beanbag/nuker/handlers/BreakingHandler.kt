@@ -4,6 +4,7 @@ import me.beanbag.nuker.ModConfigs
 import me.beanbag.nuker.ModConfigs.mc
 import me.beanbag.nuker.eventsystem.CallbackHolder
 import me.beanbag.nuker.eventsystem.EventBus
+import me.beanbag.nuker.eventsystem.events.MeteorRenderEvent
 import me.beanbag.nuker.eventsystem.events.PacketEvent
 import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.*
@@ -48,6 +49,12 @@ object BreakingHandler {
                 packet.visitUpdates { pos, state ->
                     onBlockUpdate(pos, state)
                 }
+            }
+        }
+
+        callbackHolder.addCallback<MeteorRenderEvent> { event ->
+            breakingContexts.forEach { ctx ->
+                ctx?.drawRenders(event.renderer)
             }
         }
     }
