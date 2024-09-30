@@ -5,9 +5,10 @@ import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.types.TickCounter
 import me.beanbag.nuker.types.TimeoutSet
+import java.util.concurrent.ConcurrentHashMap
 
 object TimerUtils {
-    private val tickTimerMaps = arrayListOf<HashMap<TickCounter, *>>()
+    private val tickTimerMaps = arrayListOf<ConcurrentHashMap<TickCounter, *>>()
     private val timeoutMaps = arrayListOf<TimeoutSet<*>>()
     private var callbackHolder = CallbackHolder()
 
@@ -24,7 +25,7 @@ object TimerUtils {
         }
     }
 
-    fun HashMap<TickCounter, *>.subscribeTickTimerMap() {
+    fun ConcurrentHashMap<TickCounter, *>.subscribeTickTimerMap() {
         tickTimerMaps.add(this)
     }
 
