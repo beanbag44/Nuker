@@ -28,6 +28,7 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
     /*
     settings
      */
+
     val generalGroup = addGroup(SettingGroup("General", "General settings for nuker"))
     val shape by setting(generalGroup,"Shape", "The shape used to select the blocks to break", VolumeShape.Sphere, null) { true }
     val mineStyle by setting(generalGroup, "Mine Style", "The order which blocks are broken in", VolumeSort.Closest, null) { true }
@@ -38,8 +39,8 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
     val baritoneSelection by setting(generalGroup, "Baritone Selection", "Only breaks blocks inside baritone selections", false, null) { true }
     val litematicaMode by setting(generalGroup, "Litematica", "Only breaks blocks that are incorrectly placed in schematics", false, null) { true }
 
-
-    /**/
+    /*
+     */
 
     init {
         addListener<TickEvent.Pre> {
