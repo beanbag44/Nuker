@@ -197,7 +197,7 @@ object BreakingHandler {
                 val threshold = if (breakType.isPrimary()) {
                     CoreConfig.breakThreshold
                 } else {
-                    1f
+                    1.0f
                 }
 
                 if (miningProgress > threshold) {
@@ -210,7 +210,7 @@ object BreakingHandler {
     private fun onBlockUpdate(pos: BlockPos, state: BlockState) {
         breakingContexts.forEach {
             it?.let { ctx ->
-                if (ctx.pos != pos || !isBlockBroken(state, ctx.state)) return@forEach
+                if (ctx.pos != pos || !isBlockBroken(ctx.state, state)) return@forEach
                 ThreadUtils.runOnMainThread {
                     mc.interactionManager?.breakBlock(pos)
                 }
