@@ -12,9 +12,6 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public final class MixinPlugin implements IMixinConfigPlugin {
-    private static final Supplier<Boolean> TRUE = () -> true;
-    private static final String mixinsFolder = "me.beanbag.nuker.mixins";
-
     // Conditions for applying mixins
     private static final Map<String, Supplier<Boolean>> CONDITIONS = ImmutableMap.of(
             "fi.dy.masa.litematica", () -> FabricLoader.getInstance().isModLoaded("litematica"),

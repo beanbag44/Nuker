@@ -1,7 +1,6 @@
 package me.beanbag.nuker.external.meteor
 
 import me.beanbag.nuker.module.Module
-import me.beanbag.nuker.module.settings.BoolSetting
 import java.util.function.Consumer
 import meteordevelopment.meteorclient.systems.modules.Module as MeteorModule
 

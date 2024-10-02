@@ -53,26 +53,22 @@ class ColorSetting(
         return meteorSetting
     }
 
-    fun hexToColor(hex: String): Color {
-        var hex = hex
-        if (hex.startsWith("#")) {
-            hex = hex.substring(1)
-        }
-
+    private fun hexToColor(hex: String): Color {
+        val hexString = hex.replace("#", "")
         var a = 255 // Default to fully opaque
         val r: Int
         val g: Int
         val b: Int
 
-        if (hex.length == 8) {
-            a = hex.substring(0, 2).toInt(16)
-            r = hex.substring(2, 4).toInt(16)
-            g = hex.substring(4, 6).toInt(16)
-            b = hex.substring(6, 8).toInt(16)
+        if (hexString.length == 8) {
+            a = hexString.substring(0, 2).toInt(16)
+            r = hexString.substring(2, 4).toInt(16)
+            g = hexString.substring(4, 6).toInt(16)
+            b = hexString.substring(6, 8).toInt(16)
         } else {
-            r = hex.substring(0, 2).toInt(16)
-            g = hex.substring(2, 4).toInt(16)
-            b = hex.substring(4, 6).toInt(16)
+            r = hexString.substring(0, 2).toInt(16)
+            g = hexString.substring(2, 4).toInt(16)
+            b = hexString.substring(4, 6).toInt(16)
         }
 
         return Color(r, g, b, a)

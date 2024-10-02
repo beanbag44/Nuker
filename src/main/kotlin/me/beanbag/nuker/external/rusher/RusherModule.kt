@@ -1,7 +1,6 @@
 package me.beanbag.nuker.external.rusher
 
 import me.beanbag.nuker.module.Module
-import me.beanbag.nuker.module.settings.BoolSetting
 import org.rusherhack.client.api.feature.module.ModuleCategory
 import org.rusherhack.client.api.feature.module.ToggleableModule
 import org.rusherhack.core.setting.NullSetting
