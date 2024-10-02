@@ -2,12 +2,10 @@ package me.beanbag.nuker.mixins;
 
 import io.netty.channel.ChannelHandlerContext;
 import me.beanbag.nuker.eventsystem.EventBus;
-import me.beanbag.nuker.eventsystem.events.Event;
 import me.beanbag.nuker.eventsystem.events.PacketEvent;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.PacketCallbacks;
 import net.minecraft.network.packet.Packet;
-import net.minecraft.util.ActionResult;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

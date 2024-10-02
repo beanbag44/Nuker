@@ -35,7 +35,7 @@ class FloatSetting(
         return rhSetting
     }
 
-    override fun toMeteorSetting(): MeteorSetting<*>? {
+    override fun toMeteorSetting(): MeteorSetting<*> {
         val builder = meteordevelopment.meteorclient.settings.DoubleSetting.Builder()
             .name(getName())
             .description(getDescription())

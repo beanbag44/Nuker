@@ -17,7 +17,7 @@ class ColorSetting(
 ) : AbstractSetting<Color>(name, description, defaultValue, onChanged, visible) {
     override fun valueFromString(value: String): Color? {
         return try {
-            Color.decode(value)
+            hexToColor(value)
         } catch (e: NumberFormatException) {
             null
         }
@@ -39,7 +39,7 @@ class ColorSetting(
         return rhSetting
     }
 
-    override fun toMeteorSetting(): MeteorSetting<*>? {
+    override fun toMeteorSetting(): MeteorSetting<*> {
         val builder = meteordevelopment.meteorclient.settings.ColorSetting.Builder()
             .name(getName())
             .description(getDescription())
@@ -51,5 +51,30 @@ class ColorSetting(
         getOnChange().add(Consumer{value -> meteorSetting.set(SettingColor(value.red, value.green, value.blue, value.alpha))})
 
         return meteorSetting
+    }
+
+    fun hexToColor(hex: String): Color {
+        var hex = hex
+        if (hex.startsWith("#")) {
+            hex = hex.substring(1)
+        }
+
+        var a = 255 // Default to fully opaque
+        val r: Int
+        val g: Int
+        val b: Int
+
+        if (hex.length == 8) {
+            a = hex.substring(0, 2).toInt(16)
+            r = hex.substring(2, 4).toInt(16)
+            g = hex.substring(4, 6).toInt(16)
+            b = hex.substring(6, 8).toInt(16)
+        } else {
+            r = hex.substring(0, 2).toInt(16)
+            g = hex.substring(2, 4).toInt(16)
+            b = hex.substring(4, 6).toInt(16)
+        }
+
+        return Color(r, g, b, a)
     }
 }

@@ -42,7 +42,7 @@ class BlockListSetting(
         return rhSetting
     }
 
-    override fun toMeteorSetting(): MeteorSetting<*>? {
+    override fun toMeteorSetting(): MeteorSetting<*> {
         val builder = meteordevelopment.meteorclient.settings.BlockListSetting.Builder()
             .name(getName())
             .description(getDescription())

@@ -27,7 +27,7 @@ class BoolSetting(
         return rhSetting
     }
 
-    override fun toMeteorSetting(): MeteorSetting<*>? {
+    override fun toMeteorSetting(): MeteorSetting<*> {
         val builder = meteordevelopment.meteorclient.settings.BoolSetting.Builder()
             .name(getName())
             .description(getDescription())

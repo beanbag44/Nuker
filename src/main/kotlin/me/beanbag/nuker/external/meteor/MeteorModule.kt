@@ -11,10 +11,10 @@ class MeteorModule(var module: Module) : MeteorModule(MeteorLoader.CATEGORY, mod
         for (settingGroup in module.settingGroups) {
             val group = settings.createGroup(settingGroup.name)
             for (setting in settingGroup.settings) {
-                group.add(setting.toMeteorSetting())
+                group.add(setting.getMeteorSetting())
             }
         }
-        (module.enabledGroup.settings[0] as BoolSetting).getOnChange().add(Consumer{ value -> if(this.isActive != value) this.toggle()})
+        module.enabledSetting.getOnChange().add(Consumer{ value -> if(this.isActive != value) this.toggle()})
     }
 
     override fun onActivate() {

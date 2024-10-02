@@ -43,7 +43,7 @@ class EnumSetting<T : Enum<T>>(
         return rhSetting
     }
 
-    override fun toMeteorSetting(): MeteorSetting<*>? {
+    override fun toMeteorSetting(): MeteorSetting<*> {
         val builder = meteordevelopment.meteorclient.settings.EnumSetting.Builder<T>()
             .name(getName())
             .description(getDescriptionWithEnum())
