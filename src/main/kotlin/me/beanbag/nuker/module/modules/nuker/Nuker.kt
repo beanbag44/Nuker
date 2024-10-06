@@ -10,9 +10,7 @@ import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.FlattenMode
 import me.beanbag.nuker.module.modules.nuker.enumsettings.VolumeShape
 import me.beanbag.nuker.module.settings.SettingGroup
-import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.VolumeSort
-import me.beanbag.nuker.utils.BlockUtils
 import me.beanbag.nuker.utils.BlockUtils.filterBlocksToBaritoneSelections
 import me.beanbag.nuker.utils.BlockUtils.filterBlocksToBreakable
 import me.beanbag.nuker.utils.BlockUtils.filterBlocksToCanal
@@ -23,7 +21,6 @@ import me.beanbag.nuker.utils.BlockUtils.getBlockCube
 import me.beanbag.nuker.utils.BlockUtils.getBlockSphere
 import me.beanbag.nuker.utils.BlockUtils.sortBlockVolume
 import me.beanbag.nuker.utils.LitematicaUtils.updateSchematicMismatches
-import net.minecraft.util.math.Direction
 
 object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
