@@ -10,9 +10,9 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(SchematicVerifier.class)
 public interface ISchematicVerifierAccessor {
-    @Accessor
+    @Accessor(remap = false)
     ArrayListMultimap<Pair<BlockState, BlockState>, BlockPos> getWrongBlocksPositions();
 
-    @Accessor
+    @Accessor(remap = false)
     ArrayListMultimap<Pair<BlockState, BlockState>, BlockPos> getWrongStatesPositions();
 }
