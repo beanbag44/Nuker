@@ -92,6 +92,6 @@ abstract class AbstractSetting<T : Any>(
     }
 
     override fun fromJson(json: JsonElement) {
-        valueFromString(json.asString)?.let { value = it }
+        valueFromString(json.asString)?.let { setValue(it) }
     }
 }
