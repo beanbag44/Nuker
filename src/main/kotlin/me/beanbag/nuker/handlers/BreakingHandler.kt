@@ -10,6 +10,7 @@ import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.*
 import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.TimeoutSet
+import me.beanbag.nuker.utils.BlockUtils
 import me.beanbag.nuker.utils.BlockUtils.isBlockBroken
 import me.beanbag.nuker.utils.BlockUtils.state
 import me.beanbag.nuker.utils.InventoryUtils.calcBreakDelta
@@ -177,7 +178,7 @@ object BreakingHandler {
                 val index = breakingContexts.indexOf(this)
 
                 mc.player?.let { player ->
-                    if (player.eyePos.distanceTo(pos.toCenterPos()) > CoreConfig.radius) {
+                    if (BlockUtils.canReach(player.eyePos, PosAndState.from(pos, mc.world!!), CoreConfig.radius)) {
                         nullifyBreakingContext(index)
                         return@forEach
                     }
