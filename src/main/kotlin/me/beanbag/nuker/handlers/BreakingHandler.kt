@@ -2,7 +2,6 @@ package me.beanbag.nuker.handlers
 
 import me.beanbag.nuker.ModConfigs
 import me.beanbag.nuker.ModConfigs.mc
-import me.beanbag.nuker.eventsystem.CallbackHolder
 import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.eventsystem.events.MeteorRenderEvent
 import me.beanbag.nuker.eventsystem.events.PacketEvent
@@ -36,12 +35,9 @@ object BreakingHandler {
     private var breakingContexts = arrayOfNulls<BreakingContext>(2)
     private var packetCounter = 0
 
-    private val callbackHolder = CallbackHolder()
 
     init {
-        EventBus.addCallbackHolder(callbackHolder)
-
-        callbackHolder.addCallback<PacketEvent.Receive.Pre> { event ->
+        EventBus.subscribe<PacketEvent.Receive.Pre>(this){ event ->
             val packet = event.packet
 
             if (packet is BlockUpdateS2CPacket) {
@@ -51,9 +47,9 @@ object BreakingHandler {
                     onBlockUpdate(pos, state)
                 }
             }
-        }
 
-        callbackHolder.addCallback<MeteorRenderEvent> { event ->
+        }
+        EventBus.subscribe<MeteorRenderEvent>(this) { event ->
             breakingContexts.forEach { ctx ->
                 ctx?.drawRenders(event.renderer)
             }

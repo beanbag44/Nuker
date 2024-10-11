@@ -1,6 +1,7 @@
 package me.beanbag.nuker.module.modules.nuker
 
 import me.beanbag.nuker.ModConfigs.mc
+import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.handlers.BreakingHandler.blockTimeouts
 import me.beanbag.nuker.handlers.BreakingHandler.checkAttemptBreaks
@@ -10,9 +11,7 @@ import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.FlattenMode
 import me.beanbag.nuker.module.modules.nuker.enumsettings.VolumeShape
 import me.beanbag.nuker.module.settings.SettingGroup
-import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.VolumeSort
-import me.beanbag.nuker.utils.BlockUtils
 import me.beanbag.nuker.utils.BlockUtils.filterBlocksToBaritoneSelections
 import me.beanbag.nuker.utils.BlockUtils.filterBlocksToBreakable
 import me.beanbag.nuker.utils.BlockUtils.filterBlocksToCanal
@@ -23,7 +22,6 @@ import me.beanbag.nuker.utils.BlockUtils.getBlockCube
 import me.beanbag.nuker.utils.BlockUtils.getBlockSphere
 import me.beanbag.nuker.utils.BlockUtils.sortBlockVolume
 import me.beanbag.nuker.utils.LitematicaUtils.updateSchematicMismatches
-import net.minecraft.util.math.Direction
 
 object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
@@ -45,13 +43,13 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
      */
 
     init {
-        addListener<TickEvent.Pre> {
-            if (!enabled) return@addListener
+        EventBus.subscribe<TickEvent.Pre>(this) {
+            if (!enabled) return@subscribe
 
             updateBreakingContexts()
 
             mc.player?.let { player ->
-                if (CoreConfig.onGround && !player.isOnGround) return@addListener
+                if (CoreConfig.onGround && !player.isOnGround) return@subscribe
 
                 val blockVolume = getBlockVolume()
 
