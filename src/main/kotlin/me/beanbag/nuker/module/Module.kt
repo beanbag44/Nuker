@@ -20,8 +20,9 @@ import java.util.function.Consumer
 
 abstract class Module(var name: String, var description: String) : IJsonable {
     var settingGroups: MutableList<SettingGroup> = ArrayList()
-    val enabledGroup = SettingGroup("Enabled", "Settings for enabling or disabling the module")
+    private val enabledGroup = SettingGroup("Enabled", "Settings for enabling or disabling the module")
     var enabled by setting(enabledGroup,"Enabled", "Enables or disables the module", false, null, visible = { true })
+    val enabledSetting get() = enabledGroup.settings[0] as BoolSetting
 
     val callbackHolder = CallbackHolder()
 
@@ -189,7 +190,9 @@ abstract class Module(var name: String, var description: String) : IJsonable {
         val settings = settingGroups.flatMap { it.settings }
         val obj = JsonObject()
         for (setting in settings) {
-            obj.add(setting.getName(), setting.toJson())
+            if (setting.getValue() != setting.getDefaultValue()) {
+                obj.add(setting.getName(), setting.toJson())
+            }
         }
         obj.add("enabled", enabledGroup.settings[0].toJson())
         return obj

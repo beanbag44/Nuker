@@ -19,6 +19,7 @@ object ModConfigs {
 
     val mc: MinecraftClient = MinecraftClient.getInstance()
     var meteorIsPresent = false
+    var meteorIsLoaded = false
     var rusherIsPresent = false
     val LOGGER: Logger = LoggerFactory.getLogger(MOD_NAME)
 
@@ -42,7 +43,8 @@ object ModConfigs {
         return modules.values.find { it.name.equals(name, true) }
     }
 
-    fun getModuleByClass(clazz: Class<out Module>): Module? {
-        return modules[clazz]
+    fun <T:Module>getModuleByClass(clazz: Class<out T>): T? {
+        @Suppress("UNCHECKED_CAST")
+        return modules[clazz] as T?
     }
 }

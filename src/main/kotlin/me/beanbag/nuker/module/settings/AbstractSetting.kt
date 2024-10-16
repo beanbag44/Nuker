@@ -55,9 +55,21 @@ abstract class AbstractSetting<T : Any>(
 
     abstract fun possibleValues(): List<String>?
 
-    abstract fun toRusherSetting(): RusherSetting<*>?
+    protected abstract fun toRusherSetting(): RusherSetting<*>?
 
-    abstract fun toMeteorSetting(): MeteorSetting<*>?
+    protected abstract fun toMeteorSetting(): MeteorSetting<*>
+
+    fun getMeteorSetting(): MeteorSetting<*> {
+        val meteorSetting = toMeteorSetting()
+//        onChange.forEach { it.accept(value) }
+        return meteorSetting
+    }
+
+    fun getRusherSetting(): RusherSetting<*>? {
+        val rusherSetting = toRusherSetting()
+//        onChange.forEach { it.accept(value) }
+        return rusherSetting
+    }
 
     fun helpText(): Text {
         val text = Text.literal("${ChatHandler.toCamelCaseName(name)} - ${description}\n")

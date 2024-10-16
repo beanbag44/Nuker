@@ -1,7 +1,6 @@
 package me.beanbag.nuker.external.rusher
 
 import me.beanbag.nuker.module.Module
-import me.beanbag.nuker.module.settings.BoolSetting
 import org.rusherhack.client.api.feature.module.ModuleCategory
 import org.rusherhack.client.api.feature.module.ToggleableModule
 import org.rusherhack.core.setting.NullSetting
@@ -13,12 +12,12 @@ class RusherModule(name: String?, description: String?, var module: Module) :
         for (settingGroup in module.settingGroups) {
             val rhSettingGroup = NullSetting(settingGroup.name, settingGroup.description)
             settingGroup.settings.forEach{setting ->
-                rhSettingGroup.addSubSettings(setting.toRusherSetting())
+                rhSettingGroup.addSubSettings(setting.getRusherSetting())
             }
             registerSettings(rhSettingGroup)
         }
 
-        (module.enabledGroup.settings[0] as BoolSetting).getOnChange().add { value -> if (this.isToggled != value) this.toggle() }
+        module.enabledSetting.getOnChange().add { value -> if (this.isToggled != value) this.toggle() }
     }
 
     override fun onEnable() {

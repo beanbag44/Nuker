@@ -4,12 +4,16 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import me.beanbag.nuker.ModConfigs
+import me.beanbag.nuker.ModConfigs.meteorIsLoaded
+import me.beanbag.nuker.ModConfigs.meteorIsPresent
 import me.beanbag.nuker.ModConfigs.modules
+import meteordevelopment.meteorclient.systems.Systems
 import net.fabricmc.loader.api.FabricLoader
 import java.io.File
 import java.nio.file.Path
 
 object FileManager {
+    var isLoadingSettings = false
     fun getMinecraftDir(): Path {
         return FabricLoader.getInstance().gameDir
     }
@@ -23,6 +27,9 @@ object FileManager {
     }
 
     fun saveModuleConfigs() {
+        if (meteorIsPresent && !meteorIsLoaded || isLoadingSettings) {
+            return
+        }
         val modulesObject = JsonObject()
         for (module in modules.values) {
             modulesObject.add(module.name, module.toJson())
@@ -34,9 +41,13 @@ object FileManager {
             GsonBuilder().setPrettyPrinting().create()
                 .toJson(JsonObject().apply { add("modules", modulesObject) })
         )
+        if (meteorIsPresent) {
+            Systems.save()
+        }
     }
 
     fun loadModuleConfigs() {
+        isLoadingSettings = true
         val configFile = configFile()
         if (!configFile.exists()) return
 
@@ -48,6 +59,6 @@ object FileManager {
                 module.fromJson(moduleObject)
             }
         }
-
+        isLoadingSettings = false
     }
 }
