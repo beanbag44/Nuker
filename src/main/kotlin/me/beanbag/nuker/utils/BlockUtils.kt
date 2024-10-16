@@ -326,8 +326,6 @@ object BlockUtils {
                 }
             }
         }
-
-
 }
 
 fun BlockPos.closestCorner(toPos: Vec3d) : Vec3d {

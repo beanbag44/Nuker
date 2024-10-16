@@ -28,8 +28,10 @@ import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
+import net.minecraft.util.math.Vec3d
 import org.rusherhack.client.api.RusherHackAPI
 import java.awt.Color
+import kotlin.jvm.optionals.getOrNull
 
 object BreakingHandler {
     val blockTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockTimeout }.apply { subscribeOnTickUpdate() }
@@ -189,7 +191,10 @@ object BreakingHandler {
                 val index = breakingContexts.indexOf(this)
 
                 mc.player?.let { player ->
-                    if (player.eyePos.distanceTo(pos.toCenterPos()) > CoreConfig.radius) {
+                    val eyePos = player.eyePos
+                    val posVec3d = Vec3d(pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble())
+                    val closestPoint = state.getOutlineShape(mc.world, pos).getClosestPointTo(eyePos).getOrNull()?.add(posVec3d)
+                    if (eyePos.distanceTo(closestPoint ?: pos.toCenterPos()) > CoreConfig.radius) {
                         nullifyBreakingContext(index)
                         return@forEach
                     }
