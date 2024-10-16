@@ -147,20 +147,23 @@ object BreakingHandler {
         startBreakPacket(pos)
     }
 
-    private fun startBreakPacket(pos: BlockPos) =
+    private fun startBreakPacket(pos: BlockPos) {
         mc.networkHandler?.sendPacket(
             PlayerActionC2SPacket(PlayerActionC2SPacket.Action.START_DESTROY_BLOCK, pos, Direction.UP)
         )
+    }
 
-    private fun abortBreakPacket(pos: BlockPos) =
+    private fun abortBreakPacket(pos: BlockPos) {
         mc.networkHandler?.sendPacket(
             PlayerActionC2SPacket(PlayerActionC2SPacket.Action.ABORT_DESTROY_BLOCK, pos, Direction.UP)
         )
+    }
 
-    private fun stopBreakPacket(pos: BlockPos) =
+    private fun stopBreakPacket(pos: BlockPos) {
         mc.networkHandler?.sendPacket(
             PlayerActionC2SPacket(PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK, pos, Direction.UP)
         )
+    }
 
     private fun isAtMaximumCurrentBreakingContexts(): Boolean {
         if (CoreConfig.doubleBreak) {
