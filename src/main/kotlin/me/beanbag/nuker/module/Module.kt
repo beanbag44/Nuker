@@ -26,7 +26,7 @@ abstract class Module(var name: String, var description: String) : IJsonable {
 
     val callbackHolder = CallbackHolder()
 
-    inline fun <reified T: Event> addListener(noinline callback: (Event) -> Unit) {
+    inline fun <reified T: Event> addListener(noinline callback: (T) -> Unit) {
         callbackHolder.addCallback<T>(callback)
     }
 
