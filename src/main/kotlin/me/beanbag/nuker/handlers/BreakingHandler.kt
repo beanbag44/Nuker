@@ -6,6 +6,7 @@ import me.beanbag.nuker.eventsystem.CallbackHolder
 import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.eventsystem.events.MeteorRenderEvent
 import me.beanbag.nuker.eventsystem.events.PacketEvent
+import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.*
 import me.beanbag.nuker.types.PosAndState
@@ -39,6 +40,10 @@ object BreakingHandler {
 
     init {
         EventBus.addCallbackHolder(callbackHolder)
+
+        callbackHolder.addCallback<TickEvent.Pre> {
+            updateBreakingContexts()
+        }
 
         callbackHolder.addCallback<PacketEvent.Receive.Pre> { event ->
             val packet = event.packet
@@ -119,6 +124,7 @@ object BreakingHandler {
         breakingContexts[contextIndex]?.apply {
             if (breakType.isPrimary() && CoreConfig.breakThreshold <= 1) {
                 stopBreakPacket(pos)
+                abortBreakPacket(pos)
             }
 
             BrokenBlockHandler.putBrokenBlock(pos, !CoreConfig.validateBreak)
@@ -133,9 +139,12 @@ object BreakingHandler {
     }
 
     private fun startPacketBreaking(pos: BlockPos) {
-        startBreakPacket(pos)
-        abortBreakPacket(pos)
         stopBreakPacket(pos)
+        abortBreakPacket(pos)
+        startBreakPacket(pos)
+        stopBreakPacket(pos)
+        abortBreakPacket(pos)
+        startBreakPacket(pos)
     }
 
     private fun startBreakPacket(pos: BlockPos) =

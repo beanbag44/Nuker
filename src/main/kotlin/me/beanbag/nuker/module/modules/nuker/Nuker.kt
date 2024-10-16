@@ -45,8 +45,6 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         addListener<TickEvent.Pre> {
             if (!enabled) return@addListener
 
-            updateBreakingContexts()
-
             mc.player?.let { player ->
                 if (CoreConfig.onGround && !player.isOnGround) return@addListener
 
