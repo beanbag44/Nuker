@@ -13,21 +13,17 @@ import net.minecraft.fluid.LavaFluid
 import net.minecraft.fluid.WaterFluid
 import net.minecraft.registry.tag.BiomeTags
 import net.minecraft.state.property.Properties
-import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Direction
-import net.minecraft.util.math.Vec3d
-import net.minecraft.util.math.Vec3i
+import net.minecraft.util.math.*
 import net.minecraft.world.World
-import kotlin.jvm.optionals.getOrNull
+import java.util.*
 
 object BlockUtils {
+    const val PLAYER_EYE_HEIGHT = 1.62
+    const val PLAYER_CROUCHING_EYE_HEIGHT = PLAYER_EYE_HEIGHT - 0.125
+
     fun getBlockSphere(center: Vec3d, radius: Double): ArrayList<PosAndState> =
-        getBlockCube(center, radius).apply {
-            removeIf { posAndState ->
-                val posVec3d = Vec3d(posAndState.blockPos.x.toDouble(), posAndState.blockPos.y.toDouble(), posAndState.blockPos.z.toDouble())
-                val closestPoint = posAndState.blockState.getOutlineShape(mc.world, posAndState.blockPos).getClosestPointTo(center).getOrNull()?.add(posVec3d)
-                center.distanceTo(closestPoint ?: posAndState.blockPos.toCenterPos()) > radius
-            }
+        getBlockCube(center, radius ).apply {
+            removeIf { posAndState -> posAndState.blockState.isAir || !canReach(center, posAndState, radius) }
         }
 
     fun getBlockCube(center: Vec3d, radius: Double): ArrayList<PosAndState> {
@@ -41,6 +37,24 @@ object BlockUtils {
             }
         }
         return posList
+    }
+
+    fun canReach(from:Vec3d, block:PosAndState, reach:Double): Boolean {
+        return mc.world?.let { world ->
+            var closestPoint: Vec3d? = null
+            block.blockState.getOutlineShape(world, block.blockPos).boundingBoxes.forEach { box: Box? ->
+                if (box == null) return@forEach
+                val x = MathHelper.clamp(from.getX(), block.blockPos.x + box.minX, block.blockPos.x + box.maxX)
+                val y = MathHelper.clamp(from.getY(), block.blockPos.y + box.minY, block.blockPos.y + box.maxY)
+                val z = MathHelper.clamp(from.getZ(), block.blockPos.z + box.minZ, block.blockPos.z + box.maxZ)
+                if (closestPoint == null || from.squaredDistanceTo(x, y, z) < from.squaredDistanceTo(closestPoint)) {
+                    closestPoint = Vec3d(x, y, z)
+                }
+            }
+
+            if (closestPoint == null) return false
+            return from.distanceTo(closestPoint) <= reach
+        } ?: false
     }
 
     fun sortBlockVolume(posAndStateList: ArrayList<PosAndState>, center: Vec3d, sortStyle: VolumeSort): ArrayList<PosAndState> =
@@ -65,6 +79,34 @@ object BlockUtils {
                 }
             }
         }
+
+    fun getValidStandingSpots(min: BlockPos, max: BlockPos): List<BlockPos> {
+        return mc.world?.let { world ->
+            allPosInBounds(min, max).filter { pos ->
+                val stateAbove = world.getBlockState(pos.up())
+                val state = world.getBlockState(pos)
+                val stateBelow = world.getBlockState(pos.down())
+                return@filter canWalkThrough(PosAndState(pos.up(), stateAbove))
+                            && canWalkThrough(PosAndState(pos, state))
+                            && stateBelow.isFullCube(world, pos)
+                        || canWalkThrough(PosAndState(pos.up(), stateAbove))
+                            && state.block == Blocks.WATER
+                            && stateBelow.block == Blocks.WATER
+                        || canWalkThrough(PosAndState(pos.up(), stateAbove))
+                            && state.block == Blocks.WATER
+                            && stateBelow.isFullCube(world, pos)
+            }
+        } ?: listOf()
+    }
+
+    fun canWalkThrough(block: PosAndState): Boolean {
+        if (block.blockState.isAir) return true
+        if (block.blockState.block is FlowerBlock) return true
+        if (block.blockState.block is TallPlantBlock) return true
+        if (block.blockState.block is ShortPlantBlock) return true
+        if (block.blockState.block is MushroomPlantBlock) return true
+        return false
+    }
 
     fun filterLiquidSupportingBlocks(posAndStateList: ArrayList<PosAndState>) =
         posAndStateList.removeIf { willReleaseLiquids(it) }

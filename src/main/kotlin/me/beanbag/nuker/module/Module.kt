@@ -5,9 +5,6 @@ import com.google.gson.JsonObject
 import me.beanbag.nuker.ModConfigs.modColor
 import me.beanbag.nuker.command.ExecutableClickEvent
 import me.beanbag.nuker.command.commands.HelpModuleSettingCommand
-import me.beanbag.nuker.eventsystem.CallbackHolder
-import me.beanbag.nuker.eventsystem.EventBus
-import me.beanbag.nuker.eventsystem.events.Event
 import me.beanbag.nuker.handlers.ChatHandler
 import me.beanbag.nuker.module.settings.*
 import me.beanbag.nuker.utils.IJsonable
@@ -23,24 +20,6 @@ abstract class Module(var name: String, var description: String) : IJsonable {
     private val enabledGroup = SettingGroup("Enabled", "Settings for enabling or disabling the module")
     var enabled by setting(enabledGroup,"Enabled", "Enables or disables the module", false, null, visible = { true })
     val enabledSetting get() = enabledGroup.settings[0] as BoolSetting
-
-    val callbackHolder = CallbackHolder()
-
-    inline fun <reified T: Event> addListener(noinline callback: (T) -> Unit) {
-        callbackHolder.addCallback<T>(callback)
-    }
-
-    private fun unsubscribe() {
-        callbackHolder.unsubscribe()
-    }
-
-    private fun subscribe() {
-        callbackHolder.subscribe()
-    }
-
-    init {
-        EventBus.addCallbackHolder(callbackHolder)
-    }
 
     protected fun addGroup(setting: SettingGroup): SettingGroup {
         settingGroups.add(setting)

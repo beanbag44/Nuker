@@ -1,6 +1,7 @@
 package me.beanbag.nuker.module.modules.nuker
 
 import me.beanbag.nuker.ModConfigs.mc
+import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.handlers.BreakingHandler.blockTimeouts
 import me.beanbag.nuker.handlers.BreakingHandler.checkAttemptBreaks
@@ -42,11 +43,11 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
      */
 
     init {
-        addListener<TickEvent.Pre> {
-            if (!enabled) return@addListener
+        EventBus.subscribe<TickEvent.Pre>(this) {
+            if (!enabled) return@subscribe
 
             mc.player?.let { player ->
-                if (CoreConfig.onGround && !player.isOnGround) return@addListener
+                if (CoreConfig.onGround && !player.isOnGround) return@subscribe
 
                 val blockVolume = getBlockVolume()
 

@@ -2,7 +2,6 @@ package me.beanbag.nuker.handlers
 
 import me.beanbag.nuker.ModConfigs
 import me.beanbag.nuker.ModConfigs.mc
-import me.beanbag.nuker.eventsystem.CallbackHolder
 import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.eventsystem.events.MeteorRenderEvent
 import me.beanbag.nuker.eventsystem.events.PacketEvent
@@ -11,6 +10,7 @@ import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.*
 import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.TimeoutSet
+import me.beanbag.nuker.utils.BlockUtils
 import me.beanbag.nuker.utils.BlockUtils.isBlockBroken
 import me.beanbag.nuker.utils.BlockUtils.state
 import me.beanbag.nuker.utils.InventoryUtils.calcBreakDelta
@@ -38,16 +38,12 @@ object BreakingHandler {
     private var breakingContexts = arrayOfNulls<BreakingContext>(2)
     private var packetCounter = 0
 
-    private val callbackHolder = CallbackHolder()
-
     init {
-        EventBus.addCallbackHolder(callbackHolder)
-
-        callbackHolder.addCallback<TickEvent.Pre> {
+        EventBus.subscribe<TickEvent.Pre>(this) {
             updateBreakingContexts()
         }
 
-        callbackHolder.addCallback<PacketEvent.Receive.Pre> { event ->
+        EventBus.subscribe<PacketEvent.Receive.Pre>(this){ event ->
             val packet = event.packet
 
             if (packet is BlockUpdateS2CPacket) {
@@ -57,9 +53,9 @@ object BreakingHandler {
                     onBlockUpdate(pos, state)
                 }
             }
-        }
 
-        callbackHolder.addCallback<MeteorRenderEvent> { event ->
+        }
+        EventBus.subscribe<MeteorRenderEvent>(this) { event ->
             breakingContexts.forEach { ctx ->
                 ctx?.drawRenders(event.renderer)
             }
@@ -191,10 +187,7 @@ object BreakingHandler {
                 val index = breakingContexts.indexOf(this)
 
                 mc.player?.let { player ->
-                    val eyePos = player.eyePos
-                    val posVec3d = Vec3d(pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble())
-                    val closestPoint = state.getOutlineShape(mc.world, pos).getClosestPointTo(eyePos).getOrNull()?.add(posVec3d)
-                    if (eyePos.distanceTo(closestPoint ?: pos.toCenterPos()) > CoreConfig.radius) {
+                    if (!BlockUtils.canReach(player.eyePos, PosAndState.from(pos, mc.world!!), CoreConfig.radius)) {
                         nullifyBreakingContext(index)
                         return@forEach
                     }
