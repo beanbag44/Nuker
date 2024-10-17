@@ -5,7 +5,6 @@ import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.handlers.BreakingHandler.blockTimeouts
 import me.beanbag.nuker.handlers.BreakingHandler.checkAttemptBreaks
-import me.beanbag.nuker.handlers.BreakingHandler.updateBreakingContexts
 import me.beanbag.nuker.module.Module
 import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.FlattenMode

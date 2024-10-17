@@ -53,8 +53,8 @@ object BreakingHandler {
                     onBlockUpdate(pos, state)
                 }
             }
-
         }
+
         EventBus.subscribe<MeteorRenderEvent>(this) { event ->
             breakingContexts.forEach { ctx ->
                 ctx?.drawRenders(event.renderer)
@@ -87,7 +87,7 @@ object BreakingHandler {
 
             val breakDelta = calcBreakDelta(block.blockState, blockPos, bestTool)
 
-            val breakPacketCount = if (breakDelta >= 1) 1 else 3
+            val breakPacketCount = if (breakDelta >= 1) 1 else 6
 
             packetCounter += breakPacketCount
 
@@ -120,9 +120,10 @@ object BreakingHandler {
 
     private fun onBlockBreak(contextIndex: Int) {
         breakingContexts[contextIndex]?.apply {
-            if (breakType.isPrimary() && CoreConfig.breakThreshold <= 1) {
+            if (breakType.isPrimary() && mineTicks > 0 && CoreConfig.breakThreshold <= 1) {
                 stopBreakPacket(pos)
                 abortBreakPacket(pos)
+                packetCounter += 2
             }
 
             BrokenBlockHandler.putBrokenBlock(pos, !CoreConfig.validateBreak)
@@ -181,7 +182,7 @@ object BreakingHandler {
         return null
     }
 
-    fun updateBreakingContexts() {
+    private fun updateBreakingContexts() {
         breakingContexts.forEach {
             it?.apply {
                 val index = breakingContexts.indexOf(this)

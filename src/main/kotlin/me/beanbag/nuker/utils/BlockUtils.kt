@@ -42,7 +42,7 @@ object BlockUtils {
     fun canReach(from:Vec3d, block:PosAndState, reach:Double): Boolean {
         return mc.world?.let { world ->
             var closestPoint: Vec3d? = null
-            block.blockState.getOutlineShape(world, block.blockPos).boundingBoxes.forEach { box: Box? ->
+            block.blockState.getOutlineShape(world, block.blockPos).boundingBoxes.forEach { box ->
                 if (box == null) return@forEach
                 val x = MathHelper.clamp(from.getX(), block.blockPos.x + box.minX, block.blockPos.x + box.maxX)
                 val y = MathHelper.clamp(from.getY(), block.blockPos.y + box.minY, block.blockPos.y + box.maxY)
