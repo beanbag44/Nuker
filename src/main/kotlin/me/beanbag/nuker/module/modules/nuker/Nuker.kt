@@ -5,22 +5,25 @@ import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.handlers.BreakingHandler.blockTimeouts
 import me.beanbag.nuker.handlers.BreakingHandler.checkAttemptBreaks
+import me.beanbag.nuker.handlers.ChatHandler
 import me.beanbag.nuker.module.Module
 import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.FlattenMode
 import me.beanbag.nuker.module.modules.nuker.enumsettings.VolumeShape
 import me.beanbag.nuker.module.settings.SettingGroup
 import me.beanbag.nuker.types.VolumeSort
-import me.beanbag.nuker.utils.BlockUtils.filterBlocksToBaritoneSelections
-import me.beanbag.nuker.utils.BlockUtils.filterBlocksToBreakable
-import me.beanbag.nuker.utils.BlockUtils.filterBlocksToCanal
-import me.beanbag.nuker.utils.BlockUtils.filterBlocksToFlatten
-import me.beanbag.nuker.utils.BlockUtils.filterCorrectlyPlacedLitematicaBlocks
-import me.beanbag.nuker.utils.BlockUtils.filterLiquidSupportingBlocks
 import me.beanbag.nuker.utils.BlockUtils.getBlockCube
 import me.beanbag.nuker.utils.BlockUtils.getBlockSphere
+import me.beanbag.nuker.utils.BlockUtils.isBlockBreakable
+import me.beanbag.nuker.utils.BlockUtils.isBlockInFlatten
+import me.beanbag.nuker.utils.BlockUtils.isValidCanalBlock
+import me.beanbag.nuker.utils.BlockUtils.isWithinABaritoneSelection
 import me.beanbag.nuker.utils.BlockUtils.sortBlockVolume
+import me.beanbag.nuker.utils.BlockUtils.willReleaseLiquids
+import me.beanbag.nuker.utils.LitematicaUtils
 import me.beanbag.nuker.utils.LitematicaUtils.updateSchematicMismatches
+import net.minecraft.block.BlockState
+import net.minecraft.util.math.BlockPos
 
 object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
@@ -48,33 +51,27 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
             mc.player?.let { player ->
                 if (CoreConfig.onGround && !player.isOnGround) return@subscribe
 
-                val blockVolume = getBlockVolume()
+                val blockVolume = getBlockVolume { pos, state ->
+                    if (!isBlockBreakable(pos, state)) return@getBlockVolume true
 
-                filterBlocksToBreakable(blockVolume)
+                    if (flattenMode.isEnabled() && !isBlockInFlatten(pos, crouchLowersFlatten, flattenMode)) return@getBlockVolume true
 
-                if (flattenMode.isEnabled()) {
-                    filterBlocksToFlatten(blockVolume, crouchLowersFlatten, flattenMode)
-                }
+                    if (avoidLiquids && willReleaseLiquids(pos)) return@getBlockVolume true
 
-                if (avoidLiquids) {
-                    filterLiquidSupportingBlocks(blockVolume)
-                }
+                    if (baritoneSelection && !isWithinABaritoneSelection(pos)) return@getBlockVolume true
 
-                if (baritoneSelection) {
-                    filterBlocksToBaritoneSelections(blockVolume)
-                }
+                    if (litematicaMode) {
+                        updateSchematicMismatches()
+                        if (!LitematicaUtils.schematicIncorrectBlockPlacements.contains(pos)
+                            && !LitematicaUtils.schematicIncorrectStatePlacements.contains(pos)
+                        ) {
+                            return@getBlockVolume true
+                        }
+                    }
 
-                if (litematicaMode) {
-                    updateSchematicMismatches()
-                    filterCorrectlyPlacedLitematicaBlocks(blockVolume)
-                }
+                    if (canalMode && isValidCanalBlock(pos, state) != true) return@getBlockVolume true
 
-                if (canalMode) {
-                    filterBlocksToCanal(blockVolume)
-                }
-
-                blockVolume.removeIf {
-                    blockTimeouts.values().contains(it.blockPos)
+                    return@getBlockVolume blockTimeouts.values().contains(pos)
                 }
 
                 sortBlockVolume(blockVolume, player.eyePos, mineStyle)
@@ -87,12 +84,12 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         }
     }
 
-    private fun getBlockVolume() =
+    private fun getBlockVolume(removeIf: ((BlockPos, BlockState) -> Boolean)?) =
         mc.player?.run {
             if (shape == VolumeShape.Sphere) {
-                getBlockSphere(this.eyePos, CoreConfig.radius)
+                getBlockSphere(this.eyePos, CoreConfig.radius, removeIf)
             } else {
-                getBlockCube(this.eyePos, CoreConfig.radius)
+                getBlockCube(this.eyePos, CoreConfig.radius, removeIf)
             }
         } ?: ArrayList()
 }

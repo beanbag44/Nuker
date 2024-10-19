@@ -2,9 +2,11 @@ package me.beanbag.nuker.utils
 
 import baritone.api.BaritoneAPI
 import me.beanbag.nuker.ModConfigs.mc
+import me.beanbag.nuker.handlers.ChatHandler
 import me.beanbag.nuker.module.modules.nuker.enumsettings.FlattenMode
 import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.VolumeSort
+import me.beanbag.nuker.utils.BlockUtils.getState
 import me.beanbag.nuker.utils.LitematicaUtils.schematicIncorrectBlockPlacements
 import me.beanbag.nuker.utils.LitematicaUtils.schematicIncorrectStatePlacements
 import net.minecraft.block.*
@@ -18,22 +20,42 @@ import net.minecraft.world.World
 import java.util.*
 
 object BlockUtils {
-    const val PLAYER_EYE_HEIGHT = 1.62
-    const val PLAYER_CROUCHING_EYE_HEIGHT = PLAYER_EYE_HEIGHT - 0.125
+    const val PLAYER_EYE_HEIGHT: Float = 1.62f
+    const val PLAYER_CROUCHING_EYE_HEIGHT: Float = PLAYER_EYE_HEIGHT - 0.125f
+    const val NEGATIVE_AXIS_FIX = 1
 
-    fun getBlockSphere(center: Vec3d, radius: Double): ArrayList<PosAndState> =
-        getBlockCube(center, radius).apply {
-            removeIf { posAndState -> posAndState.blockState.isAir || !canReach(center, posAndState, radius) }
+    fun getBlockSphere(
+        center: Vec3d,
+        radius: Double,
+        removeIf: ((BlockPos, BlockState) -> Boolean)?
+    ): ArrayList<PosAndState> =
+        getBlockCube(center, radius, removeIf).apply {
+            removeIf { !canReach(center, it, radius) }
         }
 
-    fun getBlockCube(center: Vec3d, radius: Double): ArrayList<PosAndState> {
+    fun getBlockCube(
+        center: Vec3d,
+        radius: Double,
+        removeIf: ((BlockPos, BlockState) -> Boolean)?
+    ): ArrayList<PosAndState> {
         val posList = arrayListOf<PosAndState>()
-        val min = BlockPos((center.x - radius).toInt() - 1, (center.y - radius).toInt() - 1, (center.z - radius).toInt() - 1)
-        val max = BlockPos((center.x + radius).toInt(), (center.y + radius).toInt(), (center.z + radius).toInt())
+        val min = BlockPos(
+            (center.x - radius).toInt() - NEGATIVE_AXIS_FIX,
+            (center.y - radius).toInt() - NEGATIVE_AXIS_FIX,
+            (center.z - radius).toInt() - NEGATIVE_AXIS_FIX
+        )
+        val max = BlockPos(
+            (center.x + radius).toInt(),
+            (center.y + radius).toInt(),
+            (center.z + radius).toInt()
+        )
 
         allPosInBounds(min, max).map { pos ->
             mc.world?.let { world ->
-                posList.add(PosAndState(pos, pos.getState(world)))
+                val blockState = pos.getState(world)
+                if (removeIf?.invoke(pos, blockState) != true) {
+                    posList.add(PosAndState(pos, blockState))
+                }
             }
         }
         return posList
@@ -70,15 +92,19 @@ object BlockUtils {
 
     fun filterBlocksToBreakable(posAndStateList: ArrayList<PosAndState>) =
         posAndStateList.apply {
-            mc.world?.let { world ->
-                removeIf {
-                    val state = it.blockState
-                    state.getHardness(world, it.blockPos) == -1f
-                            || state.block.hardness == 600f
-                            || isStateEmpty(state)
-                }
+            removeIf {
+                !isBlockBreakable(it.blockPos, it.blockState)
             }
         }
+
+    fun isBlockBreakable(pos: BlockPos, state: BlockState): Boolean {
+        mc.world?.let { world ->
+            return state.getHardness(world, pos) != -1f
+                    && state.block.hardness != 600f
+                    && !isStateEmpty(state)
+        }
+        return false
+    }
 
     fun getValidStandingSpots(min: BlockPos, max: BlockPos): List<BlockPos> {
         return mc.world?.let { world ->
@@ -152,6 +178,40 @@ object BlockUtils {
             }
         }
 
+    fun isBlockInFlatten(pos: BlockPos, crouchLowersFlatten: Boolean, flattenMode: FlattenMode): Boolean {
+        mc.player?.let { player ->
+            val playerPos = player.blockPos
+            val flattenLevel = if (crouchLowersFlatten && player.isSneaking) {
+                playerPos.y - 1
+            } else {
+                playerPos.y
+            }
+
+            if (!flattenMode.isSmart()) {
+                if (pos.y < flattenLevel) {
+                    return false
+                }
+            }
+
+            val playerLookDir = player.horizontalFacing
+            val smartFlattenDir = if (flattenMode == FlattenMode.Smart) {
+                playerLookDir
+            } else {
+                playerLookDir?.opposite
+            }
+
+            if (pos.y >= flattenLevel) return true
+
+            val zeroedPos = pos.add(-playerPos.x, -playerPos.y, -playerPos.z)
+
+            return (zeroedPos.x < 0 && smartFlattenDir == Direction.EAST)
+                    || (zeroedPos.z < 0 && smartFlattenDir == Direction.SOUTH)
+                    || (zeroedPos.x > 0 && smartFlattenDir == Direction.WEST)
+                    || (zeroedPos.z > 0 && smartFlattenDir == Direction.NORTH)
+        }
+        return false
+    }
+
     fun filterBlocksToBaritoneSelections(posAndStateList: ArrayList<PosAndState>) =
         posAndStateList.apply {
             removeIf {
@@ -159,7 +219,7 @@ object BlockUtils {
             }
         }
 
-    private fun isWithinABaritoneSelection(pos: BlockPos): Boolean {
+    fun isWithinABaritoneSelection(pos: BlockPos): Boolean {
         BaritoneAPI.getProvider().allBaritones.forEach {
             it.selectionManager.selections.forEach { sel ->
                 if (pos.x >= sel.min().x && pos.x <= sel.max().x
@@ -218,12 +278,54 @@ object BlockUtils {
                         }
                     }
 
-                    return@removeIf (y == 62 && x == 15)
-                        || (y == 62 && x == -16)
+                    return@removeIf ((y == 62 && x == 15)
+                        || (y == 62 && x == -16))
                         && block == Blocks.CRYING_OBSIDIAN
                 }
             }
         }
+
+    fun isValidCanalBlock(pos: BlockPos, state: BlockState): Boolean? {
+        mc.world?.let { world ->
+            val x = pos.x
+            val y = pos.y
+            val z = pos.z
+            val block = state.block
+
+            if (z < 0
+                || (y < 59 || x !in -13..12)
+                && (y < 60 || (x != 13 && x != -14))
+                && (y < 62 || (x !in 13..15 && x !in -16..-14))
+            ) {
+                return true
+            }
+
+            if ((x == 13 && y <= 61)
+                || (x == -14 && y <= 61)
+                || (y == 62 && (x == 14 || x == 13))
+                || (y == 62 && (x == -15 || x == -14))
+                && pos.getState(world).block == Blocks.OBSIDIAN) {
+                return true
+            }
+
+            if (y == 59) {
+                val biome = world.getBiome(pos)
+                val isInRiver = biome.isIn(BiomeTags.IS_RIVER)
+
+                return when {
+                    isInRiver && block == Blocks.CRYING_OBSIDIAN -> true
+                    !isInRiver && block == Blocks.OBSIDIAN -> true
+                    else -> false
+                }
+            }
+
+            return ((y == 62 && x == 15)
+                    || (y == 62 && x == -16))
+                    && block == Blocks.CRYING_OBSIDIAN
+        }
+
+        return null
+    }
 
     fun isBlockBroken(currentState: BlockState?, newState: BlockState): Boolean {
         currentState?.let { current ->
@@ -261,21 +363,21 @@ object BlockUtils {
         return block is AbstractSignBlock || block is AbstractBannerBlock
     }
 
-    private fun willReleaseAdjacentLiquids(block:PosAndState) : Boolean {
+    private fun willReleaseAdjacentLiquids(block: BlockPos) : Boolean {
         mc.world?.let { world ->
             for(direction in Direction.entries) {
                 if (direction == Direction.DOWN) continue
 
-                val adjacentPos = block.blockPos.add(direction.vector)
-                val adjacent = PosAndState.from(adjacentPos, world)
-                val fluidState = adjacent.blockState.fluidState
+                val adjacentPos = block.add(direction.vector)
+                val adjacent = world.getBlockState(adjacentPos)
+                val fluidState = adjacent.fluidState
                 val fluid = fluidState.fluid
 
                 if (fluidState.isEmpty || fluid !is FlowableFluid) continue
 
                 if (direction == Direction.UP) return true
 
-                if (adjacent.blockState.block is Waterloggable && !fluidState.isEmpty) { return true }
+                if (adjacent.block is Waterloggable && !fluidState.isEmpty) { return true }
 
                 val levelDecreasePerBlock =
                     when (fluid) {
@@ -295,7 +397,12 @@ object BlockUtils {
 
     fun willReleaseLiquids(block: PosAndState): Boolean {
         val blocksThatWillUpdate = blocksThatWillUpdate(block)
-        return blocksThatWillUpdate.any { willReleaseAdjacentLiquids(it) }
+        return blocksThatWillUpdate.any { willReleaseAdjacentLiquids(it.blockPos) }
+    }
+
+    fun willReleaseLiquids(pos: BlockPos): Boolean {
+        val blocksThatWillUpdate = blocksThatWillUpdate(pos)
+        return blocksThatWillUpdate.any { willReleaseAdjacentLiquids(it.blockPos) }
     }
 
     private fun isSupportingAdjacentSignOrBanner(pos: BlockPos): Boolean {
@@ -326,7 +433,7 @@ object BlockUtils {
        return false
     }
 
-    fun blocksThatWillUpdate(block:PosAndState) : List<PosAndState> {
+    fun blocksThatWillUpdate(block: PosAndState) : List<PosAndState> {
         val blocksThatWillUpdate = hashSetOf<PosAndState>()
         val checkQueue = hashSetOf(block)
 
@@ -352,6 +459,35 @@ object BlockUtils {
             }
         }
 
+        return blocksThatWillUpdate.toList()
+    }
+
+    fun blocksThatWillUpdate(pos: BlockPos): List<PosAndState> {
+        val blocksThatWillUpdate = hashSetOf<PosAndState>()
+
+        mc.world?.let { world ->
+            val checkQueue = hashSetOf(pos)
+
+            while(checkQueue.isNotEmpty()) {
+                val currentPos = checkQueue.first()
+                checkQueue.remove(currentPos)
+                blocksThatWillUpdate.add(PosAndState.from(currentPos, world))
+                for (direction in Direction.entries) {
+                    val adjacentPos = currentPos.add(direction.vector)
+                    val adjacent = PosAndState.from(adjacentPos, world)
+                    if (adjacent.blockState.block is FallingBlock) {
+                        if (blocksThatWillUpdate.contains(adjacent)) {
+                            continue
+                        }
+                        if (direction == Direction.UP) {
+                            checkQueue.add(adjacent.blockPos)
+                        } else if (FallingBlock.canFallThrough(world.getBlockState(adjacentPos.down()))) {
+                            checkQueue.add(adjacent.blockPos)
+                        }
+                    }
+                }
+            }
+        }
         return blocksThatWillUpdate.toList()
     }
 
