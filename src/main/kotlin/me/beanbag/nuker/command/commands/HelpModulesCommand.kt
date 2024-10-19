@@ -28,7 +28,7 @@ class HelpModulesCommand: ICommand {
 
     override fun execute(command: List<String>) {
         ChatHandler.printHeader()
-        ChatHandler.sendChatLine(Text.of("Click on a module or type \"${COMMAND_PREFIX}help [module]\" for more details"))
+        ChatHandler.sendChatLine("Click on a module or type \"${COMMAND_PREFIX}help [module]\" for more details")
         for (loaderModule in ModConfigs.modules.values) {
             ChatHandler.sendChatLine(
                 Text.empty().append(Text.literal(ChatHandler.toCamelCaseName(loaderModule.name)).styled {

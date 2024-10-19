@@ -24,8 +24,8 @@ class HelpCommand : ICommand {
 
     override fun execute(command: List<String>) {
         ChatHandler.printHeader()
-        ChatHandler.sendChatLine(Text.of("Hovering over modules/settings will show more details.\n"))
-        ChatHandler.sendChatLine(Text.of("Available commands:\n"))
+        ChatHandler.sendChatLine("Hovering over modules/settings will show more details.\n")
+        ChatHandler.sendChatLine("Available commands:\n")
         for (commandImplementation in ModConfigs.commands) {
             ChatHandler.sendChatLine(commandImplementation.helpText)
         }

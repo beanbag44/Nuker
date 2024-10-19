@@ -22,13 +22,13 @@ object BlockUtils {
     const val PLAYER_CROUCHING_EYE_HEIGHT = PLAYER_EYE_HEIGHT - 0.125
 
     fun getBlockSphere(center: Vec3d, radius: Double): ArrayList<PosAndState> =
-        getBlockCube(center, radius ).apply {
+        getBlockCube(center, radius).apply {
             removeIf { posAndState -> posAndState.blockState.isAir || !canReach(center, posAndState, radius) }
         }
 
     fun getBlockCube(center: Vec3d, radius: Double): ArrayList<PosAndState> {
         val posList = arrayListOf<PosAndState>()
-        val min = BlockPos((center.x - radius).toInt(), (center.y - radius).toInt(), (center.z - radius).toInt())
+        val min = BlockPos((center.x - radius).toInt() - 1, (center.y - radius).toInt() - 1, (center.z - radius).toInt() - 1)
         val max = BlockPos((center.x + radius).toInt(), (center.y + radius).toInt(), (center.z + radius).toInt())
 
         allPosInBounds(min, max).map { pos ->

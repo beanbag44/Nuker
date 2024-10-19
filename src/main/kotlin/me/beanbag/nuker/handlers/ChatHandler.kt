@@ -53,6 +53,10 @@ object ChatHandler {
             }
     }
 
+    fun sendChatLine(message: String) {
+        mc.inGameHud.chatHud.addMessage(Text.of(message))
+    }
+
     fun sendChatLine(message: Text) {
         mc.inGameHud.chatHud.addMessage(message)
     }
