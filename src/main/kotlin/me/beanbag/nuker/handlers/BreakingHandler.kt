@@ -2,7 +2,6 @@ package me.beanbag.nuker.handlers
 
 import me.beanbag.nuker.ModConfigs
 import me.beanbag.nuker.ModConfigs.mc
-import me.beanbag.nuker.eventsystem.CallbackHolder
 import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.eventsystem.events.MeteorRenderEvent
 import me.beanbag.nuker.eventsystem.events.PacketEvent
@@ -11,6 +10,7 @@ import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.*
 import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.TimeoutSet
+import me.beanbag.nuker.utils.BlockUtils
 import me.beanbag.nuker.utils.BlockUtils.isBlockBroken
 import me.beanbag.nuker.utils.BlockUtils.state
 import me.beanbag.nuker.utils.InventoryUtils.calcBreakDelta
@@ -28,24 +28,22 @@ import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
+import net.minecraft.util.math.Vec3d
 import org.rusherhack.client.api.RusherHackAPI
 import java.awt.Color
+import kotlin.jvm.optionals.getOrNull
 
 object BreakingHandler {
     val blockTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockTimeout }.apply { subscribeOnTickUpdate() }
     private var breakingContexts = arrayOfNulls<BreakingContext>(2)
     private var packetCounter = 0
 
-    private val callbackHolder = CallbackHolder()
-
     init {
-        EventBus.addCallbackHolder(callbackHolder)
-
-        callbackHolder.addCallback<TickEvent.Pre> {
+        EventBus.subscribe<TickEvent.Pre>(this) {
             updateBreakingContexts()
         }
 
-        callbackHolder.addCallback<PacketEvent.Receive.Pre> { event ->
+        EventBus.subscribe<PacketEvent.Receive.Pre>(this){ event ->
             val packet = event.packet
 
             if (packet is BlockUpdateS2CPacket) {
@@ -57,7 +55,7 @@ object BreakingHandler {
             }
         }
 
-        callbackHolder.addCallback<MeteorRenderEvent> { event ->
+        EventBus.subscribe<MeteorRenderEvent>(this) { event ->
             breakingContexts.forEach { ctx ->
                 ctx?.drawRenders(event.renderer)
             }
@@ -89,7 +87,7 @@ object BreakingHandler {
 
             val breakDelta = calcBreakDelta(block.blockState, blockPos, bestTool)
 
-            val breakPacketCount = if (breakDelta >= 1) 1 else 3
+            val breakPacketCount = if (breakDelta >= 1) 1 else 6
 
             packetCounter += breakPacketCount
 
@@ -122,9 +120,10 @@ object BreakingHandler {
 
     private fun onBlockBreak(contextIndex: Int) {
         breakingContexts[contextIndex]?.apply {
-            if (breakType.isPrimary() && CoreConfig.breakThreshold <= 1) {
+            if (breakType.isPrimary() && mineTicks > 0 && CoreConfig.breakThreshold <= 1) {
                 stopBreakPacket(pos)
                 abortBreakPacket(pos)
+                packetCounter += 2
             }
 
             BrokenBlockHandler.putBrokenBlock(pos, !CoreConfig.validateBreak)
@@ -183,13 +182,13 @@ object BreakingHandler {
         return null
     }
 
-    fun updateBreakingContexts() {
+    private fun updateBreakingContexts() {
         breakingContexts.forEach {
             it?.apply {
                 val index = breakingContexts.indexOf(this)
 
                 mc.player?.let { player ->
-                    if (player.eyePos.distanceTo(pos.toCenterPos()) > CoreConfig.radius) {
+                    if (!BlockUtils.canReach(player.eyePos, PosAndState.from(pos, mc.world!!), CoreConfig.radius)) {
                         nullifyBreakingContext(index)
                         return@forEach
                     }

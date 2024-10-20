@@ -1,8 +1,8 @@
 package me.beanbag.nuker.handlers
 
 import me.beanbag.nuker.ModConfigs.mc
-import me.beanbag.nuker.eventsystem.CallbackHolder
 import me.beanbag.nuker.eventsystem.EventBus
+
 import me.beanbag.nuker.eventsystem.events.PacketEvent
 import me.beanbag.nuker.module.modules.CoreConfig.ghostBlockTimeout
 import me.beanbag.nuker.module.modules.CoreConfig.validateBreak
@@ -25,12 +25,8 @@ object BrokenBlockHandler {
         }
     }.apply { subscribeOnTickUpdate() }
 
-    private val callbackHolder = CallbackHolder()
-
     init {
-        EventBus.addCallbackHolder(callbackHolder)
-
-        callbackHolder.addCallback<PacketEvent.Receive.Pre> { event ->
+        EventBus.subscribe<PacketEvent.Receive.Pre>(this) { event ->
             val packet = event.packet
 
             if (packet is BlockUpdateS2CPacket) {
