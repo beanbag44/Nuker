@@ -2,13 +2,9 @@ package me.beanbag.nuker.utils
 
 import baritone.api.BaritoneAPI
 import me.beanbag.nuker.ModConfigs.mc
-import me.beanbag.nuker.handlers.ChatHandler
 import me.beanbag.nuker.module.modules.nuker.enumsettings.FlattenMode
 import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.VolumeSort
-import me.beanbag.nuker.utils.BlockUtils.getState
-import me.beanbag.nuker.utils.LitematicaUtils.schematicIncorrectBlockPlacements
-import me.beanbag.nuker.utils.LitematicaUtils.schematicIncorrectStatePlacements
 import net.minecraft.block.*
 import net.minecraft.fluid.FlowableFluid
 import net.minecraft.fluid.LavaFluid
@@ -66,9 +62,21 @@ object BlockUtils {
             var closestPoint: Vec3d? = null
             block.blockState.getOutlineShape(world, block.blockPos).boundingBoxes.forEach { box ->
                 if (box == null) return@forEach
-                val x = MathHelper.clamp(from.getX(), block.blockPos.x + box.minX, block.blockPos.x + box.maxX)
-                val y = MathHelper.clamp(from.getY(), block.blockPos.y + box.minY, block.blockPos.y + box.maxY)
-                val z = MathHelper.clamp(from.getZ(), block.blockPos.z + box.minZ, block.blockPos.z + box.maxZ)
+                val x = MathHelper.clamp(
+                    from.getX(),
+                    block.blockPos.x + box.minX,
+                    block.blockPos.x + box.maxX
+                )
+                val y = MathHelper.clamp(
+                    from.getY(),
+                    block.blockPos.y + box.minY,
+                    block.blockPos.y + box.maxY
+                )
+                val z = MathHelper.clamp(
+                    from.getZ(),
+                    block.blockPos.z + box.minZ,
+                    block.blockPos.z + box.maxZ
+                )
                 if (closestPoint == null || from.squaredDistanceTo(x, y, z) < from.squaredDistanceTo(closestPoint)) {
                     closestPoint = Vec3d(x, y, z)
                 }
@@ -79,7 +87,11 @@ object BlockUtils {
         } ?: false
     }
 
-    fun sortBlockVolume(posAndStateList: ArrayList<PosAndState>, center: Vec3d, sortStyle: VolumeSort): ArrayList<PosAndState> =
+    fun sortBlockVolume(
+        posAndStateList: ArrayList<PosAndState>,
+        center: Vec3d,
+        sortStyle: VolumeSort
+    ): ArrayList<PosAndState> =
         posAndStateList.apply {
             when (sortStyle) {
                 VolumeSort.Closest -> sortBy { center.distanceTo(it.blockPos.toCenterPos()) }
@@ -87,13 +99,6 @@ object BlockUtils {
                 VolumeSort.TopDown -> sortBy { -it.blockPos.y }
                 VolumeSort.BottomUp -> sortBy { it.blockPos.y }
                 VolumeSort.Random -> shuffle()
-            }
-        }
-
-    fun filterBlocksToBreakable(posAndStateList: ArrayList<PosAndState>) =
-        posAndStateList.apply {
-            removeIf {
-                !isBlockBreakable(it.blockPos, it.blockState)
             }
         }
 
@@ -112,71 +117,26 @@ object BlockUtils {
                 val stateAbove = world.getBlockState(pos.up())
                 val state = world.getBlockState(pos)
                 val stateBelow = world.getBlockState(pos.down())
-                return@filter canWalkThrough(PosAndState(pos.up(), stateAbove))
-                            && canWalkThrough(PosAndState(pos, state))
+                return@filter canWalkThrough(stateAbove)
                             && stateBelow.isFullCube(world, pos)
-                        || canWalkThrough(PosAndState(pos.up(), stateAbove))
+                        || canWalkThrough(stateAbove)
                             && state.block == Blocks.WATER
                             && stateBelow.block == Blocks.WATER
-                        || canWalkThrough(PosAndState(pos.up(), stateAbove))
+                        || canWalkThrough(stateAbove)
                             && state.block == Blocks.WATER
                             && stateBelow.isFullCube(world, pos)
             }
         } ?: listOf()
     }
 
-    fun canWalkThrough(block: PosAndState): Boolean {
-        if (block.blockState.isAir) return true
-        if (block.blockState.block is FlowerBlock) return true
-        if (block.blockState.block is TallPlantBlock) return true
-        if (block.blockState.block is ShortPlantBlock) return true
-        if (block.blockState.block is MushroomPlantBlock) return true
+    fun canWalkThrough(state: BlockState): Boolean {
+        if (state.isAir) return true
+        if (state.block is FlowerBlock) return true
+        if (state.block is TallPlantBlock) return true
+        if (state.block is ShortPlantBlock) return true
+        if (state.block is MushroomPlantBlock) return true
         return false
     }
-
-    fun filterLiquidSupportingBlocks(posAndStateList: ArrayList<PosAndState>) =
-        posAndStateList.removeIf { willReleaseLiquids(it) }
-
-    fun filterBlocksToFlatten(
-        posAndStateList: ArrayList<PosAndState>,
-        crouchLowersFlatten: Boolean,
-        flattenMode: FlattenMode
-    ) =
-        posAndStateList.apply {
-            mc.player?.let { player ->
-                val playerPos = player.blockPos
-                val flattenLevel = if (crouchLowersFlatten && player.isSneaking) {
-                    playerPos.y - 1
-                } else {
-                    playerPos.y
-                }
-
-                if (!flattenMode.isSmart()) {
-                    removeIf {
-                        it.blockPos.y < flattenLevel
-                    }
-                    return@apply
-                }
-
-                val playerLookDir = player.horizontalFacing
-                val smartFlattenDir = if (flattenMode == FlattenMode.Smart) {
-                    playerLookDir
-                } else {
-                    playerLookDir?.opposite
-                }
-
-                removeIf {
-                    if (it.blockPos.y >= flattenLevel) return@removeIf false
-
-                    val zeroedPos = it.blockPos.add(-playerPos.x, -playerPos.y, -playerPos.z)
-
-                    return@removeIf (zeroedPos.x >= 0 && smartFlattenDir == Direction.EAST)
-                            || (zeroedPos.z >= 0 && smartFlattenDir == Direction.SOUTH)
-                            || (zeroedPos.x <= 0 && smartFlattenDir == Direction.WEST)
-                            || (zeroedPos.z <= 0 && smartFlattenDir == Direction.NORTH)
-                }
-            }
-        }
 
     fun isBlockInFlatten(pos: BlockPos, crouchLowersFlatten: Boolean, flattenMode: FlattenMode): Boolean {
         mc.player?.let { player ->
@@ -212,13 +172,6 @@ object BlockUtils {
         return false
     }
 
-    fun filterBlocksToBaritoneSelections(posAndStateList: ArrayList<PosAndState>) =
-        posAndStateList.apply {
-            removeIf {
-                !isWithinABaritoneSelection(it.blockPos)
-            }
-        }
-
     fun isWithinABaritoneSelection(pos: BlockPos): Boolean {
         BaritoneAPI.getProvider().allBaritones.forEach {
             it.selectionManager.selections.forEach { sel ->
@@ -232,58 +185,6 @@ object BlockUtils {
 
         return false
     }
-
-    fun filterCorrectlyPlacedLitematicaBlocks(posAndStateList: ArrayList<PosAndState>) =
-        posAndStateList.apply {
-            removeIf {
-                !schematicIncorrectBlockPlacements.contains(it.blockPos)
-                        && !schematicIncorrectStatePlacements.contains(it.blockPos)
-            }
-        }
-
-    fun filterBlocksToCanal(posAndStateList: ArrayList<PosAndState>) =
-        posAndStateList.apply {
-            mc.world?.let { world ->
-                removeIf {
-                    val pos = it.blockPos
-                    val x = pos.x
-                    val y = pos.y
-                    val z = pos.z
-                    val block = it.blockState.block
-
-                    if (z < 0
-                        || (y < 59 || x !in -13..12)
-                        && (y < 60 || (x != 13 && x != -14))
-                        && (y < 62 || (x !in 13..15 && x !in -16..-14))
-                    ) {
-                        return@removeIf true
-                    }
-
-                    if ((x == 13 && y <= 61)
-                        || (x == -14 && y <= 61)
-                        || (y == 62 && (x == 14 || x == 13))
-                        || (y == 62 && (x == -15 || x == -14))
-                        && pos.getState(world).block == Blocks.OBSIDIAN) {
-                        return@removeIf true
-                    }
-
-                    if (y == 59) {
-                        val biome = world.getBiome(pos)
-                        val isInRiver = biome.isIn(BiomeTags.IS_RIVER)
-
-                        return@removeIf when {
-                            isInRiver && block == Blocks.CRYING_OBSIDIAN -> true
-                            !isInRiver && block == Blocks.OBSIDIAN -> true
-                            else -> false
-                        }
-                    }
-
-                    return@removeIf ((y == 62 && x == 15)
-                        || (y == 62 && x == -16))
-                        && block == Blocks.CRYING_OBSIDIAN
-                }
-            }
-        }
 
     fun isValidCanalBlock(pos: BlockPos, state: BlockState): Boolean? {
         mc.world?.let { world ->
@@ -395,11 +296,6 @@ object BlockUtils {
     }
 
 
-    fun willReleaseLiquids(block: PosAndState): Boolean {
-        val blocksThatWillUpdate = blocksThatWillUpdate(block)
-        return blocksThatWillUpdate.any { willReleaseAdjacentLiquids(it.blockPos) }
-    }
-
     fun willReleaseLiquids(pos: BlockPos): Boolean {
         val blocksThatWillUpdate = blocksThatWillUpdate(pos)
         return blocksThatWillUpdate.any { willReleaseAdjacentLiquids(it.blockPos) }
@@ -414,9 +310,11 @@ object BlockUtils {
                 if (block is AbstractSignBlock) {
                     if (block is SignBlock && direction == Direction.UP) {
                         return true
-                    } else if (block is WallSignBlock && direction == (state.get(WallBannerBlock.FACING) as Direction)) {
+                    } else if (block is WallSignBlock
+                        && direction == (state.get(WallBannerBlock.FACING) as Direction)) {
                         return true
-                    } else if (block is HangingSignBlock && direction == Direction.DOWN) {
+                    } else if (block is HangingSignBlock
+                        && direction == Direction.DOWN) {
                         return true
                     }
                     //Note, we don't check WallHangingSign because it will persist if the "supporting" block is destroyed
@@ -431,35 +329,6 @@ object BlockUtils {
             }
         }
        return false
-    }
-
-    fun blocksThatWillUpdate(block: PosAndState) : List<PosAndState> {
-        val blocksThatWillUpdate = hashSetOf<PosAndState>()
-        val checkQueue = hashSetOf(block)
-
-        mc.world?.let { world ->
-            while(checkQueue.isNotEmpty()) {
-                val currentPos = checkQueue.first()
-                checkQueue.remove(currentPos)
-                blocksThatWillUpdate.add(currentPos)
-                for (direction in Direction.entries) {
-                    val adjacentPos = currentPos.blockPos.add(direction.vector)
-                    val adjacent = PosAndState.from(adjacentPos, world)
-                    if (adjacent.blockState.block is FallingBlock) {
-                        if (blocksThatWillUpdate.contains(adjacent)) {
-                            continue
-                        }
-                        if (direction == Direction.UP) {
-                            checkQueue.add(adjacent)
-                        } else if (FallingBlock.canFallThrough(world.getBlockState(adjacentPos.down()))) {
-                            checkQueue.add(adjacent)
-                        }
-                    }
-                }
-            }
-        }
-
-        return blocksThatWillUpdate.toList()
     }
 
     fun blocksThatWillUpdate(pos: BlockPos): List<PosAndState> {
@@ -491,8 +360,8 @@ object BlockUtils {
         return blocksThatWillUpdate.toList()
     }
 
-    fun isSupportingSignOrBanner(block: PosAndState): Boolean =
-        blocksThatWillUpdate(block).any { isSupportingAdjacentSignOrBanner(it.blockPos) }
+    fun isSupportingSignOrBanner(pos: BlockPos): Boolean =
+        blocksThatWillUpdate(pos).any { isSupportingAdjacentSignOrBanner(it.blockPos) }
 
     fun allPosInBounds(pos1: BlockPos, pos2: BlockPos): List<BlockPos> = forEachXYZ(pos1, pos2) { BlockPos(it) }
 
