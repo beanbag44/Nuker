@@ -16,11 +16,8 @@ class MeteorModule(var module: Module) : MeteorModule(MeteorLoader.CATEGORY, mod
         module.enabledSetting.getOnChange().add(Consumer{ value -> if(this.isActive != value) this.toggle()})
     }
 
-    override fun onActivate() {
-        module.enabled = true
-    }
-
-    override fun onDeactivate() {
-        module.enabled = false
+    override fun toggle() {
+        super.toggle()
+        module.enabledSetting.setValue(isActive)
     }
 }
