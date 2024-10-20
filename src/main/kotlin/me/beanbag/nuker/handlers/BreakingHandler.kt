@@ -188,7 +188,12 @@ object BreakingHandler {
                 val index = breakingContexts.indexOf(this)
 
                 mc.player?.let { player ->
-                    if (!BlockUtils.canReach(player.eyePos, PosAndState.from(pos, mc.world!!), CoreConfig.radius)) {
+                    mc.world?.let { world ->
+                        if (!BlockUtils.canReach(player.eyePos, PosAndState.from(pos, world), CoreConfig.radius)) {
+                            nullifyBreakingContext(index)
+                            return@forEach
+                        }
+                    }?: run {
                         nullifyBreakingContext(index)
                         return@forEach
                     }
