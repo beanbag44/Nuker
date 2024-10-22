@@ -61,13 +61,11 @@ abstract class AbstractSetting<T : Any>(
 
     fun getMeteorSetting(): MeteorSetting<*> {
         val meteorSetting = toMeteorSetting()
-//        onChange.forEach { it.accept(value) }
         return meteorSetting
     }
 
     fun getRusherSetting(): RusherSetting<*>? {
         val rusherSetting = toRusherSetting()
-//        onChange.forEach { it.accept(value) }
         return rusherSetting
     }
 
