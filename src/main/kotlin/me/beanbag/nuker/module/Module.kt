@@ -5,6 +5,7 @@ import com.google.gson.JsonObject
 import me.beanbag.nuker.ModConfigs.modColor
 import me.beanbag.nuker.command.ExecutableClickEvent
 import me.beanbag.nuker.command.commands.HelpModuleSettingCommand
+import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.handlers.ChatHandler
 import me.beanbag.nuker.module.settings.*
 import me.beanbag.nuker.utils.IJsonable
@@ -15,11 +16,22 @@ import net.minecraft.util.Formatting
 import java.awt.Color
 import java.util.function.Consumer
 
-abstract class Module(var name: String, var description: String) : IJsonable {
+abstract class Module(var name: String, var description: String, private var alwaysListening: Boolean = false) : IJsonable {
     var settingGroups: MutableList<SettingGroup> = ArrayList()
     private val enabledGroup = SettingGroup("Enabled", "Settings for enabling or disabling the module")
     var enabled by setting(enabledGroup,"Enabled", "Enables or disables the module", false, null, visible = { true })
     val enabledSetting get() = enabledGroup.settings[0] as BoolSetting
+
+    init {
+        enabledSetting.getOnChange().add{ enabled ->
+            if (alwaysListening) return@add
+            if (enabled) {
+                EventBus.resubscribe(this)
+            } else {
+                EventBus.unsubscribe(this)
+            }
+        }
+    }
 
     protected fun addGroup(setting: SettingGroup): SettingGroup {
         settingGroups.add(setting)
