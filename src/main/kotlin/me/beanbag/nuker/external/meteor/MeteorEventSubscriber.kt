@@ -1,7 +1,7 @@
 package me.beanbag.nuker.external.meteor
 
 import me.beanbag.nuker.eventsystem.EventBus
-import me.beanbag.nuker.eventsystem.events.MeteorRenderEvent
+import me.beanbag.nuker.eventsystem.events.RenderEvent
 import meteordevelopment.meteorclient.MeteorClient
 import meteordevelopment.meteorclient.events.render.Render3DEvent
 import meteordevelopment.orbit.EventHandler
@@ -13,6 +13,8 @@ class MeteorEventSubscriber {
 
     @EventHandler
     fun onRender(event: Render3DEvent) {
-        EventBus.post(MeteorRenderEvent(event.renderer))
+//        if (!ModConfigs.rusherIsPresent) { //TODO add this back in when we can hook into rusher's render event
+            EventBus.post(RenderEvent(MeteorRenderer(event.renderer)))
+//        }
     }
 }

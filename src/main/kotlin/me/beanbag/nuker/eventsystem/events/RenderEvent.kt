@@ -1,3 +1,5 @@
 package me.beanbag.nuker.eventsystem.events
 
-open class RenderEvent : Event
+import me.beanbag.nuker.render.Renderer
+
+open class RenderEvent(val renderer:Renderer) : Event

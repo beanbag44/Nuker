@@ -1,13 +1,13 @@
 package me.beanbag.nuker.handlers
 
-import me.beanbag.nuker.ModConfigs
 import me.beanbag.nuker.ModConfigs.mc
 import me.beanbag.nuker.eventsystem.EventBus
-import me.beanbag.nuker.eventsystem.events.MeteorRenderEvent
 import me.beanbag.nuker.eventsystem.events.PacketEvent
+import me.beanbag.nuker.eventsystem.events.RenderEvent
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.*
+import me.beanbag.nuker.render.Renderer
 import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.TimeoutSet
 import me.beanbag.nuker.utils.BlockUtils
@@ -20,18 +20,13 @@ import me.beanbag.nuker.utils.LerpUtils
 import me.beanbag.nuker.utils.RenderUtils
 import me.beanbag.nuker.utils.ThreadUtils
 import me.beanbag.nuker.utils.TimerUtils.subscribeOnTickUpdate
-import meteordevelopment.meteorclient.renderer.Renderer3D
-import meteordevelopment.meteorclient.renderer.ShapeMode
 import net.minecraft.block.BlockState
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
-import net.minecraft.util.math.Vec3d
-import org.rusherhack.client.api.RusherHackAPI
 import java.awt.Color
-import kotlin.jvm.optionals.getOrNull
 
 object BreakingHandler {
     val blockTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockTimeout }.apply { subscribeOnTickUpdate() }
@@ -55,7 +50,7 @@ object BreakingHandler {
             }
         }
 
-        EventBus.subscribe<MeteorRenderEvent>(this) { event ->
+        EventBus.subscribe<RenderEvent>(this) { event ->
             breakingContexts.forEach { ctx ->
                 ctx?.drawRenders(event.renderer)
             }
@@ -293,7 +288,7 @@ object BreakingHandler {
             state.getOutlineShape(mc.world, pos)?.boundingBoxes?.toSet()
         }
 
-        fun drawRenders(meteorRenderer: Renderer3D?) {
+        fun drawRenders(renderer: Renderer) {
             val threshold = if (breakType.isPrimary()) 2f - CoreConfig.breakThreshold else 1f
             val previousFactor = previousMiningProgress * threshold
             val nextFactor = miningProgress * threshold
@@ -324,55 +319,11 @@ object BreakingHandler {
                 } else {
                     RenderUtils.getLerpBox(positionedBox, currentFactor, CoreConfig.renderAnimation)
                 }
-
-                when {
-                    ModConfigs.meteorIsPresent -> {
-                        val shapeMode = when (CoreConfig.renders) {
-                            RenderType.Both -> ShapeMode.Both
-                            RenderType.Fill -> ShapeMode.Sides
-                            RenderType.Line -> ShapeMode.Lines
-                            else -> null
-                        }
-
-                        meteorRenderer?.box(
-                            renderBox,
-                            meteordevelopment.meteorclient.utils.render.color.Color(fillColour),
-                            meteordevelopment.meteorclient.utils.render.color.Color(outlineColour),
-                            shapeMode,
-                            0
-                        )
-                    }
-
-                    ModConfigs.rusherIsPresent -> {
-                        if (CoreConfig.renders != RenderType.Line) {
-                            RusherHackAPI.getRenderer3D().drawBox(
-                                renderBox.minX,
-                                renderBox.minY,
-                                renderBox.minZ,
-                                renderBox.maxX - renderBox.minX,
-                                renderBox.maxY - renderBox.minY,
-                                renderBox.maxZ - renderBox.minZ,
-                                true,
-                                false,
-                                fillColour.rgb
-                            )
-                        }
-
-                        if (CoreConfig.renders != RenderType.Fill) {
-                            RusherHackAPI.getRenderer3D().setLineWidth(CoreConfig.outlineWidth)
-                            RusherHackAPI.getRenderer3D().drawBox(
-                                renderBox.minX,
-                                renderBox.minY,
-                                renderBox.minZ,
-                                renderBox.maxX - renderBox.minX,
-                                renderBox.maxY - renderBox.minY,
-                                renderBox.maxZ - renderBox.minZ,
-                                false,
-                                true,
-                                outlineColour.rgb
-                            )
-                        }
-                    }
+                if (CoreConfig.renders == RenderType.Both || CoreConfig.renders == RenderType.Fill) {
+                    renderer.boxSides(renderBox, fillColour)
+                }
+                if (CoreConfig.renders == RenderType.Both || CoreConfig.renders == RenderType.Line) {
+                    renderer.boxLines(renderBox, outlineColour)
                 }
             }
         }
