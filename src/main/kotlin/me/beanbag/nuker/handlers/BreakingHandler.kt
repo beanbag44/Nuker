@@ -66,22 +66,19 @@ object BreakingHandler {
         packetCounter = 0
         updateSelectedSlot()
 
+        val primaryBreakingContext = breakingContexts[0]
+
         blockVolume.forEach { block ->
+            if (isAtMaximumCurrentBreakingContexts()) return
+
             val blockPos = block.blockPos
 
-            for (ctx in breakingContexts) {
-                if (ctx?.pos == blockPos) return@forEach
-            }
-
-            if (isAtMaximumCurrentBreakingContexts()) return
+            if (primaryBreakingContext?.pos == blockPos) return@forEach
 
             val bestTool = getBestTool(block.blockState, blockPos)
 
-            firstOrNullContext()?.run {
+            primaryBreakingContext?.run {
                 if (this.bestTool != bestTool) return@forEach
-            }
-
-            breakingContexts[0]?.run {
                 breakingContexts.shiftPrimaryDown()
             }
 
@@ -98,7 +95,9 @@ object BreakingHandler {
                 block.blockState,
                 breakDelta,
                 bestTool,
-            )
+            ).apply {
+                mineTicks++
+            }
 
             if (breakingContexts[1] == null) {
                 if (swapTo(bestTool)) packetCounter++
@@ -113,20 +112,19 @@ object BreakingHandler {
             if (breakDelta >= CoreConfig.breakThreshold) {
                 onBlockBreak(0)
             }
-
-            blockTimeouts.put(blockPos)
         }
     }
 
     private fun onBlockBreak(contextIndex: Int) {
         breakingContexts[contextIndex]?.apply {
-            if (breakType.isPrimary() && mineTicks > 0 && CoreConfig.breakThreshold <= 1) {
+            if (contextIndex == 0 && mineTicks > 1 && CoreConfig.breakThreshold < 1) {
                 stopBreakPacket(pos)
                 abortBreakPacket(pos)
                 packetCounter += 2
             }
 
             BrokenBlockHandler.putBrokenBlock(pos, !CoreConfig.validateBreak)
+            blockTimeouts.put(pos)
 
             if (!CoreConfig.validateBreak) {
                 ThreadUtils.runOnMainThread {
@@ -165,15 +163,10 @@ object BreakingHandler {
     }
 
     private fun isAtMaximumCurrentBreakingContexts(): Boolean {
-        if (CoreConfig.doubleBreak) {
-            if (breakingContexts.any { it?.breakType?.isPrimary() == false }) {
-                return true
-            }
-        } else {
-            if (breakingContexts.firstOrNull() != null) return false
-        }
-
-        return false
+        return if (CoreConfig.doubleBreak)
+            breakingContexts[1] != null
+        else
+            breakingContexts[0] != null
     }
 
     private fun firstOrNullContext(): BreakingContext? {
@@ -210,7 +203,7 @@ object BreakingHandler {
                 bestTool = getBestTool(state, pos)
                 updateBreakDeltas(calcBreakDelta(state, pos, bestTool))
 
-                val threshold = if (breakType.isPrimary()) {
+                val threshold = if (index == 0) {
                     CoreConfig.breakThreshold
                 } else {
                     1.0f
