@@ -10,6 +10,7 @@ import me.beanbag.nuker.handlers.ChatHandler
 import me.beanbag.nuker.module.settings.*
 import me.beanbag.nuker.utils.IJsonable
 import net.minecraft.block.Block
+import net.minecraft.entity.EntityType
 import net.minecraft.text.HoverEvent
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
@@ -115,6 +116,16 @@ abstract class Module(var name: String, var description: String, private var alw
         step: Double? = 0.1,
     ) = group.add(DoubleSetting(name, description, defaultValue, onChange, visible, min, max, sliderMin, sliderMax, step))
 
+    fun setting(
+        group: SettingGroup,
+        name: String,
+        description: String,
+        defaultValue: Set<EntityType<*>>,
+        onChange: MutableList<Consumer<Set<EntityType<*>>>>? = null,
+        visible: () -> Boolean = { true },
+        filter: (EntityType<*>) -> Boolean = { true }
+    ) = group.add(EntityTypeListSetting(name, description, defaultValue, onChange, visible, filter))
+
     inline fun <reified T : Enum<T>> setting(
         group: SettingGroup,
         name: String,
@@ -166,6 +177,10 @@ abstract class Module(var name: String, var description: String, private var alw
 
     fun setting(
         group: SettingGroup, name: String, description: String, defaultValue: Double
+    ) = setting(group, name, description, defaultValue, null)
+
+    fun setting(
+        group: SettingGroup, name: String, description: String, defaultValue: Set<EntityType<*>>
     ) = setting(group, name, description, defaultValue, null)
 
     fun setting(
