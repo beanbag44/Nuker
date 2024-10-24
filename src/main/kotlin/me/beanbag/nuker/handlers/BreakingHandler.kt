@@ -11,6 +11,8 @@ import me.beanbag.nuker.module.modules.nuker.enumsettings.*
 import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.TimeoutSet
 import me.beanbag.nuker.utils.BlockUtils
+import me.beanbag.nuker.utils.BlockUtils.breakBlockWithRestrictionChecks
+import me.beanbag.nuker.utils.BlockUtils.emulateBlockBreak
 import me.beanbag.nuker.utils.BlockUtils.isBlockBroken
 import me.beanbag.nuker.utils.BlockUtils.state
 import me.beanbag.nuker.utils.InventoryUtils.calcBreakDelta
@@ -28,10 +30,8 @@ import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
-import net.minecraft.util.math.Vec3d
 import org.rusherhack.client.api.RusherHackAPI
 import java.awt.Color
-import kotlin.jvm.optionals.getOrNull
 
 object BreakingHandler {
     val blockTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockTimeout }.apply { subscribeOnTickUpdate() }
@@ -128,7 +128,7 @@ object BreakingHandler {
 
             if (!CoreConfig.validateBreak) {
                 ThreadUtils.runOnMainThread {
-                    mc.interactionManager?.breakBlock(pos)
+                    breakBlockWithRestrictionChecks(pos)
                 }
             }
         }
@@ -178,7 +178,7 @@ object BreakingHandler {
     private fun updateBreakingContexts() {
         breakingContexts.forEach {
             it?.apply {
-                val index = breakingContexts.indexOf(this)
+                val index = if (breakType.isPrimary()) 0 else 1
 
                 mc.player?.let { player ->
                     if (!BlockUtils.canReach(player.eyePos, PosAndState.from(pos, mc.world!!), CoreConfig.radius)) {
@@ -216,9 +216,9 @@ object BreakingHandler {
             it?.let { ctx ->
                 if (ctx.pos != pos || !isBlockBroken(ctx.state, state)) return@forEach
                 ThreadUtils.runOnMainThread {
-                    mc.interactionManager?.breakBlock(pos)
+                    emulateBlockBreak(pos, ctx.state)
                 }
-                nullifyBreakingContext(breakingContexts.indexOf(ctx))
+                nullifyBreakingContext(if (ctx.breakType.isPrimary()) 0 else 1)
             }
         }
     }

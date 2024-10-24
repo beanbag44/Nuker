@@ -373,6 +373,42 @@ object BlockUtils {
                 }
             }
         }
+
+    fun emulateBlockBreak(pos: BlockPos, state: BlockState) {
+        mc.player?.let { player ->
+            mc.world?.let { world ->
+                mc.interactionManager?.let { interactionManager ->
+                    state.block.onBreak(world, pos, state, player)
+                }
+            }
+        }
+    }
+
+    fun breakBlockWithRestrictionChecks(pos: BlockPos) {
+        mc.player?.let { player ->
+            mc.world?.let { world ->
+                mc.interactionManager?.let { interactionManager ->
+                    if (player.isBlockBreakingRestricted(world, pos, interactionManager.gameMode))
+                        return
+
+                    val state = world.getBlockState(pos)
+
+                    val block = state.block
+
+                    if (block is OperatorBlock && !player.isCreativeLevelTwoOp) return
+
+                    if (state.isAir) return
+
+                    block.onBreak(world, pos, state, player)
+                    val fluidState = world.getFluidState(pos)
+                    val bl = world.setBlockState(pos, fluidState.blockState, 11)
+                    if (bl) {
+                        block.onBroken(world, pos, state)
+                    }
+                }
+            }
+        }
+    }
 }
 
 fun BlockPos.closestCorner(toPos: Vec3d) : Vec3d {

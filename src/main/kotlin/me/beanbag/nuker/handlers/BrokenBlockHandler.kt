@@ -7,6 +7,7 @@ import me.beanbag.nuker.eventsystem.events.PacketEvent
 import me.beanbag.nuker.module.modules.CoreConfig.ghostBlockTimeout
 import me.beanbag.nuker.module.modules.CoreConfig.validateBreak
 import me.beanbag.nuker.types.TimeoutSet
+import me.beanbag.nuker.utils.BlockUtils.emulateBlockBreak
 import me.beanbag.nuker.utils.BlockUtils.isBlockBroken
 import me.beanbag.nuker.utils.BlockUtils.state
 import me.beanbag.nuker.utils.ThreadUtils
@@ -45,12 +46,15 @@ object BrokenBlockHandler {
 
     private fun onBlockUpdate(pos: BlockPos, state: BlockState) {
         blockQueue.values().removeIf { queueBlockPos ->
-            if (queueBlockPos != pos) return@removeIf false
+            if (queueBlockPos != pos
+                || !isBlockBroken(pos.state, state)) return@removeIf false
 
-            if (!queueBlockPos.broken) {
-                if (!isBlockBroken(queueBlockPos.state, state)) return@removeIf false
+            if (queueBlockPos.broken) return@removeIf true
+
+            mc.world?.let{ world ->
+                val preBreakState = world.getBlockState(pos)
                 ThreadUtils.runOnMainThread {
-                    mc.interactionManager?.breakBlock(pos)
+                    emulateBlockBreak(pos, preBreakState)
                 }
             }
 
