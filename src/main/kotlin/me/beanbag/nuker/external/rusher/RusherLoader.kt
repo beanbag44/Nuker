@@ -15,6 +15,8 @@ class RusherLoader : Plugin() {
             val rusherModule = RusherModule(module.name, module.description, module)
             RusherHackAPI.getModuleManager().registerFeature(rusherModule)
         }
+        RusherHackAPI.getCommandManager().registerFeature(RusherCommands())
+
         ModConfigs.rusherIsPresent = true
         LogUtils.getLogger().info("$MOD_NAME Plugin Loaded")
     }
