@@ -32,7 +32,7 @@ object EventBus {
         if (callbacks[minIndex].priority < callback.priority) {
             callbacks.add(0, callback)
             return
-        } else if (callbacks[maxIndex - 1].priority > callback.priority) {
+        } else if (callbacks[maxIndex].priority > callback.priority) {
             callbacks.add(callback)
             return
         }
