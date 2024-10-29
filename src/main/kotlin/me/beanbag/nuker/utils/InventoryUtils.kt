@@ -12,6 +12,8 @@ import net.minecraft.registry.tag.FluidTags
 import net.minecraft.util.math.BlockPos
 
 object InventoryUtils {
+    const val HOTBAR_SIZE = 9
+
     fun swapTo(slot: Int): Boolean {
         if (mc.player?.inventory?.selectedSlot == slot
             || slot !in 0..8) {

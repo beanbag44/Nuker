@@ -5,4 +5,5 @@ import me.beanbag.nuker.eventsystem.events.Event
 class EventCallback(
     val callback: (Event) -> Unit,
     val subscriber: Any,
+    val priority: Int,
 )
