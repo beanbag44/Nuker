@@ -73,7 +73,7 @@ object BreakingHandler {
 
             val blockPos = block.blockPos
 
-            if (primaryBreakingContext?.pos == blockPos) return@forEach
+            if (breakingContexts.any { it?.pos == blockPos }) return@forEach
 
             val bestTool = getBestTool(block.blockState, blockPos)
 
@@ -84,7 +84,7 @@ object BreakingHandler {
 
             val breakDelta = calcBreakDelta(block.blockState, blockPos, bestTool)
 
-            val breakPacketCount = if (breakDelta >= 1) 1 else 6
+            val breakPacketCount = if (breakDelta >= 1) 1 else 3
 
             packetCounter += breakPacketCount
 
@@ -117,12 +117,6 @@ object BreakingHandler {
 
     private fun onBlockBreak(contextIndex: Int) {
         breakingContexts[contextIndex]?.apply {
-            if (contextIndex == 0 && mineTicks > 1 && CoreConfig.breakThreshold < 1) {
-                stopBreakPacket(pos)
-                abortBreakPacket(pos)
-                packetCounter += 2
-            }
-
             BrokenBlockHandler.putBrokenBlock(pos, !CoreConfig.validateBreak)
             blockTimeouts.put(pos)
 
@@ -137,11 +131,8 @@ object BreakingHandler {
 
     private fun startPacketBreaking(pos: BlockPos) {
         stopBreakPacket(pos)
-        abortBreakPacket(pos)
         startBreakPacket(pos)
         stopBreakPacket(pos)
-        abortBreakPacket(pos)
-        startBreakPacket(pos)
     }
 
     private fun startBreakPacket(pos: BlockPos) {
@@ -195,6 +186,8 @@ object BreakingHandler {
                     return@forEach
                 }
                 mineTicks++
+                stopBreakPacket(pos)
+                packetCounter++
                 bestTool = getBestTool(state, pos)
                 updateBreakDeltas(calcBreakDelta(state, pos, bestTool))
 
