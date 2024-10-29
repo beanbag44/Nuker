@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class MixinGameRenderer {
     @Inject(method = "renderWorld", at = @At(value = "INVOKE_STRING", target = "Lnet/minecraft/util/profiler/Profiler;swap(Ljava/lang/String;)V", args = {"ldc=hand"}))
     private void onRenderWorld(float tickDelta, long limitTime, MatrixStack matrices, CallbackInfo ci) {
-        RenderEvent event = new RenderEvent();
-        EventBus.INSTANCE.post(event);
+//        RenderEvent event = new RenderEvent();
+//        EventBus.INSTANCE.post(event);
     }
 }
