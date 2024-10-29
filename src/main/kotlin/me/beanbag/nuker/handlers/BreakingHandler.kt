@@ -28,7 +28,6 @@ import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
-import org.rusherhack.client.api.RusherHackAPI
 import java.awt.Color
 
 object BreakingHandler {
