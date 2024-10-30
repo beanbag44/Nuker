@@ -1,7 +1,10 @@
 package me.beanbag.nuker.eventsystem
 
+import me.beanbag.nuker.eventsystem.EventBus.subscribe
 import me.beanbag.nuker.eventsystem.events.Event
 import me.beanbag.nuker.eventsystem.events.ICancellable
+import me.beanbag.nuker.utils.InGame
+import me.beanbag.nuker.utils.runInGame
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -85,3 +88,11 @@ object EventBus {
         if (event is ICancellable && event.isCanceled()) return@post Unit
     }
 }
+
+
+inline fun <reified T : Event> Any.onInGameEvent(priority: Int = 0, noinline callback: InGame.(T) -> Unit) =
+    subscribe(this, { event: T -> runInGame { callback(event) } }, T::class.java, priority)
+
+
+inline fun <reified T : Event> Any.onEvent(priority: Int = 0, noinline callback: (T) -> Unit) =
+    subscribe(this, callback, T::class.java, priority)

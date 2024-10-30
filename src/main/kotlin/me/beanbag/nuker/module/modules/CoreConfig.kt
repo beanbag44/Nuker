@@ -18,7 +18,7 @@ object CoreConfig : Module("${ModConfigs.MOD_NAME} Core Configs", "General confi
     val breakMode by setting(breaking, "Break Mode", "Changes the way total break amount is calculated", BreakMode.Total, null) { true }
     val validateBreak by setting(breaking, "Validate Break", "Waits for the server to validate breaks", true, null) { true }
     val ghostBlockTimeout by setting(breaking, "Ghost Block Timeout (Ticks)", "The delay after breaking a block to reset its state if the server hasn't validated the break", 30, null, { !validateBreak }, 5, 50, 5, 50)
-    val breakThreshold by setting(breaking, "Break Threshold", "The percentage mined a block should be broken at", 0.7f, null, { true },  0f, 1f, 0f, 1f, 0.1f)
+    val breakThreshold by setting(breaking, "Break Threshold", "The percentage mined a block should be broken at", 0.75f, null, { true },  0f, 1f, 0f, 1f, 0.01f)
     val packetLimit by setting(breaking, "Packet Limit", "How many packets can be sent per tick", 8, null, { true }, 0, 15, 0, 15)
     val blockTimeout by setting(breaking, "Block Timeout (Ticks)", "The delay after breaking a block to attempt to break it again", 20, null, { true }, 0, 100, 0, 100)
 

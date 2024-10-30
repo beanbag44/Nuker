@@ -2,18 +2,20 @@ package me.beanbag.nuker.handlers
 
 import me.beanbag.nuker.ModConfigs.mc
 import me.beanbag.nuker.eventsystem.EventBus
-
 import me.beanbag.nuker.eventsystem.events.PacketEvent
+import me.beanbag.nuker.eventsystem.onInGameEvent
 import me.beanbag.nuker.module.modules.CoreConfig.ghostBlockTimeout
 import me.beanbag.nuker.module.modules.CoreConfig.validateBreak
 import me.beanbag.nuker.types.TimeoutSet
 import me.beanbag.nuker.utils.BlockUtils.isBlockBroken
 import me.beanbag.nuker.utils.BlockUtils.state
+import me.beanbag.nuker.utils.InGame
 import me.beanbag.nuker.utils.ThreadUtils
 import me.beanbag.nuker.utils.TimerUtils.subscribeOnTickUpdate
 import net.minecraft.block.BlockState
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
+import net.minecraft.sound.SoundCategory
 import net.minecraft.util.math.BlockPos
 
 object BrokenBlockHandler {
@@ -26,7 +28,7 @@ object BrokenBlockHandler {
     }.apply { subscribeOnTickUpdate() }
 
     init {
-        EventBus.subscribe<PacketEvent.Receive.Pre>(this) { event ->
+        onInGameEvent<PacketEvent.Receive.Pre> { event ->
             val packet = event.packet
 
             if (packet is BlockUpdateS2CPacket) {
@@ -40,17 +42,26 @@ object BrokenBlockHandler {
     }
 
     fun putBrokenBlock(pos: BlockPos, broken: Boolean) {
-        blockQueue.put(BrokenBlockPos(pos, broken))
+        blockQueue.put(BrokenBlockPos(pos, pos.state, broken))
     }
 
-    private fun onBlockUpdate(pos: BlockPos, state: BlockState) {
+    private fun InGame.onBlockUpdate(pos: BlockPos, state: BlockState) {
         blockQueue.values().removeIf { queueBlockPos ->
-            if (queueBlockPos != pos) return@removeIf false
+            if (queueBlockPos != pos
+                || !isBlockBroken(pos.state, state)) return@removeIf false
 
             if (!queueBlockPos.broken) {
                 if (!isBlockBroken(queueBlockPos.state, state)) return@removeIf false
                 ThreadUtils.runOnMainThread {
-                    mc.interactionManager?.breakBlock(pos)
+
+                    world.playSoundAtBlockCenter(pos,
+                        state.soundGroup.breakSound,
+                        SoundCategory.BLOCKS,
+                        (state.soundGroup.getVolume() + 1.0f) / 2.0f,
+                        state.soundGroup.getPitch() * 0.8f,
+                        false)
+                    mc.particleManager.addBlockBreakParticles(pos, queueBlockPos.state)
+                    interactionManager.breakBlock(pos)
                 }
             }
 
@@ -58,7 +69,7 @@ object BrokenBlockHandler {
         }
     }
 
-    class BrokenBlockPos(blockPos: BlockPos, var broken: Boolean) : BlockPos(blockPos.x, blockPos.y, blockPos.z) {
+    class BrokenBlockPos(blockPos: BlockPos, val state: BlockState?, var broken: Boolean) : BlockPos(blockPos.x, blockPos.y, blockPos.z) {
         val previousState = if (!validateBreak) blockPos.state else null
     }
 }

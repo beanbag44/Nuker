@@ -1,11 +1,9 @@
 package me.beanbag.nuker.module.modules.nuker
 
-import me.beanbag.nuker.ModConfigs.mc
-import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.eventsystem.events.TickEvent
+import me.beanbag.nuker.eventsystem.onInGameEvent
 import me.beanbag.nuker.handlers.BreakingHandler.blockTimeouts
 import me.beanbag.nuker.handlers.BreakingHandler.checkAttemptBreaks
-import me.beanbag.nuker.handlers.ChatHandler
 import me.beanbag.nuker.module.Module
 import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.FlattenMode
@@ -20,6 +18,7 @@ import me.beanbag.nuker.utils.BlockUtils.isValidCanalBlock
 import me.beanbag.nuker.utils.BlockUtils.isWithinABaritoneSelection
 import me.beanbag.nuker.utils.BlockUtils.sortBlockVolume
 import me.beanbag.nuker.utils.BlockUtils.willReleaseLiquids
+import me.beanbag.nuker.utils.InGame
 import me.beanbag.nuker.utils.LitematicaUtils
 import me.beanbag.nuker.utils.LitematicaUtils.updateSchematicMismatches
 import net.minecraft.block.BlockState
@@ -69,11 +68,11 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
      */
 
     init {
-        EventBus.subscribe<TickEvent.Pre>(this) {
-            if (!enabled) return@subscribe
+        onInGameEvent<TickEvent.Pre> {
+            if (!enabled) return@onInGameEvent
 
-            mc.player?.let { player ->
-                if (CoreConfig.onGround && !player.isOnGround) return@subscribe
+            player.let { player ->
+                if (CoreConfig.onGround && !player.isOnGround) return@onInGameEvent
 
                 val blockVolume = getBlockVolume { pos, state ->
                     if (!isBlockBreakable(pos, state)) return@getBlockVolume true
@@ -109,12 +108,12 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         }
     }
 
-    private fun getBlockVolume(removeIf: ((BlockPos, BlockState) -> Boolean)?) =
-        mc.player?.run {
+    private fun InGame.getBlockVolume(removeIf: ((BlockPos, BlockState) -> Boolean)?) =
+        player.run {
             if (shape == VolumeShape.Sphere) {
                 getBlockSphere(this.eyePos, CoreConfig.radius, removeIf)
             } else {
                 getBlockCube(this.eyePos, CoreConfig.radius, removeIf)
             }
-        } ?: ArrayList()
+        }
 }
