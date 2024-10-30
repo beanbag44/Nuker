@@ -49,6 +49,7 @@ class EntityTypeListSetting(
             .defaultValue(getDefaultValue())
             .onChanged { value: Set<EntityType<*>> -> setValue(value) }
             .visible { isVisible() }
+            .filter(filter)
 
         val meteorSetting = builder.build()
         getOnChange().add(Consumer{value -> meteorSetting.set(value)})
