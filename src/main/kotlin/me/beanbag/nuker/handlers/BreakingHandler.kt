@@ -5,22 +5,22 @@ import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.eventsystem.events.PacketEvent
 import me.beanbag.nuker.eventsystem.events.RenderEvent
 import me.beanbag.nuker.eventsystem.events.TickEvent
+import me.beanbag.nuker.eventsystem.onEvent
+import me.beanbag.nuker.eventsystem.onInGameEvent
 import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.*
 import me.beanbag.nuker.render.Renderer
 import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.TimeoutSet
-import me.beanbag.nuker.utils.BlockUtils
+import me.beanbag.nuker.utils.*
 import me.beanbag.nuker.utils.BlockUtils.breakBlockWithRestrictionChecks
+import me.beanbag.nuker.utils.BlockUtils.canReach
 import me.beanbag.nuker.utils.BlockUtils.emulateBlockBreak
 import me.beanbag.nuker.utils.BlockUtils.isBlockBroken
 import me.beanbag.nuker.utils.BlockUtils.state
-import me.beanbag.nuker.utils.InventoryUtils.calcBreakDelta
+import me.beanbag.nuker.utils.InventoryUtils.percentDamagePerTick
 import me.beanbag.nuker.utils.InventoryUtils.getBestTool
 import me.beanbag.nuker.utils.InventoryUtils.swapTo
-import me.beanbag.nuker.utils.LerpUtils
-import me.beanbag.nuker.utils.RenderUtils
-import me.beanbag.nuker.utils.ThreadUtils
 import me.beanbag.nuker.utils.TimerUtils.subscribeOnTickUpdate
 import net.minecraft.block.BlockState
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket
@@ -36,11 +36,11 @@ object BreakingHandler {
     private var packetCounter = 0
 
     init {
-        EventBus.subscribe<TickEvent.Pre>(this) {
+        onInGameEvent<TickEvent.Pre>(priority = EventBus.MAX_PRIORITY) {
             updateBreakingContexts()
         }
 
-        EventBus.subscribe<PacketEvent.Receive.Pre>(this){ event ->
+        onEvent<PacketEvent.Receive.Pre>{ event ->
             val packet = event.packet
 
             if (packet is BlockUpdateS2CPacket) {
@@ -52,18 +52,18 @@ object BreakingHandler {
             }
         }
 
-        EventBus.subscribe<RenderEvent>(this) { event ->
+        onEvent<RenderEvent> { event ->
             breakingContexts.forEach { ctx ->
                 ctx?.drawRenders(event.renderer)
             }
         }
     }
 
-    fun checkAttemptBreaks(blockVolume: List<PosAndState>) {
+    fun InGame.checkAttemptBreaks(blockVolume: List<PosAndState>) {
         packetCounter = 0
         updateSelectedSlot()
 
-        val primaryBreakingContext = breakingContexts[0]
+        var primaryBreakingContext = breakingContexts[0]
 
         blockVolume.forEach { block ->
             if (isAtMaximumCurrentBreakingContexts()) return
@@ -79,9 +79,9 @@ object BreakingHandler {
                 breakingContexts.shiftPrimaryDown()
             }
 
-            val breakDelta = calcBreakDelta(block.blockState, blockPos, bestTool)
-
-            val breakPacketCount = if (breakDelta >= 1) 1 else 3
+            val breakDelta = percentDamagePerTick(block.blockState, blockPos, bestTool)
+            val isInstaBreak = breakDelta >= 1
+            val breakPacketCount = if (isInstaBreak) 1 else 3
 
             packetCounter += breakPacketCount
 
@@ -95,12 +95,13 @@ object BreakingHandler {
             ).apply {
                 mineTicks++
             }
+            primaryBreakingContext = breakingContexts[0]
 
             if (breakingContexts[1] == null) {
                 if (swapTo(bestTool)) packetCounter++
             }
 
-            if (breakPacketCount == 1) {
+            if (isInstaBreak) {
                 startBreakPacket(blockPos)
             } else {
                 startPacketBreaking(blockPos)
@@ -119,33 +120,35 @@ object BreakingHandler {
 
             if (!CoreConfig.validateBreak) {
                 ThreadUtils.runOnMainThread {
-                    breakBlockWithRestrictionChecks(pos)
+                    runInGame {
+                        breakBlockWithRestrictionChecks(pos)
+                    }
                 }
             }
         }
         nullifyBreakingContext(contextIndex)
     }
 
-    private fun startPacketBreaking(pos: BlockPos) {
+    private fun InGame.startPacketBreaking(pos: BlockPos) {
         stopBreakPacket(pos)
         startBreakPacket(pos)
         stopBreakPacket(pos)
     }
 
-    private fun startBreakPacket(pos: BlockPos) {
-        mc.networkHandler?.sendPacket(
+    private fun InGame.startBreakPacket(pos: BlockPos) {
+        networkHandler.sendPacket(
             PlayerActionC2SPacket(PlayerActionC2SPacket.Action.START_DESTROY_BLOCK, pos, Direction.UP)
         )
     }
 
-    private fun abortBreakPacket(pos: BlockPos) {
-        mc.networkHandler?.sendPacket(
+    private fun InGame.abortBreakPacket(pos: BlockPos) {
+        networkHandler.sendPacket(
             PlayerActionC2SPacket(PlayerActionC2SPacket.Action.ABORT_DESTROY_BLOCK, pos, Direction.UP)
         )
     }
 
-    private fun stopBreakPacket(pos: BlockPos) {
-        mc.networkHandler?.sendPacket(
+    private fun InGame.stopBreakPacket(pos: BlockPos) {
+        networkHandler.sendPacket(
             PlayerActionC2SPacket(PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK, pos, Direction.UP)
         )
     }
@@ -163,60 +166,48 @@ object BreakingHandler {
         return null
     }
 
-    private fun updateBreakingContexts() {
-        breakingContexts.forEach {
-            it?.apply {
-                val index = if (breakType.isPrimary()) 0 else 1
+    private fun InGame.updateBreakingContexts() {
+        breakingContexts.forEach { it?.apply {
+            val index = if (breakType.isPrimary()) 0 else 1
 
-                mc.player?.let { player ->
-                    mc.world?.let { world ->
-                        if (!BlockUtils.canReach(player.eyePos, PosAndState.from(pos, world), CoreConfig.radius)) {
-                            nullifyBreakingContext(index)
-                            return@forEach
-                        }
-                    }?: run {
-                        nullifyBreakingContext(index)
-                        return@forEach
-                    }
-                } ?: run {
-                    nullifyBreakingContext(index)
-                    return@forEach
-                }
+            if (!canReach(player.eyePos, PosAndState.from(pos, world), CoreConfig.radius)) {
+                nullifyBreakingContext(index)
+                return@forEach
+            }
 
-                if (pos.state != state) {
-                    nullifyBreakingContext(index)
-                    return@forEach
-                }
-                mineTicks++
+            if (pos.state != state) {
+                nullifyBreakingContext(index)
+                return@forEach
+            }
+            mineTicks++
+            bestTool = getBestTool(state, pos)
+            updateBreakDeltas(percentDamagePerTick(state, pos, bestTool))
+
+            val threshold = if (index == 0) {
+                CoreConfig.breakThreshold
+            } else {
+                1.0f
+            }
+
+            if (miningProgress > threshold) {
                 stopBreakPacket(pos)
                 packetCounter++
-                bestTool = getBestTool(state, pos)
-                updateBreakDeltas(calcBreakDelta(state, pos, bestTool))
-
-                val threshold = if (index == 0) {
-                    CoreConfig.breakThreshold
-                } else {
-                    1.0f
-                }
-
-                if (miningProgress > threshold) {
-                    onBlockBreak(index)
-                }
+                onBlockBreak(index)
             }
-        }
+        }}
     }
 
-    private fun onBlockUpdate(pos: BlockPos, state: BlockState) {
-        breakingContexts.forEach {
-            it?.let { ctx ->
-                if (ctx.pos != pos || !isBlockBroken(ctx.state, state)) return@forEach
-                ThreadUtils.runOnMainThread {
+    private fun onBlockUpdate(pos: BlockPos, state: BlockState) =
+        breakingContexts.forEach { ctx ->
+            if (ctx == null) return@forEach
+            if (ctx.pos != pos || !isBlockBroken(ctx.state, state)) return@forEach
+            ThreadUtils.runOnMainThread {
+                runInGame {
                     emulateBlockBreak(pos, ctx.state)
                 }
-                nullifyBreakingContext(if (ctx.breakType.isPrimary()) 0 else 1)
             }
+            nullifyBreakingContext(if (ctx.breakType.isPrimary()) 0 else 1)
         }
-    }
 
     private fun Array<BreakingContext?>.shiftPrimaryDown() {
         this[0]?.breakType = BreakType.Secondary
@@ -228,7 +219,7 @@ object BreakingHandler {
         breakingContexts[contextIndex] = null
     }
 
-    private fun updateSelectedSlot() =
+    private fun InGame.updateSelectedSlot() =
         breakingContexts.firstOrNull()?.run {
             if (swapTo(bestTool)) packetCounter++
         }
