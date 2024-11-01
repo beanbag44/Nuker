@@ -2,6 +2,7 @@ package me.beanbag.nuker.utils
 
 import baritone.api.BaritoneAPI
 import me.beanbag.nuker.ModConfigs.mc
+import me.beanbag.nuker.module.modules.canaltools.CanalSpecs
 import me.beanbag.nuker.module.modules.nuker.enumsettings.FlattenMode
 import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.VolumeSort
@@ -9,7 +10,6 @@ import net.minecraft.block.*
 import net.minecraft.fluid.FlowableFluid
 import net.minecraft.fluid.LavaFluid
 import net.minecraft.fluid.WaterFluid
-import net.minecraft.registry.tag.BiomeTags
 import net.minecraft.state.property.Properties
 import net.minecraft.util.math.*
 import net.minecraft.world.World
@@ -171,42 +171,8 @@ object BlockUtils {
         return false
     }
 
-    fun InGame.isValidCanalBlock(pos: BlockPos, state: BlockState): Boolean {
-        val x = pos.x
-        val y = pos.y
-        val z = pos.z
-        val block = state.block
-
-        if (z < 0
-            || (y < 59 || x !in -13..12)
-            && (y < 60 || (x != 13 && x != -14))
-            && (y < 62 || (x !in 13..15 && x !in -16..-14))
-        ) {
-            return true
-        }
-
-        if ((x == 13 && y <= 61)
-            || (x == -14 && y <= 61)
-            || (y == 62 && (x == 14 || x == 13))
-            || (y == 62 && (x == -15 || x == -14))
-            && pos.getState(world).block == Blocks.OBSIDIAN) {
-            return true
-        }
-
-        if (y == 59) {
-            val biome = world.getBiome(pos)
-            val isInRiver = biome.isIn(BiomeTags.IS_RIVER)
-
-            return when {
-                isInRiver && block == Blocks.CRYING_OBSIDIAN -> true
-                !isInRiver && block == Blocks.OBSIDIAN -> true
-                else -> false
-            }
-        }
-
-        return ((y == 62 && x == 15)
-                || (y == 62 && x == -16))
-                && block == Blocks.CRYING_OBSIDIAN
+    fun isValidCanalBlock(pos: BlockPos): Boolean {
+        return CanalSpecs.isCorrectInPosition(pos)
     }
 
     fun isBlockBroken(currentState: BlockState?, newState: BlockState): Boolean {

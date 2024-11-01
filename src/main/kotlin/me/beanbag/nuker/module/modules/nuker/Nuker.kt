@@ -93,7 +93,7 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
                         }
                     }
 
-                    if (canalMode && isValidCanalBlock(pos, state) != true) return@getBlockVolume true
+                    if (canalMode && !isValidCanalBlock(pos)) return@getBlockVolume true
 
                     return@getBlockVolume blockTimeouts.values().contains(pos)
                 }
