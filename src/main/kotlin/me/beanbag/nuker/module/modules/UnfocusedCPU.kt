@@ -14,10 +14,12 @@ class UnfocusedCPU : Module("Unfocused CPU", "limits frame rate when the game wi
         max = 100)
 
     init {
-        EventBus.subscribe<RenderEvent>(this){
+        EventBus.subscribe<RenderEvent>(this) {
+            if (!enabled) return@subscribe
             mc.window.framerateLimit = if (!mc.isWindowFocused) fps.getValue() else mc.options.maxFps.value
         }
         enabledSetting.getOnChange().add {
+            if (!enabled) return@add
             mc.window.framerateLimit = if (it) fps.getValue() else mc.options.maxFps.value
         }
     }

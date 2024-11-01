@@ -39,7 +39,7 @@ object ModConfigs {
     var modules: MutableMap<Class<out Module>, Module> =
         listOf(
             Nuker,
-            BreakPacketLogger
+            BreakPacketLogger,
             UnfocusedCPU(),
         ).associateByTo(Reference2ReferenceOpenHashMap()) { it.javaClass }
 
