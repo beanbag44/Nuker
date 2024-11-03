@@ -114,16 +114,14 @@ object BreakingHandler {
         }
     }
 
-    private fun onBlockBreak(contextIndex: Int) {
+    private fun InGame.onBlockBreak(contextIndex: Int) {
         breakingContexts[contextIndex]?.apply {
             BrokenBlockHandler.putBrokenBlock(pos, state, !CoreConfig.validateBreak)
             blockTimeouts.put(pos)
 
             if (!CoreConfig.validateBreak) {
                 ThreadUtils.runOnMainThread {
-                    runInGame {
-                        emulateBlockBreak(pos, state)
-                    }
+                    emulateBlockBreak(pos, state)
                 }
             }
         }
