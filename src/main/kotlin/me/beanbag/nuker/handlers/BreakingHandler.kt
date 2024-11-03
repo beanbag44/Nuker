@@ -16,13 +16,11 @@ import me.beanbag.nuker.utils.*
 import me.beanbag.nuker.utils.BlockUtils.breakBlockWithRestrictionChecks
 import me.beanbag.nuker.utils.BlockUtils.canReach
 import me.beanbag.nuker.utils.BlockUtils.emulateBlockBreak
-import me.beanbag.nuker.utils.BlockUtils.getState
 import me.beanbag.nuker.utils.BlockUtils.isBlockBroken
 import me.beanbag.nuker.utils.BlockUtils.state
 import me.beanbag.nuker.utils.InventoryUtils.percentDamagePerTick
 import me.beanbag.nuker.utils.InventoryUtils.getBestTool
 import me.beanbag.nuker.utils.InventoryUtils.swapTo
-import me.beanbag.nuker.utils.TimerUtils.subscribeOnTickUpdate
 import net.minecraft.block.BlockState
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
@@ -32,7 +30,7 @@ import net.minecraft.util.math.Direction
 import java.awt.Color
 
 object BreakingHandler {
-    val blockTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockTimeout }.apply { subscribeOnTickUpdate() }
+    val blockTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockTimeout }
     private var breakingContexts = arrayOfNulls<BreakingContext>(2)
     private var packetCounter = 0
 
@@ -121,7 +119,7 @@ object BreakingHandler {
 
             if (!CoreConfig.validateBreak) {
                 ThreadUtils.runOnMainThread {
-                    emulateBlockBreak(pos, state)
+                    breakBlockWithRestrictionChecks(pos)
                 }
             }
 

@@ -175,27 +175,19 @@ object BlockUtils {
         return CanalSpecs.isCorrectInPosition(pos)
     }
 
-    fun isBlockBroken(currentState: BlockState?, newState: BlockState): Boolean {
-        currentState?.let { current ->
-            if (isStateEmpty(current)) return false
+    fun isBlockBroken(currentState: BlockState, newState: BlockState): Boolean {
+        if (isStateEmpty(currentState)) return false
 
-            return (newState.isAir && (
-                    !current.properties.contains(Properties.WATERLOGGED)
-                            || !current.get(Properties.WATERLOGGED)
-                            )
-                    ) || (
-                    newState.fluidState.fluid is WaterFluid
-                            && !newState.properties.contains(Properties.WATERLOGGED)
-                            && current.properties.contains(Properties.WATERLOGGED)
-                            && current.get(Properties.WATERLOGGED)
-                    )
-        } ?: return false
+        return (newState.isAir && currentState.fluidState.isEmpty)
+                || (
+                !newState.fluidState.isEmpty
+                        && !currentState.fluidState.isEmpty
+                        )
     }
 
     fun isStateEmpty(state: BlockState) =
         state.isAir || (
-                (!state.properties.contains(Properties.WATERLOGGED)
-                        || !state.get(Properties.WATERLOGGED))
+                !state.properties.contains(Properties.WATERLOGGED)
                         && !state.fluidState.isEmpty
                 )
 
