@@ -16,6 +16,7 @@ import me.beanbag.nuker.utils.*
 import me.beanbag.nuker.utils.BlockUtils.breakBlockWithRestrictionChecks
 import me.beanbag.nuker.utils.BlockUtils.canReach
 import me.beanbag.nuker.utils.BlockUtils.emulateBlockBreak
+import me.beanbag.nuker.utils.BlockUtils.getState
 import me.beanbag.nuker.utils.BlockUtils.isBlockBroken
 import me.beanbag.nuker.utils.BlockUtils.state
 import me.beanbag.nuker.utils.InventoryUtils.percentDamagePerTick
@@ -115,13 +116,13 @@ object BreakingHandler {
 
     private fun onBlockBreak(contextIndex: Int) {
         breakingContexts[contextIndex]?.apply {
-            BrokenBlockHandler.putBrokenBlock(pos, !CoreConfig.validateBreak)
+            BrokenBlockHandler.putBrokenBlock(pos, state, !CoreConfig.validateBreak)
             blockTimeouts.put(pos)
 
             if (!CoreConfig.validateBreak) {
                 ThreadUtils.runOnMainThread {
                     runInGame {
-                        breakBlockWithRestrictionChecks(pos)
+                        emulateBlockBreak(pos, state)
                     }
                 }
             }
