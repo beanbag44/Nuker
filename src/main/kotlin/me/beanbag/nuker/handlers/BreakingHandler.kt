@@ -124,6 +124,11 @@ object BreakingHandler {
                     emulateBlockBreak(pos, state)
                 }
             }
+
+            if (breakingContexts[1 - contextIndex] == null) {
+                abortBreakPacket(pos)
+                packetCounter++
+            }
         }
         nullifyBreakingContext(contextIndex)
     }
