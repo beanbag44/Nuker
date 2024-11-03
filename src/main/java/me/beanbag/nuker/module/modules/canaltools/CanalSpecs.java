@@ -8,6 +8,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.tag.BiomeTags;
 import net.minecraft.util.math.BlockPos;
 
+import static meteordevelopment.meteorclient.MeteorClient.mc;
+
 public class CanalSpecs {
     static IProtectionLocator protectionLocator = new GenericProtectionLocator();
 
@@ -82,7 +84,7 @@ public class CanalSpecs {
         if ((x == westWallX || x == eastWallX) && y == floorY)
             return true;
 
-        BlockState blockState = ModConfigs.INSTANCE.getMc().world.getBlockState(pos);
+        BlockState blockState = mc.world.getBlockState(pos);
 
         if (isBasin(x, y) || y == ceilingY) {
             return stateForPosition(pos).getBlock() == blockState.getBlock();
