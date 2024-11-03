@@ -199,7 +199,7 @@ object BreakingHandler {
         }}
     }
 
-    private fun onBlockUpdate(pos: BlockPos, state: BlockState) =
+    private fun onBlockUpdate(pos: BlockPos, state: BlockState) {
         breakingContexts.forEach { ctx ->
             if (ctx == null) return@forEach
             if (ctx.pos != pos || !isBlockBroken(ctx.state, state)) return@forEach
@@ -210,6 +210,7 @@ object BreakingHandler {
             }
             nullifyBreakingContext(if (ctx.breakType.isPrimary()) 0 else 1)
         }
+    }
 
     private fun Array<BreakingContext?>.shiftPrimaryDown() {
         this[0]?.breakType = BreakType.Secondary
@@ -221,10 +222,11 @@ object BreakingHandler {
         breakingContexts[contextIndex] = null
     }
 
-    private fun InGame.updateSelectedSlot() =
+    private fun InGame.updateSelectedSlot() {
         breakingContexts.firstOrNull()?.run {
             if (swapTo(bestTool)) packetCounter++
         }
+    }
 
     class BreakingContext(
         val pos: BlockPos,
