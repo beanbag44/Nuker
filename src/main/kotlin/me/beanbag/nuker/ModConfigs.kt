@@ -3,6 +3,7 @@ package me.beanbag.nuker
 import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap
 import me.beanbag.nuker.command.ICommand
 import me.beanbag.nuker.command.commands.*
+import me.beanbag.nuker.handlers.InventoryHandler
 import me.beanbag.nuker.module.Module
 import me.beanbag.nuker.module.modules.UnfocusedCPU
 import me.beanbag.nuker.module.modules.BreakPacketLogger
@@ -24,6 +25,8 @@ object ModConfigs {
     var meteorIsLoaded = false
     var rusherIsPresent = false
     val LOGGER: Logger = LoggerFactory.getLogger(MOD_NAME)
+
+    val inventoryHandler = InventoryHandler()
 
     val commands: List<ICommand> = listOf(
         HelpCommand(),

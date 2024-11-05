@@ -1,5 +1,6 @@
 package me.beanbag.nuker.handlers
 
+import me.beanbag.nuker.ModConfigs.inventoryHandler
 import me.beanbag.nuker.ModConfigs.mc
 import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.eventsystem.events.PacketEvent
@@ -32,11 +33,16 @@ import java.awt.Color
 
 object BreakingHandler {
     val blockTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockTimeout }.apply { subscribeOnTickUpdate() }
-    private var breakingContexts = arrayOfNulls<BreakingContext>(2)
+    var breakingContexts = arrayOfNulls<BreakingContext>(2)
     private var packetCounter = 0
 
     init {
         onInGameEvent<TickEvent.Pre>(priority = EventBus.MAX_PRIORITY) {
+            if (inventoryHandler.externalInControl()) {
+                nullifyBreakingContext(0)
+                nullifyBreakingContext(1)
+                return@onInGameEvent
+            }
             updateBreakingContexts()
         }
 
@@ -60,6 +66,7 @@ object BreakingHandler {
     }
 
     fun InGame.checkAttemptBreaks(blockVolume: List<PosAndState>) {
+        if (inventoryHandler.externalInControl()) return
         packetCounter = 0
         updateSelectedSlot()
 
