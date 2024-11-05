@@ -58,21 +58,20 @@ object EventBus {
 
     fun resubscribe(subscriber: Any) = unsubscribedEventToCallback.forEach { (event, callbacks) ->
         callbacks.forEach { callback ->
-            if (callback.subscriber == subscriber) {
-                addCallback(event, callback)
-            }
+            if (callback.subscriber == subscriber) addCallback(event, callback)
         }
+        callbacks.removeIf{ it.subscriber == subscriber }
     }
 
     fun unsubscribe(subscriber: Any) = eventToCallback.forEach { (event, callbacks) ->
-        val unsubscribed = unsubscribedEventToCallback.getOrPut(event) { CopyOnWriteArrayList() }
         callbacks.forEach { callback ->
             if (callback.subscriber == subscriber) {
-                unsubscribed.add(callback)
-                callbacks.remove(callback)
+                unsubscribedEventToCallback.getOrPut(event) { CopyOnWriteArrayList() }.add(callback)
             }
         }
+        callbacks.removeIf { callback -> callback.subscriber == subscriber }
     }
+
 
     fun removeCallbacks(subscriber: Any) {
         eventToCallback.values.forEach { callbacks ->
