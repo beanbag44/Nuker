@@ -71,37 +71,38 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         onInGameEvent<TickEvent.Pre> {
             if (!enabled) return@onInGameEvent
 
-            player.let { player ->
-                if (CoreConfig.onGround && !player.isOnGround) return@onInGameEvent
+            if (CoreConfig.onGround && !player.isOnGround) return@onInGameEvent
 
-                val blockVolume = getBlockVolume { pos, state ->
-                    if (!isBlockBreakable(pos, state)) return@getBlockVolume true
+            val blockVolume = getBlockVolume { pos, state ->
+                if (!isBlockBreakable(pos, state)) return@getBlockVolume true
 
-                    if (flattenMode.isEnabled()
-                        && !isBlockInFlatten(pos, crouchLowersFlatten, flattenMode)) return@getBlockVolume true
-
-                    if (avoidLiquids && willReleaseLiquids(pos)) return@getBlockVolume true
-
-                    if (baritoneSelection && !isWithinABaritoneSelection(pos)) return@getBlockVolume true
-
-                    if (litematicaMode) {
-                        updateSchematicMismatches()
-                        if (!LitematicaUtils.schematicIncorrectBlockPlacements.contains(pos)
-                            && !LitematicaUtils.schematicIncorrectStatePlacements.contains(pos)
-                        ) {
-                            return@getBlockVolume true
-                        }
-                    }
-
-                    if (canalMode && isValidCanalBlock(pos)) return@getBlockVolume true
-
-                    return@getBlockVolume blockTimeouts.values().contains(pos)
+                if (flattenMode.isEnabled()
+                    && !isBlockInFlatten(pos, crouchLowersFlatten, flattenMode)
+                    ) {
+                    return@getBlockVolume true
                 }
 
-                sortBlockVolume(blockVolume, player.eyePos, mineStyle)
+                if (avoidLiquids && willReleaseLiquids(pos)) return@getBlockVolume true
 
-                checkAttemptBreaks(blockVolume)
+                if (baritoneSelection && !isWithinABaritoneSelection(pos)) return@getBlockVolume true
+
+                if (litematicaMode) {
+                    updateSchematicMismatches()
+                    if (!LitematicaUtils.schematicIncorrectBlockPlacements.contains(pos)
+                        && !LitematicaUtils.schematicIncorrectStatePlacements.contains(pos)
+                    ) {
+                        return@getBlockVolume true
+                    }
+                }
+
+                if (canalMode && isValidCanalBlock(pos)) return@getBlockVolume true
+
+                return@getBlockVolume blockTimeouts.values().contains(pos)
             }
+
+            sortBlockVolume(blockVolume, player.eyePos, mineStyle)
+
+            checkAttemptBreaks(blockVolume)
         }
         for (settingGroup in CoreConfig.settingGroups) {
             settingGroups.add(settingGroup)
