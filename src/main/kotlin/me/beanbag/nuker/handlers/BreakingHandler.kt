@@ -129,11 +129,8 @@ object BreakingHandler {
 
     private fun InGame.startPacketBreaking(pos: BlockPos) {
         stopBreakPacket(pos)
-        abortBreakPacket(pos)
         startBreakPacket(pos)
         stopBreakPacket(pos)
-        abortBreakPacket(pos)
-        startBreakPacket(pos)
     }
 
     private fun InGame.startBreakPacket(pos: BlockPos) {
@@ -193,6 +190,7 @@ object BreakingHandler {
             if (miningProgress > threshold) {
                 if (breakType.isPrimary()) {
                     stopBreakPacket(pos)
+                    packetCounter++
                 }
                 packetCounter++
                 onBlockBreak(index)
