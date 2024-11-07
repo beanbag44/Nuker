@@ -31,7 +31,7 @@ import java.awt.Color
 
 object BreakingHandler {
     val blockTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockTimeout }
-    private var breakingContexts = arrayOfNulls<BreakingContext>(2)
+    var breakingContexts = arrayOfNulls<BreakingContext>(2)
     private var packetCounter = 0
 
     init {
@@ -224,7 +224,7 @@ object BreakingHandler {
         this[0] = null
     }
 
-    private fun nullifyBreakingContext(contextIndex: Int) {
+    fun nullifyBreakingContext(contextIndex: Int) {
         breakingContexts[contextIndex] = null
     }
 
