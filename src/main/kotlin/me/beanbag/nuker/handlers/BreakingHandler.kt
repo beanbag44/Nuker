@@ -37,6 +37,7 @@ object BreakingHandler {
     init {
         onInGameEvent<TickEvent.Pre>(priority = EventBus.MAX_PRIORITY) {
             packetCounter = 0
+            updateSelectedSlot()
             updateBreakingContexts()
         }
 
@@ -60,8 +61,6 @@ object BreakingHandler {
     }
 
     fun InGame.checkAttemptBreaks(blockVolume: List<PosAndState>) {
-        updateSelectedSlot()
-
         blockVolume.forEach { block ->
             val primaryBreakingContext = breakingContexts[0]
 
