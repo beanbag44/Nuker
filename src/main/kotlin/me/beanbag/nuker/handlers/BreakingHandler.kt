@@ -159,9 +159,6 @@ object BreakingHandler {
     }
 
     private fun isAtMaximumCurrentBreakingContexts(): Boolean {
-        if (breakingContexts[1] != null) {
-            ChatHandler.sendChatLine(breakingContexts[1].toString())
-        }
         return if (CoreConfig.doubleBreak)
             breakingContexts[1] != null
         else
