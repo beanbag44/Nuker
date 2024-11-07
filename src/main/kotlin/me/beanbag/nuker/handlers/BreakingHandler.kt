@@ -129,9 +129,6 @@ object BreakingHandler {
     }
 
     private fun InGame.startPacketBreaking(pos: BlockPos) {
-        if (breakingContexts[1] == null) {
-            abortBreakPacket(pos)
-        }
         stopBreakPacket(pos)
         abortBreakPacket(pos)
         startBreakPacket(pos)
