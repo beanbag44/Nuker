@@ -17,7 +17,14 @@ object LitematicaUtils {
         for (placement in getSchematicPlacementManager().allSchematicsPlacements) {
             if (!placement.isEnabled) continue
             val schematicVerifier = placement.schematicVerifier
-            schematicVerifier.startVerification(world, SchematicWorldHandler.getSchematicWorld(), placement, VerifierCompletionListener())
+            if (!placement.hasVerifier()) {
+                schematicVerifier.startVerification(
+                    world,
+                    SchematicWorldHandler.getSchematicWorld(),
+                    placement,
+                    VerifierCompletionListener()
+                )
+            }
             val accessorSchematicVerifier = schematicVerifier as ISchematicVerifierAccessor
             schematicIncorrectBlockPlacements.addAll(accessorSchematicVerifier.wrongBlocksPositions.values())
             schematicIncorrectStatePlacements.addAll(accessorSchematicVerifier.wrongStatesPositions.values())
