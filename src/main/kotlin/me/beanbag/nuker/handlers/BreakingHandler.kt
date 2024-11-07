@@ -78,7 +78,7 @@ object BreakingHandler {
 
             val breakDelta = percentDamagePerTick(block.blockState, blockPos, bestTool)
             val isInstaBreak = breakDelta >= 1
-            val breakPacketCount = if (isInstaBreak) 1 else 6
+            val breakPacketCount = if (isInstaBreak) 1 else 3
 
             packetCounter += breakPacketCount
 
