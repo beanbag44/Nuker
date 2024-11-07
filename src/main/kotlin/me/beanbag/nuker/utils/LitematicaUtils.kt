@@ -1,6 +1,8 @@
 package me.beanbag.nuker.utils
 
 import fi.dy.masa.litematica.data.DataManager.getSchematicPlacementManager
+import fi.dy.masa.litematica.world.SchematicWorldHandler
+import fi.dy.masa.malilib.interfaces.ICompletionListener
 import me.beanbag.nuker.mixins.litematica.ISchematicVerifierAccessor
 import net.minecraft.util.math.BlockPos
 
@@ -8,15 +10,28 @@ object LitematicaUtils {
     var schematicIncorrectBlockPlacements = hashSetOf<BlockPos>()
     var schematicIncorrectStatePlacements = hashSetOf<BlockPos>()
 
-    fun updateSchematicMismatches() {
+    fun InGame.updateSchematicMismatches() {
         schematicIncorrectBlockPlacements.clear()
         schematicIncorrectStatePlacements.clear()
 
         for (placement in getSchematicPlacementManager().allSchematicsPlacements) {
             if (!placement.isEnabled) continue
-            val schematicVerifier = placement.schematicVerifier as ISchematicVerifierAccessor
-            schematicIncorrectBlockPlacements.addAll(schematicVerifier.wrongBlocksPositions.values())
-            schematicIncorrectStatePlacements.addAll(schematicVerifier.wrongStatesPositions.values())
+            val schematicVerifier = placement.schematicVerifier
+            schematicVerifier.startVerification(world, SchematicWorldHandler.getSchematicWorld(), placement, VerifierCompletionListener())
+            val accessorSchematicVerifier = schematicVerifier as ISchematicVerifierAccessor
+            schematicIncorrectBlockPlacements.addAll(accessorSchematicVerifier.wrongBlocksPositions.values())
+            schematicIncorrectStatePlacements.addAll(accessorSchematicVerifier.wrongStatesPositions.values())
+        }
+    }
+
+    class VerifierCompletionListener : ICompletionListener {
+        override fun onTaskCompleted() {
+            println("Schematic Verification Completed!")
+        }
+
+        override fun onTaskAborted() {
+            super.onTaskAborted()
+            println("Schematic Verification Failed")
         }
     }
 }

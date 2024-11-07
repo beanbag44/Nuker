@@ -63,6 +63,10 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         "Litematica",
         "Only breaks blocks that are incorrectly placed in schematics",
         false, null) { true }
+    private val incorrectStates by setting(generalGroup,
+        "Incorrect States",
+        "Allows nuker to break incorrect schematic block states",
+        true, null) { litematicaMode }
 
     /*
      */
@@ -78,7 +82,7 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
                 if (flattenMode.isEnabled()
                     && !isBlockInFlatten(pos, crouchLowersFlatten, flattenMode)
-                    ) {
+                ) {
                     return@getBlockVolume true
                 }
 
@@ -89,7 +93,7 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
                 if (litematicaMode) {
                     updateSchematicMismatches()
                     if (!LitematicaUtils.schematicIncorrectBlockPlacements.contains(pos)
-                        && !LitematicaUtils.schematicIncorrectStatePlacements.contains(pos)
+                        && (!incorrectStates || !LitematicaUtils.schematicIncorrectStatePlacements.contains(pos))
                     ) {
                         return@getBlockVolume true
                     }

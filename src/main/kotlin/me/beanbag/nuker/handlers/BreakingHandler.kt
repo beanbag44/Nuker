@@ -36,6 +36,7 @@ object BreakingHandler {
 
     init {
         onInGameEvent<TickEvent.Pre>(priority = EventBus.MAX_PRIORITY) {
+            packetCounter = 0
             updateBreakingContexts()
         }
 
@@ -59,12 +60,11 @@ object BreakingHandler {
     }
 
     fun InGame.checkAttemptBreaks(blockVolume: List<PosAndState>) {
-        packetCounter = 0
         updateSelectedSlot()
 
-        var primaryBreakingContext = breakingContexts[0]
-
         blockVolume.forEach { block ->
+            val primaryBreakingContext = breakingContexts[0]
+
             if (isAtMaximumCurrentBreakingContexts()) return
 
             val blockPos = block.blockPos
@@ -75,7 +75,6 @@ object BreakingHandler {
 
             primaryBreakingContext?.run {
                 if (this.bestTool != bestTool) return@forEach
-                breakingContexts.shiftPrimaryDown()
             }
 
             val breakDelta = percentDamagePerTick(block.blockState, blockPos, bestTool)
@@ -86,6 +85,10 @@ object BreakingHandler {
 
             if (packetCounter > CoreConfig.packetLimit) return
 
+            if (primaryBreakingContext != null) {
+                breakingContexts.shiftPrimaryDown()
+            }
+
             breakingContexts[0] = BreakingContext(
                 blockPos,
                 block.blockState,
@@ -94,7 +97,6 @@ object BreakingHandler {
             ).apply {
                 mineTicks++
             }
-            primaryBreakingContext = breakingContexts[0]
 
             if (breakingContexts[1] == null) {
                 if (swapTo(bestTool)) packetCounter++
@@ -122,16 +124,14 @@ object BreakingHandler {
                     breakBlockWithRestrictionChecks(pos)
                 }
             }
-
-            if (breakingContexts[1 - contextIndex] == null) {
-                abortBreakPacket(pos)
-                packetCounter++
-            }
         }
         nullifyBreakingContext(contextIndex)
     }
 
     private fun InGame.startPacketBreaking(pos: BlockPos) {
+        if (breakingContexts[1] == null) {
+            abortBreakPacket(pos)
+        }
         stopBreakPacket(pos)
         abortBreakPacket(pos)
         startBreakPacket(pos)
@@ -159,6 +159,9 @@ object BreakingHandler {
     }
 
     private fun isAtMaximumCurrentBreakingContexts(): Boolean {
+        if (breakingContexts[1] != null) {
+            ChatHandler.sendChatLine(breakingContexts[1].toString())
+        }
         return if (CoreConfig.doubleBreak)
             breakingContexts[1] != null
         else
@@ -195,7 +198,9 @@ object BreakingHandler {
             }
 
             if (miningProgress > threshold) {
-                stopBreakPacket(pos)
+                if (breakType.isPrimary()) {
+                    stopBreakPacket(pos)
+                }
                 packetCounter++
                 onBlockBreak(index)
             }
@@ -216,6 +221,10 @@ object BreakingHandler {
     }
 
     private fun Array<BreakingContext?>.shiftPrimaryDown() {
+        if (this[0] == null) {
+            this[1] = null
+            return
+        }
         this[0]?.breakType = BreakType.Secondary
         this[1] = this[0]
         this[0] = null
@@ -249,6 +258,15 @@ object BreakingHandler {
         } else {
             null
         }
+
+        override fun toString(): String =
+            "Mine Ticks: " + mineTicks.toString() +
+                    "\nBreak Type: " + breakType.toString() +
+                    "\nBlock Pos: " + pos.x.toString() + " " + pos.y.toString() + " " + pos.z.toString() +
+                    "\nBlock: " + state.block.name.string +
+                    "\nCurrent Break Delta: " + currentBreakDelta.toString() +
+                    "\nBest Tool: " + bestTool.toString() + " " + mc.player?.inventory?.getStack(bestTool)?.name?.string
+
 
         val miningProgress: Float
             get() = if (CoreConfig.breakMode == BreakMode.Total) {
