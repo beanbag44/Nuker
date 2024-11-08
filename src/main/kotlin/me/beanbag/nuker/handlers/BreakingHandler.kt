@@ -168,7 +168,8 @@ object BreakingHandler {
         breakingContexts.forEach { it?.apply {
             val index = if (breakType.isPrimary()) 0 else 1
 
-            if (!canReach(player.eyePos, PosAndState.from(pos, world), CoreConfig.radius)) {
+            if (!canReach(player.eyePos, PosAndState.from(pos, world), CoreConfig.radius) && breakType.isPrimary()) {
+                abortBreakPacket(pos)
                 nullifyBreakingContext(index)
                 return@forEach
             }
