@@ -78,7 +78,7 @@ object BreakingHandler {
 
             val breakDelta = percentDamagePerTick(block.blockState, blockPos, bestTool)
             val isInstaBreak = breakDelta >= 1
-            val breakPacketCount = if (isInstaBreak) 1 else 3
+            val breakPacketCount = if (isInstaBreak) 1 else 4
 
             packetCounter += breakPacketCount
 
@@ -128,6 +128,7 @@ object BreakingHandler {
     }
 
     private fun InGame.startPacketBreaking(pos: BlockPos) {
+        abortBreakPacket(pos)
         stopBreakPacket(pos)
         startBreakPacket(pos)
         stopBreakPacket(pos)
