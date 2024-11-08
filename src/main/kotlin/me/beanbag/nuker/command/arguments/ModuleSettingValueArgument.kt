@@ -2,6 +2,7 @@ package me.beanbag.nuker.command.arguments
 
 import me.beanbag.nuker.command.ICommandArgument
 import me.beanbag.nuker.command.MatchType
+import me.beanbag.nuker.module.settings.AbstractListSetting
 
 class ModuleSettingValueArgument : ICommandArgument {
     override val subArgumentCount: Int
@@ -27,6 +28,7 @@ class ModuleSettingValueArgument : ICommandArgument {
         }
         val module = ModuleArgument().getModule(toMatch[0])?: return MatchType.PARTIAL
         val setting = ModuleSettingArgument().getSetting(module, toMatch[1])?: return MatchType.PARTIAL
+        if (setting is AbstractListSetting<*>) return MatchType.NONE
         val value = setting.valueFromString(toMatch[2])
         if (value != null) {
             return MatchType.FULL

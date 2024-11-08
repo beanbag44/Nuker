@@ -16,7 +16,10 @@ class BlockListSetting(
     visible: () -> Boolean,
     filter: (Block) -> Boolean
 ) : AbstractListSetting<Block>(name, description, defaultValue, onChanged, visible, filter) {
-    override fun listValueFromString(value: String): Block? = Registries.BLOCK.getOrEmpty(Identifier(value))?.get()
+
+    @Suppress("RedundantNullableReturnType")
+    override fun listValueFromString(value: String): Block? =
+        Registries.BLOCK.get(Identifier(value))
 
     override fun listValueToString(value: Block): String =
         Registries.BLOCK.getId(value).toString().replace("minecraft:", "")
