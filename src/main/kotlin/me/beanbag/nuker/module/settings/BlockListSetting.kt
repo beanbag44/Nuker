@@ -13,26 +13,16 @@ class BlockListSetting(
     description: String,
     defaultValue: List<Block>,
     onChanged: MutableList<Consumer<List<Block>>>?,
-    visible: () -> Boolean
-) : AbstractSetting<List<Block>>(name, description, defaultValue, onChanged, visible) {
-    override fun valueFromString(value: String): List<Block>? {
-        val optionalBlocks = value.split(",")
-            .map { Registries.BLOCK.getOrEmpty(Identifier(it)) }
+    visible: () -> Boolean,
+    filter: (Block) -> Boolean
+) : AbstractListSetting<Block>(name, description, defaultValue, onChanged, visible, filter) {
+    override fun listValueFromString(value: String): Block? = Registries.BLOCK.getOrEmpty(Identifier(value))?.get()
 
-        if (optionalBlocks.any { it.isEmpty }) return null
+    override fun listValueToString(value: Block): String =
+        Registries.BLOCK.getId(value).toString().replace("minecraft:", "")
 
-        val blocks = optionalBlocks.map { it.get() }
-
-        return blocks
-    }
-
-    override fun valueToString(): String {
-        return getValue().joinToString(separator = ",") { Registries.BLOCK.getId(it).toString().replace("minecraft:", "") }
-    }
-
-    override fun possibleValues(): List<String> =
+    override fun allPossibleValues(): List<String> =
         Registries.BLOCK.ids.map { it.toString().replace("minecraft:", "") }
-
 
     override fun toRusherSetting(): RusherSetting<*> {
         val rhSetting = NullSetting(getName(), getDescription())

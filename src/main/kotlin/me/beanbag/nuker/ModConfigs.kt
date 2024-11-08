@@ -34,6 +34,7 @@ object ModConfigs {
         ListModuleCommand(),
         ToggleModuleCommand(),
         SetModuleSettingCommand(),
+        SetModuleListSettingCommand(),
     )
 
     var modules: MutableMap<Class<out Module>, Module> =
