@@ -1,12 +1,12 @@
 package me.beanbag.nuker.external.rusher
 
 import me.beanbag.nuker.module.modules.CoreConfig
-import me.beanbag.nuker.render.Renderer
+import me.beanbag.nuker.render.IRenderer3D
 import net.minecraft.util.math.Box
 import org.rusherhack.client.api.RusherHackAPI
 import java.awt.Color
 
-class RusherRenderer : Renderer {
+class RusherRenderer3D : IRenderer3D {
     override fun boxLines(box: Box, color: Color) {
         RusherHackAPI.getRenderer3D().setLineWidth(CoreConfig.outlineWidth)
         RusherHackAPI.getRenderer3D().drawBox(
@@ -35,5 +35,4 @@ class RusherRenderer : Renderer {
             color.rgb
         )
     }
-
 }

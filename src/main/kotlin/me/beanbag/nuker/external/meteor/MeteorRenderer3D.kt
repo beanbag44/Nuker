@@ -1,12 +1,12 @@
 package me.beanbag.nuker.external.meteor
 
-import me.beanbag.nuker.render.Renderer
+import me.beanbag.nuker.render.IRenderer3D
 import meteordevelopment.meteorclient.renderer.Renderer3D
 import meteordevelopment.meteorclient.renderer.ShapeMode
 import net.minecraft.util.math.Box
 import java.awt.Color
 
-class MeteorRenderer(private val renderer3D: Renderer3D) : Renderer {
+class MeteorRenderer3D(private val renderer3D: Renderer3D) : IRenderer3D {
     override fun boxLines(box: Box, color: Color) {
         renderer3D.box(
             box,

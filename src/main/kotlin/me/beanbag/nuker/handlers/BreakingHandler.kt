@@ -9,7 +9,7 @@ import me.beanbag.nuker.eventsystem.onEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
 import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.*
-import me.beanbag.nuker.render.Renderer
+import me.beanbag.nuker.render.IRenderer3D
 import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.TimeoutSet
 import me.beanbag.nuker.utils.*
@@ -53,9 +53,9 @@ object BreakingHandler {
             }
         }
 
-        onEvent<RenderEvent> { event ->
+        onEvent<RenderEvent.Render3DEvent> { event ->
             breakingContexts.forEach { ctx ->
-                ctx?.drawRenders(event.renderer)
+                ctx?.drawRenders(event.renderer3D)
             }
         }
     }
@@ -283,7 +283,7 @@ object BreakingHandler {
             state.getOutlineShape(mc.world, pos)?.boundingBoxes?.toSet()
         }
 
-        fun drawRenders(renderer: Renderer) {
+        fun drawRenders(iRenderer3D: IRenderer3D) {
             val threshold = if (breakType.isPrimary()) 2f - CoreConfig.breakThreshold else 1f
             val previousFactor = previousMiningProgress * threshold
             val nextFactor = miningProgress * threshold
@@ -315,10 +315,10 @@ object BreakingHandler {
                     RenderUtils.getLerpBox(positionedBox, currentFactor, CoreConfig.renderAnimation)
                 }
                 if (CoreConfig.renders == RenderType.Both || CoreConfig.renders == RenderType.Fill) {
-                    renderer.boxSides(renderBox, fillColour)
+                    iRenderer3D.boxSides(renderBox, fillColour)
                 }
                 if (CoreConfig.renders == RenderType.Both || CoreConfig.renders == RenderType.Line) {
-                    renderer.boxLines(renderBox, outlineColour)
+                    iRenderer3D.boxLines(renderBox, outlineColour)
                 }
             }
         }
