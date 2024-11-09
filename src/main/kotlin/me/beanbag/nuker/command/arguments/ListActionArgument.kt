@@ -31,6 +31,5 @@ class ListActionArgument  : ICommandArgument {
 
 enum class ListAction {
     ADD,
-    REMOVE,
-    CLEAR
+    REMOVE
 }

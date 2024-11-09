@@ -31,10 +31,7 @@ class ModuleSettingListValueArgument : ICommandArgument {
         if (toMatch.size < 4) {
             return MatchType.PARTIAL
         }
-        val listAction = try{ ListAction.valueOf(toMatch[2].uppercase()) } catch (e: IllegalArgumentException) { null }?: return MatchType.PARTIAL
-        if (listAction == ListAction.CLEAR) {
-            return MatchType.FULL
-        }
+        try{ ListAction.valueOf(toMatch[2].uppercase()) } catch (e: IllegalArgumentException) { null }?: return MatchType.PARTIAL
         val module = ModuleArgument().getModule(toMatch[0])?: return MatchType.PARTIAL
         val setting = ModuleSettingArgument().getSetting(module, toMatch[1])?: return MatchType.PARTIAL
         if (setting !is AbstractListSetting<*>) {
