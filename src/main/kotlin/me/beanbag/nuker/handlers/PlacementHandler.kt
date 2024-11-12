@@ -49,7 +49,7 @@ object PlacementHandler : IHandler {
                 with(this[0]) {
                     swapTo(blockState.block.asItem())
                     preferences?.let { preferences ->
-                        airPlace(blockPos, preferences!!.direction, preferences.swing, preferences.awaitServerResponse)
+                        airPlace(blockPos, preferences.direction, preferences.swing, preferences.awaitServerResponse)
                     }
                 }
                 remove(this[0])
