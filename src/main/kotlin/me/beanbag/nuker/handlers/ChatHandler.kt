@@ -10,8 +10,9 @@ import me.beanbag.nuker.eventsystem.events.PacketEvent
 import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket
 import net.minecraft.text.Text
 
-object ChatHandler {
-
+object ChatHandler : IHandler {
+    override var priority = 0
+    override var currentlyBeingUsedBy: Module? = null
 
     init {
 

@@ -29,7 +29,10 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import java.awt.Color
 
-object BreakingHandler {
+object BreakingHandler : IHandler {
+    override var currentlyBeingUsedBy: Module? = null
+    override var priority: Int = 0
+
     val blockTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockTimeout }
     private var breakingContexts = arrayOfNulls<BreakingContext>(2)
     private var packetCounter = 0
