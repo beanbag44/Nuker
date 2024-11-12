@@ -101,7 +101,7 @@ object PlacementHandler : IHandler {
             Hand.OFF_HAND,
             BlockHitResult(
                 pos.toCenterPos(),
-                Direction.UP,
+                direction,
                 pos,
                 true
             )
