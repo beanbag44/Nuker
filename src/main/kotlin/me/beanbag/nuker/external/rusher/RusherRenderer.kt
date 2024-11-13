@@ -8,32 +8,32 @@ import java.awt.Color
 
 class RusherRenderer : Renderer {
     override fun boxLines(box: Box, color: Color) {
-        RusherHackAPI.getRenderer3D().setLineWidth(CoreConfig.outlineWidth)
-        RusherHackAPI.getRenderer3D().drawBox(
-            box.minX,
-            box.minY,
-            box.minZ,
-            box.lengthX,
-            box.lengthY,
-            box.lengthZ,
-            false,
-            true,
-            color.rgb
-        )
+//        RusherHackAPI.getRenderer3D().setLineWidth(CoreConfig.outlineWidth)
+//        RusherHackAPI.getRenderer3D().drawBox(
+//            box.minX,
+//            box.minY,
+//            box.minZ,
+//            box.lengthX,
+//            box.lengthY,
+//            box.lengthZ,
+//            false,
+//            true,
+//            color.rgb
+//        )
     }
 
     override fun boxSides(box: Box, color: Color) {
-        RusherHackAPI.getRenderer3D().drawBox(
-            box.minX,
-            box.minY,
-            box.minZ,
-            box.lengthX,
-            box.lengthY,
-            box.lengthZ,
-            true,
-            false,
-            color.rgb
-        )
+//        RusherHackAPI.getRenderer3D().drawBox(
+//            box.minX,
+//            box.minY,
+//            box.minZ,
+//            box.lengthX,
+//            box.lengthY,
+//            box.lengthZ,
+//            true,
+//            false,
+//            color.rgb
+//        )
     }
 
 }
