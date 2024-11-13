@@ -1,6 +1,7 @@
 package me.beanbag.nuker.handlers
 
 import me.beanbag.nuker.ModConfigs.mc
+import me.beanbag.nuker.ModConfigs.rusherIsPresent
 import me.beanbag.nuker.eventsystem.EventBus.MIN_PRIORITY
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
@@ -8,6 +9,7 @@ import me.beanbag.nuker.handlers.RotationHandler.InputDirections.Companion.getCu
 import me.beanbag.nuker.utils.InGame
 import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.util.InputUtil
+import org.rusherhack.client.api.RusherHackAPI
 
 object RotationHandler: IHandler {
     override var currentlyBeingUsedBy: Module? = null
@@ -55,7 +57,12 @@ object RotationHandler: IHandler {
         }
     }
 
-    fun InGame.rotate(yaw: Float, pitch: Float, silent: Boolean) {
+    fun InGame.rotate(yaw: Float, pitch: Float, silent: Boolean, useRusherIfPossible: Boolean) {
+        if (useRusherIfPossible && rusherIsPresent) {
+            RusherHackAPI.getRotationManager().updateRotation(yaw, pitch)
+            return
+        }
+
         rotatedThisTick = true
         ticksSinceLastRotation = 0
         if (silent && !freeLooking) {
