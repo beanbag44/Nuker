@@ -19,8 +19,13 @@ class ListenerModule : Module("Listener Module", ModuleCategory.CLIENT) {
     }
 
     @Subscribe(stage = Stage.PRE)
-    fun onTick(event: EventUpdate) {
+    fun onTickPre(event: EventUpdate) {
         EventBus.post(TickEvent.Pre())
+    }
+
+    @Subscribe(stage = Stage.POST)
+    fun onTickPost(event: EventUpdate) {
+        EventBus.post(TickEvent.Post())
     }
 
     @Subscribe
