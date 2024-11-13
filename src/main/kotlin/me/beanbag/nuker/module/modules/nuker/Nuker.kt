@@ -4,14 +4,12 @@ import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
 import me.beanbag.nuker.handlers.BreakingHandler.blockTimeouts
 import me.beanbag.nuker.handlers.BreakingHandler.checkAttemptBreaks
-import me.beanbag.nuker.handlers.PlacementHandler.attemptPlaceAll
 import me.beanbag.nuker.module.Module
 import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.FlattenMode
 import me.beanbag.nuker.module.modules.nuker.enumsettings.VolumeShape
 import me.beanbag.nuker.module.modules.nuker.enumsettings.WhitelistMode
 import me.beanbag.nuker.module.settings.SettingGroup
-import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.VolumeSort
 import me.beanbag.nuker.utils.BlockUtils.getBlockCube
 import me.beanbag.nuker.utils.BlockUtils.getBlockSphere
@@ -25,9 +23,7 @@ import me.beanbag.nuker.utils.InGame
 import me.beanbag.nuker.utils.LitematicaUtils
 import me.beanbag.nuker.utils.LitematicaUtils.updateSchematicMismatches
 import net.minecraft.block.BlockState
-import net.minecraft.block.Blocks
 import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Direction
 
 object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
@@ -125,14 +121,7 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
             sortBlockVolume(blockVolume, player.eyePos, mineStyle)
 
-//            checkAttemptBreaks(blockVolume)
-
-            attemptPlaceAll(arrayListOf(
-                PosAndState(player.blockPos.offset(Direction.EAST), Blocks.OBSIDIAN.defaultState),
-                PosAndState(player.blockPos.offset(Direction.SOUTH), Blocks.OBSIDIAN.defaultState),
-                PosAndState(player.blockPos.offset(Direction.WEST), Blocks.OBSIDIAN.defaultState),
-                PosAndState(player.blockPos.offset(Direction.NORTH), Blocks.OBSIDIAN.defaultState)
-            ), Direction.UP, false, false)
+            checkAttemptBreaks(blockVolume)
         }
         for (settingGroup in CoreConfig.settingGroups) {
             settingGroups.add(settingGroup)
