@@ -50,14 +50,21 @@ class ModuleSettingListValueArgument : ICommandArgument {
     override fun getSuggestions(toMatch: List<String>): List<String> {
         if (toMatch.size < 2) {
             return ModuleArgument().getSuggestions(toMatch)
-        } else if (toMatch.size == 2) {
+        }
+        val module = ModuleArgument().getModule(toMatch[0]) ?: return listOf()
+
+        if (toMatch.size == 2) {
             return ModuleSettingArgument().getSuggestions(toMatch)
-        } else if (toMatch.size == 3) {
+        }
+        val setting = ModuleSettingArgument().getSetting(module, toMatch[1]) ?: return listOf()
+
+        if (setting !is AbstractListSetting<*>) {
+            return listOf()
+        }
+        if (toMatch.size == 3 && ModuleSettingArgument().getMatch(toMatch) == MatchType.FULL) {
             return ListActionArgument().getSuggestions(toMatch.subList(2, toMatch.size))
         }
 
-        val module = ModuleArgument().getModule(toMatch[0]) ?: return listOf()
-        val setting = ModuleSettingArgument().getSetting(module, toMatch[1]) ?: return listOf()
 
         val allPossibleValues = setting.possibleValues()
         return allPossibleValues?.filter { it.lowercase().startsWith(toMatch[3].lowercase()) } ?: listOf()

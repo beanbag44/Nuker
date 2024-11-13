@@ -16,7 +16,7 @@ import net.minecraft.util.Formatting
 
 class SetModuleListSettingCommand : ICommand {
     override val helpText: Text
-        get() = Text.literal("$COMMAND_PREFIX[module] [setting] [add | remove | clear] [value]")
+        get() = Text.literal("$COMMAND_PREFIX[module] [setting] [add | remove] [value]")
             .append(Text.literal(" - Modifies a list setting value").styled {
                 it.withColor(Formatting.GRAY)
             })
@@ -37,7 +37,7 @@ class SetModuleListSettingCommand : ICommand {
         val value = setting.listValueFromString(command[3])
         if (value != null) {
             return when (listAction) {
-                ListAction.ADD -> {
+                ListAction.Add -> {
                     setting.addFromString(command[3])
                     ChatHandler.sendChatLine(
                         (Text.literal("[").append(Text.literal(MOD_NAME).withColor(modColor)).append(Text.of("] "))
@@ -48,7 +48,7 @@ class SetModuleListSettingCommand : ICommand {
                     )
                 }
 
-                ListAction.REMOVE -> {
+                ListAction.Remove -> {
                     setting.removeFromString(command[3])
                     ChatHandler.sendChatLine(
                         (Text.literal("[").append(Text.literal(MOD_NAME).withColor(modColor)).append(Text.of("] "))
