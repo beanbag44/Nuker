@@ -18,12 +18,9 @@ class ListenerModule : Module("Listener Module", ModuleCategory.CLIENT) {
         this.isHidden = true
     }
 
-    @Subscribe
+    @Subscribe(stage = Stage.PRE)
     fun onTick(event: EventUpdate) {
-        when (event.stage) {
-            Stage.ON -> EventBus.post(TickEvent.Pre())
-            else -> {}
-        }
+        EventBus.post(TickEvent.Pre())
     }
 
     @Subscribe
