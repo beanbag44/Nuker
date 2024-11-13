@@ -11,19 +11,13 @@ import me.beanbag.nuker.utils.BlockUtils.isStateEmpty
 import me.beanbag.nuker.utils.InGame
 import me.beanbag.nuker.utils.InventoryUtils.getInHotbar
 import me.beanbag.nuker.utils.InventoryUtils.swapTo
-import net.minecraft.advancement.criterion.Criteria
-import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.BlockItem
-import net.minecraft.item.ItemStack
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket
-import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.sound.SoundCategory
 import net.minecraft.util.Hand
 import net.minecraft.util.hit.BlockHitResult
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
-import net.minecraft.world.World
-import net.minecraft.world.event.GameEvent
 
 object PlacementHandler : IHandler {
     override var priority = 0
