@@ -10,9 +10,11 @@
     "litematica.ISchematicVerifierAccessor"
   ],
   "client": [
+    "MixinCamera",
     "MixinChatInputSuggester",
     "MixinGameRenderer",
     "MixinMinecraftClient",
+    "MixinMouse",
     "MixinScreen"
   ],
   "injectors": {

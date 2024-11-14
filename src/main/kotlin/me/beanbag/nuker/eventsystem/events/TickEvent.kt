@@ -1,8 +1,6 @@
 package me.beanbag.nuker.eventsystem.events
 
-sealed class TickEvent(
-    val tickDelta: Float
-) : Event {
-    class Pre(tickDelta: Float) : TickEvent(tickDelta)
-    class Post(tickDelta: Float) : TickEvent(tickDelta)
+open class TickEvent: Event {
+    class Pre : TickEvent()
+    class Post : TickEvent()
 }

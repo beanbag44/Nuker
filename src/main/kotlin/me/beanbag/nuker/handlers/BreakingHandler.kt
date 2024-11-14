@@ -29,7 +29,10 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import java.awt.Color
 
-object BreakingHandler {
+object BreakingHandler : IHandler {
+    override var currentlyBeingUsedBy: Module? = null
+    override var priority: Int = 0
+
     val blockTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockTimeout }
     var breakingContexts = arrayOfNulls<BreakingContext>(2)
     private var packetCounter = 0
@@ -37,6 +40,7 @@ object BreakingHandler {
     init {
         onInGameEvent<TickEvent.Pre>(priority = EventBus.MAX_PRIORITY) {
             packetCounter = 0
+            updateSelectedSlot()
             updateBreakingContexts()
         }
 
@@ -60,8 +64,6 @@ object BreakingHandler {
     }
 
     fun InGame.checkAttemptBreaks(blockVolume: List<PosAndState>) {
-        updateSelectedSlot()
-
         blockVolume.forEach { block ->
             val primaryBreakingContext = breakingContexts[0]
 
@@ -79,7 +81,7 @@ object BreakingHandler {
 
             val breakDelta = percentDamagePerTick(block.blockState, blockPos, bestTool)
             val isInstaBreak = breakDelta >= 1
-            val breakPacketCount = if (isInstaBreak) 1 else 6
+            val breakPacketCount = if (isInstaBreak) 1 else 4
 
             packetCounter += breakPacketCount
 
@@ -129,12 +131,10 @@ object BreakingHandler {
     }
 
     private fun InGame.startPacketBreaking(pos: BlockPos) {
-        stopBreakPacket(pos)
         abortBreakPacket(pos)
+        stopBreakPacket(pos)
         startBreakPacket(pos)
         stopBreakPacket(pos)
-        abortBreakPacket(pos)
-        startBreakPacket(pos)
     }
 
     private fun InGame.startBreakPacket(pos: BlockPos) {
@@ -172,7 +172,8 @@ object BreakingHandler {
         breakingContexts.forEach { it?.apply {
             val index = if (breakType.isPrimary()) 0 else 1
 
-            if (!canReach(player.eyePos, PosAndState.from(pos, world), CoreConfig.radius)) {
+            if (!canReach(player.eyePos, PosAndState.from(pos, world), CoreConfig.radius) && breakType.isPrimary()) {
+                abortBreakPacket(pos)
                 nullifyBreakingContext(index)
                 return@forEach
             }
@@ -194,6 +195,7 @@ object BreakingHandler {
             if (miningProgress > threshold) {
                 if (breakType.isPrimary()) {
                     stopBreakPacket(pos)
+                    packetCounter++
                 }
                 packetCounter++
                 onBlockBreak(index)
