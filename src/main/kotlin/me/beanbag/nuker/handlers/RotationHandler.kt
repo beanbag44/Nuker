@@ -63,8 +63,6 @@ object RotationHandler: IHandler {
             return
         }
 
-        rotatedThisTick = true
-        ticksSinceLastRotation = 0
         if (silent && !freeLooking) {
             freeLooking = true
             RotationHandler.yaw = player.yaw
@@ -73,6 +71,8 @@ object RotationHandler: IHandler {
 
         player.yaw = yaw
         player.pitch = pitch
+        rotatedThisTick = true
+        ticksSinceLastRotation = 0
     }
 
     private fun InGame.cancelRotations() {
