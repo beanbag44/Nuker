@@ -5,6 +5,7 @@ import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.enchantment.Enchantments
 import net.minecraft.entity.effect.StatusEffectUtil
 import net.minecraft.entity.effect.StatusEffects
+import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket
 import net.minecraft.registry.tag.FluidTags
@@ -12,6 +13,13 @@ import net.minecraft.util.math.BlockPos
 
 object InventoryUtils {
     const val HOTBAR_SIZE = 9
+
+    fun InGame.swapTo(item: Item): Boolean {
+        val hotbarSlot = getInHotbar(item)
+        if (hotbarSlot == -1) return false
+        swapTo(hotbarSlot)
+        return true
+    }
 
     fun InGame.swapTo(slot: Int): Boolean {
         if (player.inventory?.selectedSlot == slot
@@ -37,6 +45,16 @@ object InventoryUtils {
             }
         }
         return bestTool
+    }
+
+    fun InGame.getInHotbar(item: Item): Int {
+        for (i in 0..8) {
+            if (player.inventory.getStack(i).item == item) {
+                return i
+            }
+            continue
+        }
+        return -1
     }
 
     /** ticksToBreakBlock = roundup(1 / calcBreakDelta(...))*/

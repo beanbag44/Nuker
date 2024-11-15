@@ -15,7 +15,10 @@ import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
 import net.minecraft.util.math.BlockPos
 
-object BrokenBlockHandler {
+object BrokenBlockHandler : IHandler {
+    override var priority = 0
+    override var currentlyBeingUsedBy: Module? = null
+
     private val blockQueue = TimeoutSet<BrokenBlockPos> { if (validateBreak) 40 else ghostBlockTimeout }
         .setOnTimeout { pos ->
             if (!pos.broken) return@setOnTimeout
