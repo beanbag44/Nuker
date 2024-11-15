@@ -162,12 +162,6 @@ object BreakingHandler : IHandler {
             breakingContexts[0] != null
     }
 
-    private fun firstOrNullContext(): BreakingContext? {
-        breakingContexts[0]?.run { return this }
-        breakingContexts[1]?.run { return this }
-        return null
-    }
-
     private fun InGame.updateBreakingContexts() {
         breakingContexts.forEach { it?.apply {
             val index = if (breakType.isPrimary()) 0 else 1
