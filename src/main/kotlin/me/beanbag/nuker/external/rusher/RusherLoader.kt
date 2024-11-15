@@ -13,7 +13,9 @@ class RusherLoader : Plugin() {
             LogUtils.getLogger().info("Loading module: ${module.name}")
 
             val rusherModule = RusherModule(module.name, module.description, module)
+            val listenerModule = ListenerModule()
             RusherHackAPI.getModuleManager().registerFeature(rusherModule)
+            RusherHackAPI.getModuleManager().registerFeature(listenerModule)
         }
         RusherHackAPI.getCommandManager().registerFeature(RusherCommands())
 

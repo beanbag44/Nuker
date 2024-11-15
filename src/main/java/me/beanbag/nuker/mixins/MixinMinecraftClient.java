@@ -15,11 +15,11 @@ public abstract class MixinMinecraftClient {
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void onTickPre(CallbackInfo ci) {
-        EventBus.INSTANCE.post(new TickEvent.Pre(getTickDelta()));
+        EventBus.INSTANCE.post(new TickEvent.Pre());
     }
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void onTickPost(CallbackInfo ci) {
-        EventBus.INSTANCE.post(new TickEvent.Post(getTickDelta()));
+        EventBus.INSTANCE.post(new TickEvent.Post());
     }
 }

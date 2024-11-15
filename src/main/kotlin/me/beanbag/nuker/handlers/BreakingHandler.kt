@@ -25,13 +25,17 @@ import net.minecraft.block.BlockState
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
+import net.minecraft.network.packet.s2c.play.InventoryS2CPacket
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import java.awt.Color
 
-object BreakingHandler {
+object BreakingHandler : IHandler {
+    override var currentlyBeingUsedBy: Module? = null
+    override var priority: Int = 0
+
     val blockTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockTimeout }
-    private var breakingContexts = arrayOfNulls<BreakingContext>(2)
+    var breakingContexts = arrayOfNulls<BreakingContext>(2)
     private var packetCounter = 0
 
     init {
@@ -42,6 +46,11 @@ object BreakingHandler {
         }
 
         onEvent<PacketEvent.Receive.Pre>{ event ->
+            if (event.packet is InventoryS2CPacket) {
+                println("InventoryS2CPacket")
+                print(event.packet)
+            }
+
             val packet = event.packet
 
             if (packet is BlockUpdateS2CPacket) {
@@ -60,11 +69,12 @@ object BreakingHandler {
         }
     }
 
-    fun InGame.checkAttemptBreaks(blockVolume: List<PosAndState>) {
+    fun InGame.checkAttemptBreaks(blockVolume: List<PosAndState>): List<PosAndState> {
+        val startedBlocks = mutableListOf<PosAndState>()
         blockVolume.forEach { block ->
             val primaryBreakingContext = breakingContexts[0]
 
-            if (isAtMaximumCurrentBreakingContexts()) return
+            if (isAtMaximumCurrentBreakingContexts()) return startedBlocks
 
             val blockPos = block.blockPos
 
@@ -78,11 +88,11 @@ object BreakingHandler {
 
             val breakDelta = percentDamagePerTick(block.blockState, blockPos, bestTool)
             val isInstaBreak = breakDelta >= 1
-            val breakPacketCount = if (isInstaBreak) 1 else 3
+            val breakPacketCount = if (isInstaBreak) 1 else 4
 
             packetCounter += breakPacketCount
 
-            if (packetCounter > CoreConfig.packetLimit) return
+            if (packetCounter > CoreConfig.packetLimit) return startedBlocks
 
             if (primaryBreakingContext != null) {
                 breakingContexts.shiftPrimaryDown()
@@ -102,8 +112,10 @@ object BreakingHandler {
             }
 
             if (isInstaBreak) {
+                startedBlocks.add(block)
                 startBreakPacket(blockPos)
             } else {
+                startedBlocks.add(block)
                 startPacketBreaking(blockPos)
             }
 
@@ -111,6 +123,7 @@ object BreakingHandler {
                 onBlockBreak(0)
             }
         }
+        return startedBlocks
     }
 
     private fun InGame.onBlockBreak(contextIndex: Int) {
@@ -128,6 +141,7 @@ object BreakingHandler {
     }
 
     private fun InGame.startPacketBreaking(pos: BlockPos) {
+        abortBreakPacket(pos)
         stopBreakPacket(pos)
         startBreakPacket(pos)
         stopBreakPacket(pos)
@@ -222,7 +236,7 @@ object BreakingHandler {
         this[0] = null
     }
 
-    private fun nullifyBreakingContext(contextIndex: Int) {
+    fun nullifyBreakingContext(contextIndex: Int) {
         breakingContexts[contextIndex] = null
     }
 

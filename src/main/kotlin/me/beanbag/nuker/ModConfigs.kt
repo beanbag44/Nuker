@@ -5,8 +5,7 @@ import me.beanbag.nuker.command.ICommand
 import me.beanbag.nuker.command.commands.*
 import me.beanbag.nuker.handlers.InventoryHandler
 import me.beanbag.nuker.module.Module
-import me.beanbag.nuker.module.modules.UnfocusedCPU
-import me.beanbag.nuker.module.modules.BreakPacketLogger
+import me.beanbag.nuker.module.modules.*
 import me.beanbag.nuker.module.modules.nuker.Nuker
 import net.minecraft.client.MinecraftClient
 import net.minecraft.util.Formatting
@@ -45,6 +44,8 @@ object ModConfigs {
             Nuker,
             BreakPacketLogger,
             UnfocusedCPU(),
+            FastBreak(),
+            EquipmentSaver(),
         ).associateByTo(Reference2ReferenceOpenHashMap()) { it.javaClass }
 
     fun getModuleByName(name: String): Module? {

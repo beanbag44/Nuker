@@ -1,11 +1,11 @@
 package me.beanbag.nuker.module.modules
 
-import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.eventsystem.events.TickEvent
+import me.beanbag.nuker.eventsystem.onInGameEvent
 import me.beanbag.nuker.module.Module
 import me.beanbag.nuker.utils.InGame
-import me.beanbag.nuker.utils.runInGame
 import net.minecraft.entity.player.PlayerInventory
+import net.minecraft.item.ArmorItem
 import net.minecraft.item.ItemStack
 import net.minecraft.screen.slot.SlotActionType
 
@@ -16,29 +16,33 @@ class EquipmentSaver:Module("Equipment Saver", "Saves your tools/armor from brea
         10,
         min = 1,
         max = 1000)
+
+//    val allowedItems = setting(generalGroup, "Allowed Items",
+//        "Items that will be saved",
+//        mutableListOf(Items.NETHERITE_AXE, Items.NETHERITE_HOE, Items.NETHERITE_BOOTS, Items.NETHERITE_LEGGINGS, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_HELMET, Items.NETHERITE_PICKAXE, Items.NETHERITE_SHOVEL, Items.NETHERITE_SWORD,
+//            Items.DIAMOND_AXE, Items.DIAMOND_HOE, Items.DIAMOND_BOOTS, Items.DIAMOND_LEGGINGS, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_HELMET, Items.DIAMOND_PICKAXE, Items.DIAMOND_SHOVEL, Items.DIAMOND_SWORD,)
+//       )
     init {
-        EventBus.subscribe<TickEvent.Pre>(this){ runInGame { onTick(it) }}
+        onInGameEvent<TickEvent.Pre> { //This is a fallback in case we don't have mixins
+            for (i in HOTBAR_START..HOTBAR_END) {
+                onItemDamaged(player.inventory.getStack(i))
+            }
+
+            for(i in ARMOR_START..ARMOR_END) {
+                onItemDamaged(player.inventory.getStack(i))
+            }
+        }
     }
 
     companion object {
         const val PLAYER_INVENTORY_START: Int = 35
         const val PLAYER_INVENTORY_END: Int = 9
 
-        const val ARMOR_START: Int = 103
-        const val ARMOR_END: Int = 100
+        const val ARMOR_START: Int = 36
+        const val ARMOR_END: Int = 39
 
         const val HOTBAR_START: Int = 0
         const val HOTBAR_END: Int = 8
-    }
-
-    private fun InGame.onTick(event: TickEvent.Pre) {
-        for (i in HOTBAR_START..HOTBAR_END) {
-            onItemDamaged(player.inventory.getStack(i))
-        }
-
-        for(i in ARMOR_START downTo ARMOR_END) {
-            onItemDamaged(player.inventory.getStack(i))
-        }
     }
 
     fun InGame.onItemDamaged(stack: ItemStack) {
@@ -49,27 +53,28 @@ class EquipmentSaver:Module("Equipment Saver", "Saves your tools/armor from brea
         val toSlot = moveToSlot(stack)
         if (fromSlot != null && toSlot != null) {
             if ((HOTBAR_START..HOTBAR_END).contains(fromSlot)){
-                interactionManager.clickSlot(0, toSlot, fromSlot, SlotActionType.SWAP, player)
+                swap(fromSlot, toSlot)
             } else if ((HOTBAR_START..HOTBAR_END).contains(toSlot)) {
-                interactionManager.clickSlot(0, fromSlot, toSlot, SlotActionType.SWAP, player)
+                swap(toSlot, fromSlot)
             } else {
                 //swap toSlot with hotbar, then swap hotbar with fromSlot, then hotbar with toSlot
+                //other swaps are currently commented out until there's a good inventory handler
                 //eg:
-                //inventory - good boots
-                //hotbar - random item
-                //boot slot - broken boots
-                interactionManager.clickSlot(0, toSlot, HOTBAR_END - 1, SlotActionType.SWAP, player)
-                //inventory - random item
-                //hotbar - good boots
-                //boot slot - broken boots
-                interactionManager.clickSlot(0, fromSlot, HOTBAR_END - 1, SlotActionType.SWAP, player)
-                //inventory - random item
-                //hotbar - broken boots
-                //boot slot - good boots
-                interactionManager.clickSlot(0, toSlot, HOTBAR_END - 1, SlotActionType.SWAP, player)
-                //inventory - broken boots
-                //hotbar - random item
-                //boot slot - good boots
+                //boot slot - 🔴broken boots
+                //inventory - 🟢good boots  🔁
+                //hotbar -    🟤random item 🔁
+                swap(toSlot, HOTBAR_END - 1)
+                //boot slot - 🔴broken boots🔁
+                //inventory - 🟤random item
+                //hotbar -    🟢good boots  🔁
+                //swap(HOTBAR_END - 1, fromSlot)
+                //boot slot - 🟢good boots
+                //inventory - 🟤random item 🔁
+                //hotbar -    🔴broken boots🔁
+                //swap(HOTBAR_END - 1, toSlot)
+                //boot slot - 🟢good boots
+                //inventory - 🔴broken boots
+                //hotbar -    🟤random item
             }
         }
     }
@@ -82,7 +87,7 @@ class EquipmentSaver:Module("Equipment Saver", "Saves your tools/armor from brea
                 matchingToolSlot = i
             }
         }
-        for (i in ARMOR_START downTo ARMOR_END) {
+        for (i in ARMOR_START..ARMOR_END) {
             if (inventory.getStack(i).item === toMove.item && inventory.getStack(i).damage == toMove.damage) {
                 matchingToolSlot = i
             }
@@ -96,7 +101,7 @@ class EquipmentSaver:Module("Equipment Saver", "Saves your tools/armor from brea
         var matchingToolSlot: Int? = null
         var emptySlot: Int? = null
         var nonBreakableSlot: Int? = null
-        for (i in PLAYER_INVENTORY_START downTo PLAYER_INVENTORY_END) {
+        for (i in PLAYER_INVENTORY_START downTo (if(toMove.item is ArmorItem) HOTBAR_START else PLAYER_INVENTORY_END)) {
             val inventoryStack = inventory.getStack(i)
             if (inventoryStack.item === toMove.item && inventoryStack.maxDamage - inventoryStack.damage > minDurability.getValue()) {
                 matchingToolSlot = i
@@ -109,5 +114,30 @@ class EquipmentSaver:Module("Equipment Saver", "Saves your tools/armor from brea
             }
         }
         return matchingToolSlot ?: (emptySlot ?: nonBreakableSlot)
+    }
+
+    private fun InGame.swap(fromSlot: Int, toSlot: Int) {
+        val hotbarSlot:Int
+        val otherSlot:Int
+        if (fromSlot in HOTBAR_START..HOTBAR_END) {
+            hotbarSlot = fromSlot
+            otherSlot = toSlot
+        } else {
+            hotbarSlot = toSlot
+            otherSlot = fromSlot
+        }
+
+        val syncId = player.playerScreenHandler?.syncId ?: 0
+//        player.playerScreenHandler.onSlotClick(getSlot(otherSlot)!!, hotbarSlot, SlotActionType.SWAP, player)
+        interactionManager.clickSlot(syncId, getSlot(otherSlot)!!, hotbarSlot, SlotActionType.SWAP, player)
+    }
+
+    private fun InGame.getSlot(inventoryIndex:Int) : Int? {
+        for (slot in player.playerScreenHandler?.slots ?: listOf()) {
+            if (slot.index == inventoryIndex) {
+                return slot.id
+            }
+        }
+        return null
     }
 }
