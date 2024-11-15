@@ -8,6 +8,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.tag.BiomeTags;
 import net.minecraft.util.math.BlockPos;
 
+
 public class CanalSpecs {
     static IProtectionLocator protectionLocator = new GenericProtectionLocator();
 

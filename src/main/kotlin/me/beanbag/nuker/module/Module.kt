@@ -81,8 +81,9 @@ abstract class Module(var name: String, var description: String, private var alw
         description: String,
         defaultValue: List<Block>,
         onChange: MutableList<Consumer<List<Block>>>? = null,
-        visible: () -> Boolean = { true }
-    ) = group.add(BlockListSetting(name, description, defaultValue, onChange, visible))
+        visible: () -> Boolean = { true },
+        filter: (Block) -> Boolean = { true }
+    ) = group.add(BlockListSetting(name, description, defaultValue, onChange, visible, filter))
 
     fun setting(
         group: SettingGroup,

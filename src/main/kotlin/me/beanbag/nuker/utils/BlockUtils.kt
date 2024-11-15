@@ -107,15 +107,33 @@ object BlockUtils {
             val stateAbove = world.getBlockState(pos.up())
             val state = world.getBlockState(pos)
             val stateBelow = world.getBlockState(pos.down())
-            return@filter canWalkThrough(stateAbove)
-                    && stateBelow.isFullCube(world, pos)
-                    || canWalkThrough(stateAbove)
-                    && state.block == Blocks.WATER
-                    && stateBelow.block == Blocks.WATER
-                    || canWalkThrough(stateAbove)
-                    && state.block == Blocks.WATER
-                    && stateBelow.isFullCube(world, pos)
+            if (isFlowing(PosAndState(pos.up(), stateAbove)) ||
+                isFlowing(PosAndState(pos, state)) ||
+                isFlowing(PosAndState(pos.down(), stateBelow))) {
+                return@filter false
+            }
+            return@filter canWalkThrough(stateAbove) && canWalkThrough(state) && stateBelow.isFullCube(world, pos)
+                    || canWalkThrough(stateAbove) && state.block == Blocks.WATER && stateBelow.block == Blocks.WATER
+                    || canWalkThrough(stateAbove) && state.block == Blocks.WATER && stateBelow.isFullCube(world, pos)
         }
+
+    fun isSource(state: BlockState): Boolean {
+        return state.fluidState.fluid is FlowableFluid
+                && state.fluidState.isStill
+    }
+
+    fun InGame.isFlowing(block: PosAndState): Boolean {
+        if (block.blockPos == BlockPos(-10,63,8218)) {
+            System.out.println("breakpoint")
+        }
+        if (block.blockState.fluidState.fluid !is FlowableFluid) {
+            return false
+        }
+        return !isSource(world.getBlockState(block.blockPos.north()))
+                || !isSource(world.getBlockState(block.blockPos.south()))
+                || !isSource(world.getBlockState(block.blockPos.east()))
+                || !isSource(world.getBlockState(block.blockPos.west()))
+    }
 
     fun canWalkThrough(state: BlockState): Boolean {
         if (state.isAir) return true
@@ -175,27 +193,19 @@ object BlockUtils {
         return CanalSpecs.isCorrectInPosition(pos)
     }
 
-    fun isBlockBroken(currentState: BlockState?, newState: BlockState): Boolean {
-        currentState?.let { current ->
-            if (isStateEmpty(current)) return false
+    fun isBlockBroken(currentState: BlockState, newState: BlockState): Boolean {
+        if (isStateEmpty(currentState)) return false
 
-            return (newState.isAir && (
-                    !current.properties.contains(Properties.WATERLOGGED)
-                            || !current.get(Properties.WATERLOGGED)
-                            )
-                    ) || (
-                    newState.fluidState.fluid is WaterFluid
-                            && !newState.properties.contains(Properties.WATERLOGGED)
-                            && current.properties.contains(Properties.WATERLOGGED)
-                            && current.get(Properties.WATERLOGGED)
-                    )
-        } ?: return false
+        return (newState.isAir && currentState.fluidState.isEmpty)
+                || (
+                !newState.fluidState.isEmpty
+                        && !currentState.fluidState.isEmpty
+                        )
     }
 
     fun isStateEmpty(state: BlockState) =
         state.isAir || (
-                (!state.properties.contains(Properties.WATERLOGGED)
-                        || !state.get(Properties.WATERLOGGED))
+                !state.properties.contains(Properties.WATERLOGGED)
                         && !state.fluidState.isEmpty
                 )
 
@@ -338,6 +348,14 @@ object BlockUtils {
         if (bl) {
             block.onBroken(world, pos, state)
         }
+    }
+
+    fun InGame.isLoaded(pos: BlockPos): Boolean {
+        return isLoaded(pos.x, pos.z)
+    }
+
+    fun InGame.isLoaded(x:Int, z:Int): Boolean {
+        return world.chunkManager.isChunkLoaded(ChunkSectionPos.getSectionCoord(x), ChunkSectionPos.getSectionCoord(z))
     }
 }
 

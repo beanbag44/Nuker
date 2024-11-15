@@ -37,13 +37,14 @@ object ModConfigs {
         ListModuleCommand(),
         ToggleModuleCommand(),
         SetModuleSettingCommand(),
+        SetModuleListSettingCommand(),
     )
 
     var modules: MutableMap<Class<out Module>, Module> =
         listOf(
             Nuker,
+            BreakPacketLogger,
             UnfocusedCPU(),
-            BreakPacketLogger
         ).associateByTo(Reference2ReferenceOpenHashMap()) { it.javaClass }
 
     fun getModuleByName(name: String): Module? {
