@@ -6,6 +6,7 @@
   "plugin": "me.beanbag.nuker.MixinPlugin",
   "mixins": [
     "MixinClientConnection",
+    "MixinItemStack",
     "MixinMeteorClient",
     "litematica.ISchematicVerifierAccessor"
   ],

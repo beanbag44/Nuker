@@ -349,6 +349,14 @@ object BlockUtils {
             block.onBroken(world, pos, state)
         }
     }
+
+    fun InGame.isLoaded(pos: BlockPos): Boolean {
+        return isLoaded(pos.x, pos.z)
+    }
+
+    fun InGame.isLoaded(x:Int, z:Int): Boolean {
+        return world.chunkManager.isChunkLoaded(ChunkSectionPos.getSectionCoord(x), ChunkSectionPos.getSectionCoord(z))
+    }
 }
 
 fun BlockPos.closestCorner(toPos: Vec3d) : Vec3d {
