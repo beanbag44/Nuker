@@ -40,7 +40,8 @@ object ModConfigs {
             Nuker,
             BreakPacketLogger,
             UnfocusedCPU(),
-//            FastBreak(),
+            FastBreak(),
+            EquipmentSaver(),
         ).associateByTo(Reference2ReferenceOpenHashMap()) { it.javaClass }
 
     fun getModuleByName(name: String): Module? {

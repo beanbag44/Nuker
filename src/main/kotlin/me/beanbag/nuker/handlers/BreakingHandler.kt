@@ -25,6 +25,7 @@ import net.minecraft.block.BlockState
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
+import net.minecraft.network.packet.s2c.play.InventoryS2CPacket
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import java.awt.Color
@@ -45,6 +46,11 @@ object BreakingHandler : IHandler {
         }
 
         onEvent<PacketEvent.Receive.Pre>{ event ->
+            if (event.packet is InventoryS2CPacket) {
+                println("InventoryS2CPacket")
+                print(event.packet)
+            }
+
             val packet = event.packet
 
             if (packet is BlockUpdateS2CPacket) {
@@ -63,11 +69,12 @@ object BreakingHandler : IHandler {
         }
     }
 
-    fun InGame.checkAttemptBreaks(blockVolume: List<PosAndState>) {
+    fun InGame.checkAttemptBreaks(blockVolume: List<PosAndState>): List<PosAndState> {
+        val startedBlocks = mutableListOf<PosAndState>()
         blockVolume.forEach { block ->
             val primaryBreakingContext = breakingContexts[0]
 
-            if (isAtMaximumCurrentBreakingContexts()) return
+            if (isAtMaximumCurrentBreakingContexts()) return startedBlocks
 
             val blockPos = block.blockPos
 
@@ -85,7 +92,7 @@ object BreakingHandler : IHandler {
 
             packetCounter += breakPacketCount
 
-            if (packetCounter > CoreConfig.packetLimit) return
+            if (packetCounter > CoreConfig.packetLimit) return startedBlocks
 
             if (primaryBreakingContext != null) {
                 breakingContexts.shiftPrimaryDown()
@@ -105,8 +112,10 @@ object BreakingHandler : IHandler {
             }
 
             if (isInstaBreak) {
+                startedBlocks.add(block)
                 startBreakPacket(blockPos)
             } else {
+                startedBlocks.add(block)
                 startPacketBreaking(blockPos)
             }
 
@@ -114,6 +123,7 @@ object BreakingHandler : IHandler {
                 onBlockBreak(0)
             }
         }
+        return startedBlocks
     }
 
     private fun InGame.onBlockBreak(contextIndex: Int) {
