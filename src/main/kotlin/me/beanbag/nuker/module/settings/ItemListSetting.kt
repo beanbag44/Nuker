@@ -12,34 +12,17 @@ class ItemListSetting(name: String,
                       defaultValue: List<Item>,
                       onChanged: MutableList<Consumer<List<Item>>>?,
                       visible: () -> Boolean,
-                      val filter: (Item) -> Boolean
-):AbstractSetting<List<Item>>(name, description, defaultValue, onChanged, visible) {
-    override fun valueFromString(value: String): List<Item>? {
-        val optionalItems = value.split(",")
-            .map { Registries.ITEM.getOrEmpty(Identifier(it)) }
+                      filter: (Item) -> Boolean
+):AbstractListSetting<Item>(name, description, defaultValue, onChanged, visible, filter) {
+    @Suppress("RedundantNullableReturnType")
+    override fun listValueFromString(value: String): Item? = Registries.ITEM.get(Identifier(value))
 
-        if (optionalItems.any { it.isEmpty }) return null
 
-        val itemTypes = optionalItems.map { it.get() }
+    override fun listValueToString(value: Item): String =
+        Registries.ITEM.getId(value).toString().apply { replace("minecraft:", "", true) }
 
-        return itemTypes
-    }
-
-    override fun valueToString(): String {
-        return getValue().joinToString(separator = ",") {
-            Registries.ITEM.getId(it).toString().replace("minecraft:", "")
-        }
-    }
-
-    override fun possibleValues(): List<String> =
-        Registries.ITEM.ids.map { it.toString().replace("minecraft:", "") }.filter {
-            filter(
-                Registries.ITEM.get(
-                    Identifier(it)
-                )
-            )
-        }
-
+    override fun allPossibleValues(): List<String> =
+        Registries.ITEM.ids.map { it.toString().replace("minecraft:", "") }
 
     override fun toRusherSetting(): Setting<*> {
         val rhSetting = NullSetting(getName(), getDescription())

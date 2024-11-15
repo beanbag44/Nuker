@@ -10,29 +10,17 @@ import java.util.function.Consumer
 class EntityTypeListSetting(
     name: String,
     description: String,
-    defaultValue: Set<EntityType<*>>,
-    onChanged: MutableList<Consumer<Set<EntityType<*>>>>?,
+    defaultValue: List<EntityType<*>>,
+    onChanged: MutableList<Consumer<List<EntityType<*>>>>?,
     visible: () -> Boolean,
-    val filter: (EntityType<*>) -> Boolean
-    ):AbstractSetting<Set<EntityType<*>>>(name, description, defaultValue, onChanged, visible) {
-    override fun valueFromString(value: String): Set<EntityType<*>>? {
-        val optionalEntityTypes = value.split(",")
-            .map { Registries.ENTITY_TYPE.getOrEmpty(Identifier(it)) }
+    filter: (EntityType<*>) -> Boolean
+    ):AbstractListSetting<EntityType<*>>(name, description, defaultValue, onChanged, visible, filter) {
+    @Suppress("RedundantNullableReturnType")
+    override fun listValueFromString(value: String): EntityType<*>? = Registries.ENTITY_TYPE.get(Identifier(value))
 
-        if (optionalEntityTypes.any { it.isEmpty }) return null
+    override fun listValueToString(value: EntityType<*>): String = Registries.ENTITY_TYPE.getId(value).toString().replace("minecraft:", "")
 
-        val entityTypes = optionalEntityTypes.map { it.get() }
-
-        return entityTypes.toSet()
-    }
-
-    override fun valueToString(): String {
-        return getValue().joinToString(separator = ",") { Registries.ENTITY_TYPE.getId(it).toString().replace("minecraft:", "") }
-    }
-
-    override fun possibleValues(): List<String> =
-        Registries.ENTITY_TYPE.ids.map { it.toString().replace("minecraft:", "") }.filter { filter(Registries.ENTITY_TYPE.get(Identifier(it))) }
-
+    override fun allPossibleValues(): List<String> =  Registries.ENTITY_TYPE.ids.map { it.toString().replace("minecraft:", "") }
 
     override fun toRusherSetting(): Setting<*> {
         val rhSetting = NullSetting(getName(), getDescription())
@@ -46,13 +34,13 @@ class EntityTypeListSetting(
         val builder = meteordevelopment.meteorclient.settings.EntityTypeListSetting.Builder()
             .name(getName())
             .description(getDescription())
-            .defaultValue(getDefaultValue())
-            .onChanged { value: Set<EntityType<*>> -> setValue(value) }
+            .defaultValue(getDefaultValue().toSet())
+            .onChanged { value: Set<EntityType<*>> -> setValue(value.toList()) }
             .visible { isVisible() }
             .filter(filter)
 
         val meteorSetting = builder.build()
-        getOnChange().add(Consumer{value -> meteorSetting.set(value)})
+        getOnChange().add(Consumer{value -> meteorSetting.set(value.toSet())})
 
         return meteorSetting
     }
