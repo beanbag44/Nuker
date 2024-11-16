@@ -41,7 +41,11 @@ object BreakingHandler : IHandler {
 
     init {
         onInGameEvent<TickEvent.Pre>(priority = EventBus.MAX_PRIORITY) {
-            if (inventoryHandler.externalInControl()) return@onInGameEvent
+            if (inventoryHandler.externalInControl()) {
+                nullifyBreakingContext(0)
+                nullifyBreakingContext(1)
+                return@onInGameEvent
+            }
             packetCounter = 0
             updateSelectedSlot()
             updateBreakingContexts()
