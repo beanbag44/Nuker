@@ -72,58 +72,63 @@ object BreakingHandler : IHandler {
     fun InGame.checkAttemptBreaks(blockVolume: List<PosAndState>): List<PosAndState> {
         val startedBlocks = mutableListOf<PosAndState>()
         blockVolume.forEach { block ->
-            val primaryBreakingContext = breakingContexts[0]
-
-            if (isAtMaximumCurrentBreakingContexts()) return startedBlocks
-
-            val blockPos = block.blockPos
-
-            if (breakingContexts.any { it?.pos == blockPos }) return@forEach
-
-            val bestTool = getBestTool(block.blockState, blockPos)
-
-            primaryBreakingContext?.run {
-                if (this.bestTool != bestTool) return@forEach
-            }
-
-            val breakDelta = percentDamagePerTick(block.blockState, blockPos, bestTool)
-            val isInstaBreak = breakDelta >= 1
-            val breakPacketCount = if (isInstaBreak) 1 else 4
-
-            packetCounter += breakPacketCount
-
-            if (packetCounter > CoreConfig.packetLimit) return startedBlocks
-
-            if (primaryBreakingContext != null) {
-                breakingContexts.shiftPrimaryDown()
-            }
-
-            breakingContexts[0] = BreakingContext(
-                blockPos,
-                block.blockState,
-                breakDelta,
-                bestTool,
-            ).apply {
-                mineTicks++
-            }
-
-            if (breakingContexts[1] == null) {
-                if (swapTo(bestTool)) packetCounter++
-            }
-
-            if (isInstaBreak) {
-                startedBlocks.add(block)
-                startBreakPacket(blockPos)
-            } else {
-                startedBlocks.add(block)
-                startPacketBreaking(blockPos)
-            }
-
-            if (breakDelta >= CoreConfig.breakThreshold) {
-                onBlockBreak(0)
-            }
+            if (checkAttemptBreak(block)) startedBlocks.add(block)
+            else if (isAtMaximumCurrentBreakingContexts()) return startedBlocks
         }
         return startedBlocks
+    }
+
+    fun InGame.checkAttemptBreak(block: PosAndState): Boolean {
+        val primaryBreakingContext = breakingContexts[0]
+
+        if (isAtMaximumCurrentBreakingContexts()) return false
+
+        val blockPos = block.blockPos
+
+        if (breakingContexts.any { it?.pos == blockPos }) return false
+
+        val bestTool = getBestTool(block.blockState, blockPos)
+
+        primaryBreakingContext?.run {
+            if (this.bestTool != bestTool) return false
+        }
+
+        val breakDelta = percentDamagePerTick(block.blockState, blockPos, bestTool)
+        val isInstaBreak = breakDelta >= 1
+        val breakPacketCount = if (isInstaBreak) 1 else 4
+
+        packetCounter += breakPacketCount
+
+        if (packetCounter > CoreConfig.packetLimit) return false
+
+        if (primaryBreakingContext != null) {
+            breakingContexts.shiftPrimaryDown()
+        }
+
+        breakingContexts[0] = BreakingContext(
+            blockPos,
+            block.blockState,
+            breakDelta,
+            bestTool,
+        ).apply {
+            mineTicks++
+        }
+
+        if (breakingContexts[1] == null) {
+            if (swapTo(bestTool)) packetCounter++
+        }
+
+        if (isInstaBreak) {
+            startBreakPacket(blockPos)
+        } else {
+            startPacketBreaking(blockPos)
+        }
+
+        if (breakDelta >= CoreConfig.breakThreshold) {
+            onBlockBreak(0)
+        }
+
+        return true
     }
 
     private fun InGame.onBlockBreak(contextIndex: Int) {
@@ -176,7 +181,7 @@ object BreakingHandler : IHandler {
         breakingContexts.forEach { it?.apply {
             val index = if (breakType.isPrimary()) 0 else 1
 
-            if (!canReach(player.eyePos, PosAndState.from(pos, world), CoreConfig.radius) && breakType.isPrimary()) {
+            if (!canReach(player.eyePos, pos, CoreConfig.radius) && breakType.isPrimary()) {
                 abortBreakPacket(pos)
                 nullifyBreakingContext(index)
                 return@forEach

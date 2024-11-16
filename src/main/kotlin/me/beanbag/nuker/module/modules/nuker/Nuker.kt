@@ -10,9 +10,13 @@ import me.beanbag.nuker.module.modules.nuker.enumsettings.FlattenMode
 import me.beanbag.nuker.module.modules.nuker.enumsettings.VolumeShape
 import me.beanbag.nuker.module.modules.nuker.enumsettings.WhitelistMode
 import me.beanbag.nuker.module.settings.SettingGroup
+import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.VolumeSort
+import me.beanbag.nuker.utils.BlockUtils
+import me.beanbag.nuker.utils.BlockUtils.canReach
 import me.beanbag.nuker.utils.BlockUtils.getBlockCube
 import me.beanbag.nuker.utils.BlockUtils.getBlockSphere
+import me.beanbag.nuker.utils.BlockUtils.getState
 import me.beanbag.nuker.utils.BlockUtils.isBlockBreakable
 import me.beanbag.nuker.utils.BlockUtils.isBlockInFlatten
 import me.beanbag.nuker.utils.BlockUtils.isValidCanalBlock
@@ -23,7 +27,9 @@ import me.beanbag.nuker.utils.InGame
 import me.beanbag.nuker.utils.LitematicaUtils
 import me.beanbag.nuker.utils.LitematicaUtils.updateSchematicMismatches
 import net.minecraft.block.BlockState
+import net.minecraft.block.FallingBlock
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Direction
 
 object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
@@ -48,6 +54,10 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         "Avoid Spilling Liquids",
         "Doesn't break blocks that would in turn let fluids flow",
         false)
+    private val topDownGravityBlocks by setting(generalGroup,
+        "Top Down Gravity Blocks",
+        "Breaks gravity blocks starting from the top to avoid waiting for them to fall",
+        true)
     private val crouchLowersFlatten by setting(generalGroup,
         "Crouch Lowers Flatten",
         "Lets crouching lower the flatten level by one block",
@@ -120,6 +130,29 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
             }
 
             sortBlockVolume(blockVolume, player.eyePos, mineStyle)
+
+            if (topDownGravityBlocks) {
+                val tempList = arrayListOf(*blockVolume.toTypedArray())
+                blockVolume.clear()
+
+                tempList.forEach { block ->
+                    var scannerBlock = block
+                    while (true) {
+                        scannerBlock = PosAndState.from(scannerBlock.blockPos.up(), world)
+
+                        if (tempList.contains(scannerBlock)
+                            && scannerBlock.blockState.block is FallingBlock
+                            && !blockVolume.contains(scannerBlock)
+                            ) {
+                            continue
+                        }
+
+                        val finalBlock = PosAndState.from(scannerBlock.blockPos.down(), world)
+                        blockVolume.add(finalBlock)
+                        break
+                    }
+                }
+            }
 
             checkAttemptBreaks(blockVolume)
         }
