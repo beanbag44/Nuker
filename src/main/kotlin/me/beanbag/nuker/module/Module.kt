@@ -11,6 +11,7 @@ import me.beanbag.nuker.module.settings.*
 import me.beanbag.nuker.utils.IJsonable
 import net.minecraft.block.Block
 import net.minecraft.entity.EntityType
+import net.minecraft.item.Item
 import net.minecraft.text.HoverEvent
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
@@ -121,8 +122,8 @@ abstract class Module(var name: String, var description: String, private var alw
         group: SettingGroup,
         name: String,
         description: String,
-        defaultValue: Set<EntityType<*>>,
-        onChange: MutableList<Consumer<Set<EntityType<*>>>>? = null,
+        defaultValue: List<EntityType<*>>,
+        onChange: MutableList<Consumer<List<EntityType<*>>>>? = null,
         visible: () -> Boolean = { true },
         filter: (EntityType<*>) -> Boolean = { true }
     ) = group.add(EntityTypeListSetting(name, description, defaultValue, onChange, visible, filter))
@@ -163,6 +164,16 @@ abstract class Module(var name: String, var description: String, private var alw
         sliderMax: Int? = null,
     ) = group.add(IntSetting(name, description, defaultValue, onChange, visible, min, max, sliderMin, sliderMax))
 
+    fun setting(
+        group: SettingGroup,
+        name: String,
+        description: String,
+        defaultValue: List<Item>,
+        onChange: MutableList<Consumer<List<Item>>>? = null,
+        visible: () -> Boolean = { true },
+        filter: (Item) -> Boolean = { true }
+    ) = group.add(ItemListSetting(name, description, defaultValue, onChange, visible, filter))
+
     // To support Java
     fun setting(
         group: SettingGroup, name: String, description: String, defaultValue: List<Block>
@@ -181,7 +192,7 @@ abstract class Module(var name: String, var description: String, private var alw
     ) = setting(group, name, description, defaultValue, null)
 
     fun setting(
-        group: SettingGroup, name: String, description: String, defaultValue: Set<EntityType<*>>
+        group: SettingGroup, name: String, description: String, defaultValue: List<EntityType<*>>
     ) = setting(group, name, description, defaultValue, null)
 
     fun setting(
@@ -192,6 +203,9 @@ abstract class Module(var name: String, var description: String, private var alw
         group: SettingGroup, name: String, description: String, defaultValue: Int
     ) = setting(group, name, description, defaultValue, null)
 
+    fun setting(
+        group: SettingGroup, name: String, description: String, defaultValue: List<Item>
+    ) = setting(group, name, description, defaultValue, null)
 
     override fun toJson(): JsonElement {
         val settings = settingGroups.flatMap { it.settings }

@@ -1,14 +1,10 @@
 package me.beanbag.nuker.utils
 
+import me.beanbag.nuker.ModConfigs.inventoryHandler
+import me.beanbag.nuker.utils.BlockUtils.getBlockBreakingSpeed
 import net.minecraft.block.BlockState
-import net.minecraft.enchantment.EnchantmentHelper
-import net.minecraft.enchantment.Enchantments
-import net.minecraft.entity.effect.StatusEffectUtil
-import net.minecraft.entity.effect.StatusEffects
 import net.minecraft.item.Item
-import net.minecraft.item.ItemStack
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket
-import net.minecraft.registry.tag.FluidTags
 import net.minecraft.util.math.BlockPos
 
 object InventoryUtils {
@@ -28,7 +24,9 @@ object InventoryUtils {
         }
 
         player.inventory?.selectedSlot = slot
+        inventoryHandler.isSendingPacket = true
         networkHandler.sendPacket(UpdateSelectedSlotC2SPacket(slot))
+        inventoryHandler.isSendingPacket = true
         return true
     }
 
@@ -57,14 +55,16 @@ object InventoryUtils {
         return -1
     }
 
-    /** ticksToBreakBlock = roundup(1 / calcBreakDelta(...))*/
+    /** `ticksToBreakBlock = ceil(1 / percentDamagePerTick(...))`
+     *
+     * @see <a href="https://minecraft.fandom.com/wiki/Breaking#Calculation">Breaking Calculation</a>
+    */
     fun InGame.percentDamagePerTick(state: BlockState, pos: BlockPos, toolSlot: Int): Float {
-        //https://minecraft.fandom.com/wiki/Breaking#Calculation
         val blockHardness = state.getHardness(world, pos)
         if (blockHardness == -1.0f) {
             return 0.0f
         } else {
-            var damage = getBlockBreakingSpeed(state, toolSlot) / blockHardness
+            var damage = getBlockBreakingSpeed(state, player.inventory.getStack(toolSlot)) / blockHardness
             damage /= if (!state.isToolRequired || player.inventory.getStack(toolSlot).isSuitableFor(state)) {
                 30
             } else {
@@ -74,48 +74,4 @@ object InventoryUtils {
         }
     }
 
-    private fun InGame.getBlockBreakingSpeed(state: BlockState, toolSlot: Int): Float {
-        val noToolSpeed = 1.0f
-        val baseEfficiencyIncrease = 1
-        val hasteLevelIncrease = 0.2f
-        val hasteIncreaseExploit = 1
-        val waterModifier = 0.2f
-        val inAirModifier = 0.2f
-
-        var breakingSpeed = 1.0f
-        //tool
-        val toolSpeed = player.inventory.getStack(toolSlot).getMiningSpeedMultiplier(state)
-        if (toolSpeed != noToolSpeed) {
-            breakingSpeed *= toolSpeed
-            val itemStack: ItemStack = player.inventory.getStack(toolSlot)
-            val efficiencyLevel = EnchantmentHelper.getLevel(Enchantments.EFFICIENCY, itemStack)
-            if (efficiencyLevel > 0 && !itemStack.isEmpty) {
-                breakingSpeed += (efficiencyLevel * efficiencyLevel + baseEfficiencyIncrease).toFloat()
-            }
-        }
-        //haste
-        if (StatusEffectUtil.hasHaste(player)) {
-            breakingSpeed += breakingSpeed * (StatusEffectUtil.getHasteAmplifier(player) + hasteIncreaseExploit).toFloat() * hasteLevelIncrease
-        }
-        //mining fatigue
-        if (player.hasStatusEffect(StatusEffects.MINING_FATIGUE)) {
-            breakingSpeed *= when (player.getStatusEffect(StatusEffects.MINING_FATIGUE)?.amplifier) {
-                0 -> 0.3f
-                1 -> 0.09f
-                2 -> 0.0027f
-                3 -> 8.1E-4f
-                else -> 8.1E-4f
-            }
-        }
-        //water
-        if (player.isSubmergedIn(FluidTags.WATER) && !EnchantmentHelper.hasAquaAffinity(player)) {
-            breakingSpeed *= waterModifier
-        }
-        //in air
-        if (!player.isOnGround) {
-            breakingSpeed *= inAirModifier
-        }
-
-        return breakingSpeed
-    }
 }

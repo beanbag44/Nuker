@@ -7,6 +7,7 @@ import me.beanbag.nuker.module.modules.nuker.enumsettings.BreakMode
 import me.beanbag.nuker.module.modules.nuker.enumsettings.ColourMode
 import me.beanbag.nuker.module.modules.nuker.enumsettings.RenderAnimation
 import me.beanbag.nuker.module.modules.nuker.enumsettings.RenderType
+import net.minecraft.item.Items
 import java.awt.Color
 
 object CoreConfig : Module("${ModConfigs.MOD_NAME} Core Configs", "General configs that apply to systems running ${ModConfigs.MOD_NAME}") {
@@ -37,4 +38,9 @@ object CoreConfig : Module("${ModConfigs.MOD_NAME} Core Configs", "General confi
 
 
     private val placing = group("Placing", "Settings for placing blocks")
+
+
+    private val inventory = group("Inventory", "Settings for inventory management")
+    val swapCooldownTicks = setting(inventory, "Swap Cooldown (Ticks)", "The delay between inventory actions with SlotActionType.SWAP", 1, null, { true }, 0, 20, 0, 20)
+    val throwawayBlocks = setting(inventory, "Throwaway Blocks", "Blocks that can be thrown away if needed. For example, when moving a piece of armor to your inventory", listOf(Items.COBBLESTONE, Items.STONE, Items.DIRT, Items.NETHERRACK, Items.DIORITE, Items.ANDESITE, Items.GRANITE, Items.GRAVEL, Items.ROTTEN_FLESH, Items.BONE), null)
 }

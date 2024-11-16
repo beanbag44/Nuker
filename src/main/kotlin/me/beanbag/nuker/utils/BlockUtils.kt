@@ -7,9 +7,15 @@ import me.beanbag.nuker.module.modules.nuker.enumsettings.FlattenMode
 import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.VolumeSort
 import net.minecraft.block.*
+import net.minecraft.enchantment.EnchantmentHelper
+import net.minecraft.enchantment.Enchantments
+import net.minecraft.entity.effect.StatusEffectUtil
+import net.minecraft.entity.effect.StatusEffects
 import net.minecraft.fluid.FlowableFluid
 import net.minecraft.fluid.LavaFluid
 import net.minecraft.fluid.WaterFluid
+import net.minecraft.item.ItemStack
+import net.minecraft.registry.tag.FluidTags
 import net.minecraft.state.property.Properties
 import net.minecraft.util.math.*
 import net.minecraft.world.World
@@ -356,6 +362,50 @@ object BlockUtils {
 
     fun InGame.isLoaded(x:Int, z:Int): Boolean {
         return world.chunkManager.isChunkLoaded(ChunkSectionPos.getSectionCoord(x), ChunkSectionPos.getSectionCoord(z))
+    }
+
+    fun InGame.getBlockBreakingSpeed(state: BlockState, tool: ItemStack): Float {
+        val noToolSpeed = 1.0f
+        val baseEfficiencyIncrease = 1
+        val hasteLevelIncrease = 0.2f
+        val hasteIncreaseExploit = 1
+        val waterModifier = 0.2f
+        val inAirModifier = 0.2f
+
+        var breakingSpeed = 1.0f
+        //tool
+        val toolSpeed = tool.getMiningSpeedMultiplier(state)
+        if (toolSpeed != noToolSpeed) {
+            breakingSpeed *= toolSpeed
+            val efficiencyLevel = EnchantmentHelper.getLevel(Enchantments.EFFICIENCY, tool)
+            if (efficiencyLevel > 0 && !tool.isEmpty) {
+                breakingSpeed += (efficiencyLevel * efficiencyLevel + baseEfficiencyIncrease).toFloat()
+            }
+        }
+        //haste
+        if (StatusEffectUtil.hasHaste(player)) {
+            breakingSpeed += breakingSpeed * (StatusEffectUtil.getHasteAmplifier(player) + hasteIncreaseExploit).toFloat() * hasteLevelIncrease
+        }
+        //mining fatigue
+        if (player.hasStatusEffect(StatusEffects.MINING_FATIGUE)) {
+            breakingSpeed *= when (player.getStatusEffect(StatusEffects.MINING_FATIGUE)?.amplifier) {
+                0 -> 0.3f
+                1 -> 0.09f
+                2 -> 0.0027f
+                3 -> 8.1E-4f
+                else -> 8.1E-4f
+            }
+        }
+        //water
+        if (player.isSubmergedIn(FluidTags.WATER) && !EnchantmentHelper.hasAquaAffinity(player)) {
+            breakingSpeed *= waterModifier
+        }
+        //in air
+        if (!player.isOnGround) {
+            breakingSpeed *= inAirModifier
+        }
+
+        return breakingSpeed
     }
 }
 

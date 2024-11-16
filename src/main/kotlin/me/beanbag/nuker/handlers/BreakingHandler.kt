@@ -1,5 +1,6 @@
 package me.beanbag.nuker.handlers
 
+import me.beanbag.nuker.ModConfigs.inventoryHandler
 import me.beanbag.nuker.ModConfigs.mc
 import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.eventsystem.events.PacketEvent
@@ -40,6 +41,7 @@ object BreakingHandler : IHandler {
 
     init {
         onInGameEvent<TickEvent.Pre>(priority = EventBus.MAX_PRIORITY) {
+            if (inventoryHandler.externalInControl()) return@onInGameEvent
             packetCounter = 0
             updateSelectedSlot()
             updateBreakingContexts()
@@ -70,6 +72,7 @@ object BreakingHandler : IHandler {
     }
 
     fun InGame.checkAttemptBreaks(blockVolume: List<PosAndState>): List<PosAndState> {
+        if (inventoryHandler.externalInControl()) return emptyList()
         val startedBlocks = mutableListOf<PosAndState>()
         blockVolume.forEach { block ->
             val primaryBreakingContext = breakingContexts[0]
