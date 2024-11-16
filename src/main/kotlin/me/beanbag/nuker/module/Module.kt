@@ -121,8 +121,8 @@ abstract class Module(var name: String, var description: String, private var alw
         group: SettingGroup,
         name: String,
         description: String,
-        defaultValue: Set<EntityType<*>>,
-        onChange: MutableList<Consumer<Set<EntityType<*>>>>? = null,
+        defaultValue: List<EntityType<*>>,
+        onChange: MutableList<Consumer<List<EntityType<*>>>>? = null,
         visible: () -> Boolean = { true },
         filter: (EntityType<*>) -> Boolean = { true }
     ) = group.add(EntityTypeListSetting(name, description, defaultValue, onChange, visible, filter))
@@ -181,7 +181,7 @@ abstract class Module(var name: String, var description: String, private var alw
     ) = setting(group, name, description, defaultValue, null)
 
     fun setting(
-        group: SettingGroup, name: String, description: String, defaultValue: Set<EntityType<*>>
+        group: SettingGroup, name: String, description: String, defaultValue: List<EntityType<*>>
     ) = setting(group, name, description, defaultValue, null)
 
     fun setting(

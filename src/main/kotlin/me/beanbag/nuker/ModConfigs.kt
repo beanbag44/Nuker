@@ -42,7 +42,7 @@ object ModConfigs {
             BreakPacketLogger,
             UnfocusedCPU(),
             FastBreak(),
-            EquipmentSaver(),
+//            EquipmentSaver(),
         ).associateByTo(Reference2ReferenceOpenHashMap()) { it.javaClass }
 
     fun getModuleByName(name: String): Module? {
