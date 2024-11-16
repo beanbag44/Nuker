@@ -26,6 +26,7 @@ import me.beanbag.nuker.utils.BlockUtils.willReleaseLiquids
 import me.beanbag.nuker.utils.InGame
 import me.beanbag.nuker.utils.LitematicaUtils
 import me.beanbag.nuker.utils.LitematicaUtils.updateSchematicMismatches
+import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.block.FallingBlock
 import net.minecraft.util.math.BlockPos
@@ -85,11 +86,11 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
     private val whitelist by setting(generalGroup,
         "Whitelist",
         "List of blocks that will be broken",
-        mutableListOf()) { whitelistMode == WhitelistMode.Whitelist }
+        mutableListOf<Block>()) { whitelistMode == WhitelistMode.Whitelist }
     private val blackList by setting(generalGroup,
         "Blacklist",
         "List of blocks that won't be broken",
-        mutableListOf()) { whitelistMode == WhitelistMode.Blacklist }
+        mutableListOf<Block>()) { whitelistMode == WhitelistMode.Blacklist }
 
     init {
         onInGameEvent<TickEvent.Pre> {
