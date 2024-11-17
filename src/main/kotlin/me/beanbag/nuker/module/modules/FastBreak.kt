@@ -67,11 +67,11 @@ class FastBreak:Module("Fast Break", "Breaks blocks faster") {
             }
         }
 
-        onInGameEvent<RenderEvent> { renderEvent ->
+        onInGameEvent<RenderEvent.Render3DEvent> { renderEvent ->
             if (!enabled) return@onInGameEvent
             queue.forEachIndexed { index, queueBlock ->
                 val color = LerpUtils.lerp(breakingBlockColor.getValue(), endQueueColor.getValue(), index.toDouble() / queue.size)
-                renderEvent.renderer.boxLines(Box.from(Vec3d.of(queueBlock.blockPos)), color)
+                renderEvent.renderer3D.boxLines(Box.from(Vec3d.of(queueBlock.blockPos)), color)
             }
         }
     }

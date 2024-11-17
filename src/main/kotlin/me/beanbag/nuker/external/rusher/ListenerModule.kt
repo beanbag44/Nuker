@@ -30,7 +30,7 @@ class ListenerModule : Module("Listener Module", ModuleCategory.CLIENT) {
 
     @Subscribe
     fun onRender(event: EventRender3D) {
-        EventBus.post(RenderEvent(RusherRenderer()))
+        EventBus.post(RenderEvent.Render3DEvent(RusherRenderer3D()))
     }
 
     @Subscribe
