@@ -331,7 +331,7 @@ object BlockUtils {
     }
 
     fun InGame.breakBlockWithRestrictionChecks(pos: BlockPos) {
-        if (player.isBlockBreakingRestricted(world, pos, interactionManager.gameMode))
+        if (player.isBlockBreakingRestricted(world, pos, interactionManager.currentGameMode))
             return
 
         val state = world.getBlockState(pos)
