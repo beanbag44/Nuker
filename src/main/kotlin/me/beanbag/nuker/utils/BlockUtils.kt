@@ -32,7 +32,7 @@ object BlockUtils {
         removeIf: ((BlockPos, BlockState) -> Boolean)?
     ): ArrayList<PosAndState> =
         getBlockCube(center, radius, removeIf).apply {
-            removeIf { !canReach(center, it, radius) }
+            removeIf { !canReach(center, it.blockPos, radius) }
         }
 
     fun InGame.getBlockCube(
@@ -61,24 +61,24 @@ object BlockUtils {
         return posList
     }
 
-    fun InGame.canReach(from:Vec3d, block:PosAndState, reach:Double): Boolean {
+    fun InGame.canReach(from: Vec3d, pos: BlockPos, reach: Double): Boolean {
         var closestPoint: Vec3d? = null
-        block.blockState.getOutlineShape(world, block.blockPos).boundingBoxes.forEach { box ->
+        pos.getState(world).getOutlineShape(world, pos).boundingBoxes.forEach { box ->
             if (box == null) return@forEach
             val x = MathHelper.clamp(
                 from.getX(),
-                block.blockPos.x + box.minX,
-                block.blockPos.x + box.maxX
+                pos.x + box.minX,
+                pos.x + box.maxX
             )
             val y = MathHelper.clamp(
                 from.getY(),
-                block.blockPos.y + box.minY,
-                block.blockPos.y + box.maxY
+                pos.y + box.minY,
+                pos.y + box.maxY
             )
             val z = MathHelper.clamp(
                 from.getZ(),
-                block.blockPos.z + box.minZ,
-                block.blockPos.z + box.maxZ
+                pos.z + box.minZ,
+                pos.z + box.maxZ
             )
             if (closestPoint == null || from.squaredDistanceTo(x, y, z) < from.squaredDistanceTo(closestPoint)) {
                 closestPoint = Vec3d(x, y, z)

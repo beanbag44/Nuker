@@ -79,7 +79,7 @@ object PlacementHandler : IHandler {
     }
 
     fun InGame.canPlace(posAndState: PosAndState): Boolean {
-        return canReach(player.eyePos, posAndState, CoreConfig.radius)
+        return canReach(player.eyePos, posAndState.blockPos, CoreConfig.radius)
                 && getInHotbar(posAndState.blockState.block.asItem()) != -1
                 && isStateEmpty(world.getBlockState(posAndState.blockPos))
     }

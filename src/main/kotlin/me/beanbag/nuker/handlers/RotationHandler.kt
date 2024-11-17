@@ -1,6 +1,7 @@
 package me.beanbag.nuker.handlers
 
 import me.beanbag.nuker.ModConfigs.mc
+import me.beanbag.nuker.ModConfigs.rusherIsPresent
 import me.beanbag.nuker.eventsystem.EventBus.MIN_PRIORITY
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
@@ -8,6 +9,7 @@ import me.beanbag.nuker.handlers.RotationHandler.InputDirections.Companion.getCu
 import me.beanbag.nuker.utils.InGame
 import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.util.InputUtil
+import org.rusherhack.client.api.RusherHackAPI
 
 object RotationHandler: IHandler {
     override var currentlyBeingUsedBy: Module? = null
@@ -55,9 +57,12 @@ object RotationHandler: IHandler {
         }
     }
 
-    fun InGame.rotate(yaw: Float, pitch: Float, silent: Boolean) {
-        rotatedThisTick = true
-        ticksSinceLastRotation = 0
+    fun InGame.rotate(yaw: Float, pitch: Float, silent: Boolean, useRusherIfPossible: Boolean) {
+        if (useRusherIfPossible && rusherIsPresent) {
+            RusherHackAPI.getRotationManager().updateRotation(yaw, pitch)
+            return
+        }
+
         if (silent && !freeLooking) {
             freeLooking = true
             RotationHandler.yaw = player.yaw
@@ -66,6 +71,8 @@ object RotationHandler: IHandler {
 
         player.yaw = yaw
         player.pitch = pitch
+        rotatedThisTick = true
+        ticksSinceLastRotation = 0
     }
 
     private fun InGame.cancelRotations() {
@@ -112,24 +119,29 @@ object RotationHandler: IHandler {
                 }
             }
 
-            fun InGame.getCurrentInput(): InputDirections =
-                when {
-                    isKeyPressed(mc.options.forwardKey) ->
-                        when {
-                            isKeyPressed(mc.options.leftKey) -> FORWARD_LEFT
-                            isKeyPressed(mc.options.rightKey) -> FORWARD_RIGHT
-                            else -> FORWARD
-                        }
-                    isKeyPressed(mc.options.backKey) ->
-                        when {
-                            isKeyPressed(mc.options.leftKey) -> BACK_LEFT
-                            isKeyPressed(mc.options.rightKey) -> BACK_RIGHT
-                            else -> BACK
-                        }
-                    isKeyPressed(mc.options.leftKey) -> LEFT
-                    isKeyPressed(mc.options.rightKey) -> RIGHT
+            fun InGame.getCurrentInput(): InputDirections {
+                var x = 0
+                var y = 0
+
+                // Adjust x and y based on key inputs
+                if (isKeyPressed(mc.options.forwardKey)) x += 1
+                if (isKeyPressed(mc.options.backKey)) x -= 1
+                if (isKeyPressed(mc.options.rightKey)) y += 1
+                if (isKeyPressed(mc.options.leftKey)) y -= 1
+
+                // Determine InputDirections based on x and y
+                return when {
+                    x > 0 && y > 0 -> FORWARD_RIGHT
+                    x > 0 && y < 0 -> FORWARD_LEFT
+                    x > 0 -> FORWARD
+                    x < 0 && y > 0 -> BACK_RIGHT
+                    x < 0 && y < 0 -> BACK_LEFT
+                    x < 0 -> BACK
+                    y > 0 -> RIGHT
+                    y < 0 -> LEFT
                     else -> NONE
                 }
+            }
 
             fun apply(direction: InputDirections) {
                 when (direction) {

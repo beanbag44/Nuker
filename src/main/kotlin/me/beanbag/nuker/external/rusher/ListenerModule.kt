@@ -18,12 +18,14 @@ class ListenerModule : Module("Listener Module", ModuleCategory.CLIENT) {
         this.isHidden = true
     }
 
-    @Subscribe
-    fun onTick(event: EventUpdate) {
-        when (event.stage) {
-            Stage.ON -> EventBus.post(TickEvent.Pre())
-            else -> {}
-        }
+    @Subscribe(stage = Stage.PRE)
+    fun onTickPre(event: EventUpdate) {
+        EventBus.post(TickEvent.Pre())
+    }
+
+    @Subscribe(stage = Stage.POST)
+    fun onTickPost(event: EventUpdate) {
+        EventBus.post(TickEvent.Post())
     }
 
     @Subscribe
@@ -33,11 +35,15 @@ class ListenerModule : Module("Listener Module", ModuleCategory.CLIENT) {
 
     @Subscribe
     fun onPacketSend(event: EventPacket.Send) {
-        EventBus.post(PacketEvent.Send.Pre(event.javaClass.getMethod("getPacket").invoke(event) as Packet<*>))
+        val nukerEvent = PacketEvent.Send.Pre(event.javaClass.getMethod("getPacket").invoke(event) as Packet<*>)
+        EventBus.post(nukerEvent)
+        if (nukerEvent.isCanceled()) event.isCancelled = true
     }
 
     @Subscribe
     fun onPacketReceive(event: EventPacket.Receive) {
-        EventBus.post(PacketEvent.Receive.Pre(event.javaClass.getMethod("getPacket").invoke(event) as Packet<*>))
+        val nukerEvent = PacketEvent.Receive.Pre(event.javaClass.getMethod("getPacket").invoke(event) as Packet<*>)
+        EventBus.post(nukerEvent)
+        if (nukerEvent.isCanceled()) event.isCancelled = true
     }
 }

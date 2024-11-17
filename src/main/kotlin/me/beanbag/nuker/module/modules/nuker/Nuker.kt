@@ -6,15 +6,19 @@ import me.beanbag.nuker.handlers.BreakingHandler.blockTimeouts
 import me.beanbag.nuker.handlers.BreakingHandler.checkAttemptBreaks
 import me.beanbag.nuker.module.Module
 import me.beanbag.nuker.module.modules.CoreConfig
+import me.beanbag.nuker.module.modules.nuker.enumsettings.DigDirection
 import me.beanbag.nuker.module.modules.nuker.enumsettings.FlattenMode
 import me.beanbag.nuker.module.modules.nuker.enumsettings.VolumeShape
 import me.beanbag.nuker.module.modules.nuker.enumsettings.WhitelistMode
 import me.beanbag.nuker.module.settings.SettingGroup
+import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.VolumeSort
 import me.beanbag.nuker.utils.BlockUtils.getBlockCube
 import me.beanbag.nuker.utils.BlockUtils.getBlockSphere
+import me.beanbag.nuker.utils.BlockUtils.getState
 import me.beanbag.nuker.utils.BlockUtils.isBlockBreakable
 import me.beanbag.nuker.utils.BlockUtils.isBlockInFlatten
+import me.beanbag.nuker.utils.BlockUtils.isStateEmpty
 import me.beanbag.nuker.utils.BlockUtils.isValidCanalBlock
 import me.beanbag.nuker.utils.BlockUtils.isWithinABaritoneSelection
 import me.beanbag.nuker.utils.BlockUtils.sortBlockVolume
@@ -24,6 +28,7 @@ import me.beanbag.nuker.utils.LitematicaUtils
 import me.beanbag.nuker.utils.LitematicaUtils.updateSchematicMismatches
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
+import net.minecraft.block.FallingBlock
 import net.minecraft.util.math.BlockPos
 
 object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
@@ -45,10 +50,18 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         "Flatten Mode",
         "The style which nuker flattens terrain with",
         FlattenMode.Standard)
+    private val directionalDig by setting(generalGroup,
+        "Directional Dig",
+        "Only breaks blocks in the direction chosen",
+        DigDirection.None)
     private val avoidLiquids by setting(generalGroup,
         "Avoid Spilling Liquids",
         "Doesn't break blocks that would in turn let fluids flow",
         false)
+    private val topDownGravityBlocks by setting(generalGroup,
+        "Top Down Gravity Blocks",
+        "Breaks gravity blocks starting from the top to avoid waiting for them to fall",
+        true)
     private val crouchLowersFlatten by setting(generalGroup,
         "Crouch Lowers Flatten",
         "Lets crouching lower the flatten level by one block",
@@ -89,6 +102,8 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
             if (CoreConfig.onGround && !player.isOnGround) return@onInGameEvent
 
             val blockVolume = getBlockVolume { pos, state ->
+                if (directionalDig != DigDirection.None && !isWithinDigDirection(pos)) return@getBlockVolume true
+
                 if (!isBlockBreakable(pos, state)) return@getBlockVolume true
 
                 if (flattenMode.isEnabled()
@@ -117,16 +132,73 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
                 if (canalMode && isValidCanalBlock(pos)) return@getBlockVolume true
 
+                if (flattenMode == FlattenMode.Staircase && !isValidStaircaseBlock(pos)) return@getBlockVolume true
+
                 return@getBlockVolume blockTimeouts.values().contains(pos)
             }
 
             sortBlockVolume(blockVolume, player.eyePos, mineStyle)
+
+            if (topDownGravityBlocks) {
+                val tempList = arrayListOf(*blockVolume.toTypedArray())
+                blockVolume.clear()
+
+                tempList.forEach { block ->
+                    var scannerBlock = block
+                    while (true) {
+                        scannerBlock = PosAndState.from(scannerBlock.blockPos.up(), world)
+
+                        if (tempList.contains(scannerBlock)
+                            && scannerBlock.blockState.block is FallingBlock
+                            && !blockVolume.contains(scannerBlock)
+                            ) {
+                            continue
+                        }
+
+                        val finalBlock = PosAndState.from(scannerBlock.blockPos.down(), world)
+                        blockVolume.add(finalBlock)
+                        break
+                    }
+                }
+            }
 
             checkAttemptBreaks(blockVolume)
         }
         for (settingGroup in CoreConfig.settingGroups) {
             settingGroups.add(settingGroup)
         }
+    }
+
+    private fun InGame.isWithinDigDirection(pos: BlockPos): Boolean {
+        val playerPos = player.blockPos
+        return when (directionalDig) {
+            DigDirection.East -> {
+                return playerPos.x <= pos.x
+            }
+
+            DigDirection.West -> {
+                return playerPos.x >= pos.x
+            }
+
+            DigDirection.North -> {
+                return player.blockPos.z >= pos.z
+            }
+
+            DigDirection.South -> {
+                return playerPos.z <= pos.z
+            }
+
+            DigDirection.None -> true
+        }
+    }
+
+    private fun InGame.isValidStaircaseBlock(pos: BlockPos): Boolean {
+        val up = pos.up()
+        return isStateEmpty(up.getState(world))
+                && isStateEmpty(up.east().getState(world))
+                && isStateEmpty(up.south().getState(world))
+                && isStateEmpty(up.west().getState(world))
+                && isStateEmpty(up.north().getState(world))
     }
 
     private fun InGame.getBlockVolume(removeIf: ((BlockPos, BlockState) -> Boolean)?) =
