@@ -12,13 +12,12 @@ import me.beanbag.nuker.module.modules.nuker.enumsettings.WhitelistMode
 import me.beanbag.nuker.module.settings.SettingGroup
 import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.VolumeSort
-import me.beanbag.nuker.utils.BlockUtils
-import me.beanbag.nuker.utils.BlockUtils.canReach
 import me.beanbag.nuker.utils.BlockUtils.getBlockCube
 import me.beanbag.nuker.utils.BlockUtils.getBlockSphere
 import me.beanbag.nuker.utils.BlockUtils.getState
 import me.beanbag.nuker.utils.BlockUtils.isBlockBreakable
 import me.beanbag.nuker.utils.BlockUtils.isBlockInFlatten
+import me.beanbag.nuker.utils.BlockUtils.isStateEmpty
 import me.beanbag.nuker.utils.BlockUtils.isValidCanalBlock
 import me.beanbag.nuker.utils.BlockUtils.isWithinABaritoneSelection
 import me.beanbag.nuker.utils.BlockUtils.sortBlockVolume
@@ -30,7 +29,6 @@ import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.block.FallingBlock
 import net.minecraft.util.math.BlockPos
-import net.minecraft.util.math.Direction
 
 object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
@@ -127,6 +125,8 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
                 if (canalMode && isValidCanalBlock(pos)) return@getBlockVolume true
 
+                if (flattenMode == FlattenMode.Staircase && !isValidStaircaseBlock(pos)) return@getBlockVolume true
+
                 return@getBlockVolume blockTimeouts.values().contains(pos)
             }
 
@@ -160,6 +160,15 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         for (settingGroup in CoreConfig.settingGroups) {
             settingGroups.add(settingGroup)
         }
+    }
+
+    private fun InGame.isValidStaircaseBlock(pos: BlockPos): Boolean {
+        val up = pos.up()
+        return isStateEmpty(up.getState(world))
+                && isStateEmpty(up.east().getState(world))
+                && isStateEmpty(up.south().getState(world))
+                && isStateEmpty(up.west().getState(world))
+                && isStateEmpty(up.north().getState(world))
     }
 
     private fun InGame.getBlockVolume(removeIf: ((BlockPos, BlockState) -> Boolean)?) =
