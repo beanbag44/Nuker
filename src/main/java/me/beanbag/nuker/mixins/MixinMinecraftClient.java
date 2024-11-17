@@ -11,8 +11,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(MinecraftClient.class)
 public abstract class MixinMinecraftClient {
-    @Shadow public abstract float getTickDelta();
-
     @Inject(method = "tick", at = @At("HEAD"))
     private void onTickPre(CallbackInfo ci) {
         EventBus.INSTANCE.post(new TickEvent.Pre());
