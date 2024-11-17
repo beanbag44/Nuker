@@ -4,7 +4,7 @@
   "version": "${version}",
   "name": "Nuker",
   "description": "Epic nuking mod for nuking terrain",
-  "authors": ["Beanbag"],
+  "authors": ["Beanbag", "PoTheMagicDragon"],
   "contact": {
     "sources": "https://github.com/beanbag44/Nuker"
   },
