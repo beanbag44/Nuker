@@ -42,7 +42,6 @@ object ModConfigs {
     var modules: MutableMap<Class<out Module>, Module> =
         listOf(
             Nuker,
-            BreakPacketLogger,
             UnfocusedCPU(),
             FastBreak(),
 //            EquipmentSaver(),
