@@ -27,16 +27,17 @@ class MeteorEventSubscriber {
     // hacky workaround to get key binds to work because meteor uses a Map<Class, Module> to trigger key binds, and we only use a single class type
     @EventHandler(priority = EventPriority.HIGH)
     private fun onKey(event: KeyEvent) {
-        if (event.action == KeyAction.Repeat) return
-        if (MeteorClient.mc.currentScreen != null || Input.isKeyPressed(GLFW.GLFW_KEY_F3)) return
-        //Meteor only catches one of the modules and ignores the rest because they are all the same class
-        val okModules = Modules.get().all.filter { module -> module.javaClass == MeteorModule::class.java }
-        val hiddenModules = Modules.get().list.filter { module -> module.javaClass == MeteorModule::class.java && okModules.none { it == module } }
-        //Aka, the same functionality as meteor's meteordevelopment.meteorclient.systems.modules.Modules.onAction
-        hiddenModules.forEach { module ->
-            if (module.keybind.matches(true, event.key, 0) && (event.action == KeyAction.Press || module.toggleOnBindRelease)) {
-                module.toggle()
-                module.sendToggledMsg()
-            }
-        }
-    }}
+//        if (event.action == KeyAction.Repeat) return
+//        if (MeteorClient.mc.currentScreen != null || Input.isKeyPressed(GLFW.GLFW_KEY_F3)) return
+//        //Meteor only catches one of the modules and ignores the rest because they are all the same class
+//        val okModules = Modules.get().all.filter { module -> module.javaClass == MeteorModule::class.java }
+//        val hiddenModules = Modules.get().list.filter { module -> module.javaClass == MeteorModule::class.java && okModules.none { it == module } }
+//        //Aka, the same functionality as meteor's meteordevelopment.meteorclient.systems.modules.Modules.onAction
+//        hiddenModules.forEach { module ->
+//            if (module.keybind.matches(true, event.key, event.modifiers) && (event.action == KeyAction.Press || module.toggleOnBindRelease)) {
+//                module.toggle()
+//                module.sendToggledMsg()
+//            }
+//        }
+    }
+}

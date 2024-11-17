@@ -1,5 +1,6 @@
 package me.beanbag.nuker.handlers
 
+import me.beanbag.nuker.ModConfigs.inventoryHandler
 import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.eventsystem.EventBus.MIN_PRIORITY
 import me.beanbag.nuker.eventsystem.events.TickEvent
@@ -12,7 +13,6 @@ import me.beanbag.nuker.utils.InGame
 import me.beanbag.nuker.utils.InventoryUtils.getInHotbar
 import me.beanbag.nuker.utils.InventoryUtils.swapTo
 import net.minecraft.item.BlockItem
-import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket
 import net.minecraft.sound.SoundCategory
 import net.minecraft.util.Hand
 import net.minecraft.util.hit.BlockHitResult
@@ -88,7 +88,7 @@ object PlacementHandler : IHandler {
         val handStack = player.mainHandStack
         if (handStack.item !is BlockItem) return false
 
-        offhandDoohickey()
+        inventoryHandler.offhandDoohickey()
 
         interactionManager.interactBlock(
             player,
@@ -119,20 +119,11 @@ object PlacementHandler : IHandler {
             player.swingHand(Hand.MAIN_HAND)
         }
 
-        offhandDoohickey()
+        inventoryHandler.offhandDoohickey()
 
         return true
     }
 
-    private fun InGame.offhandDoohickey() {
-        networkHandler.sendPacket(
-            PlayerActionC2SPacket(
-                PlayerActionC2SPacket.Action.SWAP_ITEM_WITH_OFFHAND,
-                BlockPos(420, 69, 420),
-                Direction.UP
-            )
-        )
-    }
 
     class PlacementPreference(
         val direction: Direction,
