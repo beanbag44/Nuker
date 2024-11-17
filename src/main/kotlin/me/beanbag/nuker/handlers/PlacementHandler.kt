@@ -108,7 +108,7 @@ object PlacementHandler : IHandler {
             world.playSound(
                 player,
                 pos,
-                (handStack.item as BlockItem).getPlaceSound(state),
+                state.soundGroup.placeSound,
                 SoundCategory.BLOCKS,
                 (blockSoundGroup.getVolume() + 1.0f) / 2.0f,
                 blockSoundGroup.getPitch() * 0.8f
