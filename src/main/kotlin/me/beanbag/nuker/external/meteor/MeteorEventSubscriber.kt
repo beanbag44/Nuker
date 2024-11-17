@@ -20,7 +20,7 @@ class MeteorEventSubscriber {
     @EventHandler
     fun onRender(event: Render3DEvent) {
 //        if (!ModConfigs.rusherIsPresent) { //TODO add this back in when we can hook into rusher's render event
-            EventBus.post(RenderEvent(MeteorRenderer(event.renderer)))
+            EventBus.post(RenderEvent.Render3DEvent(MeteorRenderer3D(event.renderer)))
 //        }
     }
 
