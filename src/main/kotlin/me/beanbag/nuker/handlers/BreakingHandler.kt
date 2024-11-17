@@ -209,10 +209,7 @@ object BreakingHandler : IHandler {
             }
 
             if (miningProgress > threshold) {
-                if (breakType.isPrimary()) {
-                    stopBreakPacket(pos)
-                    packetCounter++
-                }
+                stopBreakPacket(pos)
                 packetCounter++
                 onBlockBreak(index)
             }
