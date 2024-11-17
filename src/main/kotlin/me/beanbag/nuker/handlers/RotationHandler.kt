@@ -7,6 +7,7 @@ import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
 import me.beanbag.nuker.handlers.RotationHandler.InputDirections.Companion.getCurrentInput
 import me.beanbag.nuker.utils.InGame
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.getBoundKeyOf
 import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.util.InputUtil
 import org.rusherhack.client.api.RusherHackAPI
@@ -81,13 +82,13 @@ object RotationHandler: IHandler {
         freeLooking = false
 
         mc.options.forwardKey.isPressed =
-            InputUtil.isKeyPressed(mc.window.handle, mc.options.forwardKey.boundKey.code)
+            InputUtil.isKeyPressed(mc.window.handle, getBoundKeyOf(mc.options.forwardKey).code)
         mc.options.backKey.isPressed =
-            InputUtil.isKeyPressed(mc.window.handle, mc.options.backKey.boundKey.code)
+            InputUtil.isKeyPressed(mc.window.handle, getBoundKeyOf(mc.options.backKey).code)
         mc.options.leftKey.isPressed =
-            InputUtil.isKeyPressed(mc.window.handle, mc.options.leftKey.boundKey.code)
+            InputUtil.isKeyPressed(mc.window.handle, getBoundKeyOf(mc.options.leftKey).code)
         mc.options.rightKey.isPressed =
-            InputUtil.isKeyPressed(mc.window.handle, mc.options.rightKey.boundKey.code)
+            InputUtil.isKeyPressed(mc.window.handle, getBoundKeyOf(mc.options.rightKey).code)
     }
 
     internal enum class InputDirections(val yaw: Float) {
@@ -183,7 +184,7 @@ object RotationHandler: IHandler {
     private fun InGame.isKeyPressed(keyBinding: KeyBinding): Boolean {
         return InputUtil.isKeyPressed(
             mc.window.handle,
-            keyBinding.boundKey.code
+            getBoundKeyOf(keyBinding).code
         )
     }
 }
