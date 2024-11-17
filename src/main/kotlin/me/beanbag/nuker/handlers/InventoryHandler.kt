@@ -56,6 +56,9 @@ class InventoryHandler : IHandler {
             if (ticksTillResume > 0) {
                 ticksTillResume--
             }
+            if (!mc.options.useKey.isPressed && externalIsUsingItem) {
+                externalIsUsingItem = false
+            }
         }
 
         onInGameEvent<PacketEvent.Send.Pre>{ event ->
