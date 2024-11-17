@@ -6,6 +6,7 @@ import me.beanbag.nuker.handlers.BreakingHandler.blockTimeouts
 import me.beanbag.nuker.handlers.BreakingHandler.checkAttemptBreaks
 import me.beanbag.nuker.module.Module
 import me.beanbag.nuker.module.modules.CoreConfig
+import me.beanbag.nuker.module.modules.nuker.enumsettings.DigDirection
 import me.beanbag.nuker.module.modules.nuker.enumsettings.FlattenMode
 import me.beanbag.nuker.module.modules.nuker.enumsettings.VolumeShape
 import me.beanbag.nuker.module.modules.nuker.enumsettings.WhitelistMode
@@ -49,6 +50,10 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         "Flatten Mode",
         "The style which nuker flattens terrain with",
         FlattenMode.Standard)
+    private val directionalDig by setting(generalGroup,
+        "Directional Dig",
+        "Only breaks blocks in the direction chosen",
+        DigDirection.None)
     private val avoidLiquids by setting(generalGroup,
         "Avoid Spilling Liquids",
         "Doesn't break blocks that would in turn let fluids flow",
@@ -97,6 +102,8 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
             if (CoreConfig.onGround && !player.isOnGround) return@onInGameEvent
 
             val blockVolume = getBlockVolume { pos, state ->
+                if (directionalDig != DigDirection.None && !isWithinDigDirection(pos)) return@getBlockVolume true
+
                 if (!isBlockBreakable(pos, state)) return@getBlockVolume true
 
                 if (flattenMode.isEnabled()
@@ -159,6 +166,29 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         }
         for (settingGroup in CoreConfig.settingGroups) {
             settingGroups.add(settingGroup)
+        }
+    }
+
+    private fun InGame.isWithinDigDirection(pos: BlockPos): Boolean {
+        val playerPos = player.blockPos
+        return when (directionalDig) {
+            DigDirection.East -> {
+                return playerPos.x <= pos.x
+            }
+
+            DigDirection.West -> {
+                return playerPos.x >= pos.x
+            }
+
+            DigDirection.North -> {
+                return player.blockPos.z >= pos.z
+            }
+
+            DigDirection.South -> {
+                return playerPos.z <= pos.z
+            }
+
+            DigDirection.None -> true
         }
     }
 
