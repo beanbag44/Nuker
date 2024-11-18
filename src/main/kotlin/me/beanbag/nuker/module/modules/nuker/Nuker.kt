@@ -104,6 +104,8 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
             val blockVolume = getBlockVolume { pos, state ->
                 if (directionalDig != DigDirection.None && !isWithinDigDirection(pos)) return@getBlockVolume true
 
+                if (baritoneSelection && !isWithinABaritoneSelection(pos)) return@getBlockVolume true
+
                 if (!isBlockBreakable(pos, state)) return@getBlockVolume true
 
                 if (flattenMode.isEnabled()
@@ -113,8 +115,6 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
                 }
 
                 if (avoidLiquids && willReleaseLiquids(pos)) return@getBlockVolume true
-
-                if (baritoneSelection && !isWithinABaritoneSelection(pos)) return@getBlockVolume true
 
                 if (litematicaMode) {
                     updateSchematicMismatches()
@@ -131,8 +131,6 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
                 }
 
                 if (canalMode && isValidCanalBlock(pos)) return@getBlockVolume true
-
-                if (flattenMode == FlattenMode.Staircase && !isValidStaircaseBlock(pos)) return@getBlockVolume true
 
                 return@getBlockVolume blockTimeouts.values().contains(pos)
             }

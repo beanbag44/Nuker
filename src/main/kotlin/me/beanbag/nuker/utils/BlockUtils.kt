@@ -151,6 +151,18 @@ object BlockUtils {
     }
 
     fun InGame.isBlockInFlatten(pos: BlockPos, crouchLowersFlatten: Boolean, flattenMode: FlattenMode): Boolean {
+        if (flattenMode == FlattenMode.Staircase) {
+            val up = pos.up()
+            if ((!isStateEmpty(up.getState(world)) && isWithinABaritoneSelection(up))
+                || (!isStateEmpty(up.east().getState(world)) && isWithinABaritoneSelection(up.east()))
+                || (!isStateEmpty(up.south().getState(world)) && isWithinABaritoneSelection(up.south()))
+                || (!isStateEmpty(up.west().getState(world)) && isWithinABaritoneSelection(up.west()))
+                || (!isStateEmpty(up.north().getState(world)) && isWithinABaritoneSelection(up.north()))
+                ) {
+                return false
+            }
+        }
+
         val playerPos = player.blockPos
         val flattenLevel = if (crouchLowersFlatten && player.isSneaking) {
             playerPos.y - 1
