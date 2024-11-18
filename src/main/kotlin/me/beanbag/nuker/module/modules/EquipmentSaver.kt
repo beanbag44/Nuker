@@ -24,6 +24,8 @@ class EquipmentSaver:Module("Equipment Saver", "Saves your tools/armor from brea
 //       )
     init {
         onInGameEvent<TickEvent.Pre> { //This is a fallback in case we don't have mixins
+            if (!enabled) return@onInGameEvent
+
             for (i in HOTBAR_START..HOTBAR_END) {
                 onItemDamaged(player.inventory.getStack(i))
             }
