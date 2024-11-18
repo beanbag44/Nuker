@@ -28,7 +28,10 @@ object RotationHandler: IHandler {
             } else {
                 rotatedThisTick = false
             }
-            if (ticksSinceLastRotation >= 1 && freeLooking) {
+
+            if (!freeLooking) return@onInGameEvent
+
+            if (ticksSinceLastRotation >= 1) {
                 cancelRotations()
                 return@onInGameEvent
             }
