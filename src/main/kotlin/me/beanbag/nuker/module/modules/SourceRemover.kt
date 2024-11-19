@@ -30,7 +30,7 @@ class SourceRemover : Module("Source Remover", "Places blocks in water sources t
             val blockVolume = getBlockSphere(player.eyePos, CoreConfig.placeRadius) { pos, state ->
                 blockPlaceTimeouts.values().contains(pos)
                         || !isSource(state)
-//                        || !state.isReplaceable
+                        || !state.isReplaceable
             }
             if (blockVolume.isEmpty()) return@onInGameEvent
             val placeBlock = blockVolume.first()

@@ -56,6 +56,10 @@ object PlacementHandler : IHandler {
                 }
             }
         }
+
+        EventBus.onInGameEvent<TickEvent.Post>(MIN_PRIORITY) {
+            usedThisTick = false
+        }
     }
 
     fun InGame.attemptPlaceAll(posAndStateList: ArrayList<PosAndState>, direction: Direction, swing: Boolean, awaitServerResponse: Boolean) {
