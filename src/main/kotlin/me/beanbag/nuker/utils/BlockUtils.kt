@@ -151,14 +151,14 @@ object BlockUtils {
         return false
     }
 
-    fun InGame.isBlockInFlatten(pos: BlockPos, crouchLowersFlatten: Boolean, flattenMode: FlattenMode): Boolean {
+    fun InGame.isBlockInFlatten(pos: BlockPos, crouchLowersFlatten: Boolean, flattenMode: FlattenMode, baritoneSelection: Boolean): Boolean {
         if (flattenMode == FlattenMode.Staircase) {
             val up = pos.up()
-            if ((!isStateEmpty(up.getState(world)) && isWithinABaritoneSelection(up))
-                || (!isStateEmpty(up.east().getState(world)) && isWithinABaritoneSelection(up.east()))
-                || (!isStateEmpty(up.south().getState(world)) && isWithinABaritoneSelection(up.south()))
-                || (!isStateEmpty(up.west().getState(world)) && isWithinABaritoneSelection(up.west()))
-                || (!isStateEmpty(up.north().getState(world)) && isWithinABaritoneSelection(up.north()))
+            if ((!isStateEmpty(up.getState(world)) && (!baritoneSelection || isWithinABaritoneSelection(up)))
+                || (!isStateEmpty(up.east().getState(world)) && (!baritoneSelection || isWithinABaritoneSelection(up.east())))
+                || (!isStateEmpty(up.south().getState(world)) && (!baritoneSelection || isWithinABaritoneSelection(up.south())))
+                || (!isStateEmpty(up.west().getState(world)) && (!baritoneSelection || isWithinABaritoneSelection(up.west())))
+                || (!isStateEmpty(up.north().getState(world)) && (!baritoneSelection || isWithinABaritoneSelection(up.north())))
                 ) {
                 return false
             }

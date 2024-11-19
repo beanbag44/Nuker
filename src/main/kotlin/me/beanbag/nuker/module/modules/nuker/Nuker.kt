@@ -115,7 +115,7 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
                 if (!isBlockBreakable(pos, state)) return@getBlockVolume true
 
                 if (flattenMode.isEnabled()
-                    && !isBlockInFlatten(pos, crouchLowersFlatten, flattenMode)
+                    && !isBlockInFlatten(pos, crouchLowersFlatten, flattenMode, baritoneSelection)
                 ) {
                     return@getBlockVolume true
                 }
