@@ -63,7 +63,8 @@ object BlockUtils {
 
     fun InGame.canReach(from: Vec3d, pos: BlockPos, reach: Double): Boolean {
         var closestPoint: Vec3d? = null
-        pos.getState(world).getOutlineShape(world, pos).boundingBoxes.forEach { box ->
+        (if (pos.getState(world).block is FluidBlock) FluidBlock.COLLISION_SHAPE else (pos.getState(world)
+            .getOutlineShape(world, pos))).boundingBoxes.forEach { box ->
             if (box == null) return@forEach
             val x = MathHelper.clamp(
                 from.getX(),
