@@ -7,6 +7,7 @@ import me.beanbag.nuker.utils.InGame
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.ArmorItem
 import net.minecraft.item.ItemStack
+import net.minecraft.item.Items
 import net.minecraft.screen.slot.SlotActionType
 
 class EquipmentSaver:Module("Equipment Saver", "Saves your tools/armor from breaking") {
@@ -17,15 +18,14 @@ class EquipmentSaver:Module("Equipment Saver", "Saves your tools/armor from brea
         min = 1,
         max = 1000)
 
-//    val allowedItems = setting(generalGroup, "Allowed Items",
-//        "Items that will be saved",
-//        mutableListOf(Items.NETHERITE_AXE, Items.NETHERITE_HOE, Items.NETHERITE_BOOTS, Items.NETHERITE_LEGGINGS, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_HELMET, Items.NETHERITE_PICKAXE, Items.NETHERITE_SHOVEL, Items.NETHERITE_SWORD,
-//            Items.DIAMOND_AXE, Items.DIAMOND_HOE, Items.DIAMOND_BOOTS, Items.DIAMOND_LEGGINGS, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_HELMET, Items.DIAMOND_PICKAXE, Items.DIAMOND_SHOVEL, Items.DIAMOND_SWORD,)
-//       )
+    val allowedItems = setting(generalGroup, "Allowed Items",
+        "Items that will be saved",
+        mutableListOf(
+            Items.NETHERITE_AXE, Items.NETHERITE_HOE, Items.NETHERITE_BOOTS, Items.NETHERITE_LEGGINGS, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_HELMET, Items.NETHERITE_PICKAXE, Items.NETHERITE_SHOVEL, Items.NETHERITE_SWORD,
+            Items.DIAMOND_AXE, Items.DIAMOND_HOE, Items.DIAMOND_BOOTS, Items.DIAMOND_LEGGINGS, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_HELMET, Items.DIAMOND_PICKAXE, Items.DIAMOND_SHOVEL, Items.DIAMOND_SWORD,)
+       )
     init {
         onInGameEvent<TickEvent.Pre> { //This is a fallback in case we don't have mixins
-            if (!enabled) return@onInGameEvent
-
             for (i in HOTBAR_START..HOTBAR_END) {
                 onItemDamaged(player.inventory.getStack(i))
             }
@@ -48,6 +48,9 @@ class EquipmentSaver:Module("Equipment Saver", "Saves your tools/armor from brea
     }
 
     fun InGame.onItemDamaged(stack: ItemStack) {
+        if (stack.item !in allowedItems.getValue()) {
+            return
+        }
         if (stack.maxDamage - stack.damage > minDurability.getValue()) {
             return
         }

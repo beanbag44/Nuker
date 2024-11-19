@@ -4,6 +4,7 @@ import me.beanbag.nuker.ModConfigs.LOGGER
 import me.beanbag.nuker.ModConfigs.MOD_NAME
 import me.beanbag.nuker.ModConfigs.meteorIsLoaded
 import me.beanbag.nuker.ModConfigs.meteorIsPresent
+import me.beanbag.nuker.eventsystem.EventBus
 //import me.beanbag.nuker.render.gui.GUI
 import me.beanbag.nuker.utils.FileManager
 import net.fabricmc.api.ModInitializer
@@ -26,6 +27,11 @@ class Loader : ModInitializer {
             }
 //            GUI.initGUI()
             FileManager.loadModuleConfigs()
+            for (module in ModConfigs.modules.values) {
+                if (!module.enabled) {
+                    EventBus.unsubscribe(this)
+                }
+            }
         }
     }
 }
