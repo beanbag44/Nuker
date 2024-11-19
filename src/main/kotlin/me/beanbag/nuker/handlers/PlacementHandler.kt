@@ -7,6 +7,7 @@ import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
 import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.types.PosAndState
+import me.beanbag.nuker.types.TimeoutSet
 import me.beanbag.nuker.utils.BlockUtils.canReach
 import me.beanbag.nuker.utils.BlockUtils.isStateEmpty
 import me.beanbag.nuker.utils.InGame
@@ -22,7 +23,9 @@ import net.minecraft.util.math.Direction
 object PlacementHandler : IHandler {
     override var priority = 0
     override var currentlyBeingUsedBy: Module? = null
+    val blockPlaceTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockPlaceTimeout }
     private val airPlaceList = mutableMapOf<ArrayList<PosAndState>, PlacementPreference>()
+    var usedThisTick = false
 
     init {
         EventBus.onInGameEvent<TickEvent.Pre>(MIN_PRIORITY) {
@@ -57,7 +60,7 @@ object PlacementHandler : IHandler {
 
     fun InGame.attemptPlaceAll(posAndStateList: ArrayList<PosAndState>, direction: Direction, swing: Boolean, awaitServerResponse: Boolean) {
         posAndStateList.removeIf {
-            !canPlace(it)
+            !canPlace(it) || blockPlaceTimeouts.values().contains(it.blockPos)
         }
 
         if (posAndStateList.isEmpty()) return
@@ -79,12 +82,14 @@ object PlacementHandler : IHandler {
     }
 
     fun InGame.canPlace(posAndState: PosAndState): Boolean {
-        return canReach(player.eyePos, posAndState.blockPos, CoreConfig.radius)
+        return canReach(player.eyePos, posAndState.blockPos, CoreConfig.breakRadius)
                 && getInHotbar(posAndState.blockState.block.asItem()) != -1
                 && isStateEmpty(world.getBlockState(posAndState.blockPos))
     }
 
     fun InGame.airPlace(pos: BlockPos, direction: Direction, swing: Boolean, awaitServerResponse: Boolean): Boolean {
+        if (blockPlaceTimeouts.values().contains(pos)) return false
+
         val handStack = player.mainHandStack
         if (handStack.item !is BlockItem) return false
 
@@ -121,6 +126,8 @@ object PlacementHandler : IHandler {
 
         inventoryHandler.offhandDoohickey()
 
+        usedThisTick = true
+        blockPlaceTimeouts.put(pos)
         return true
     }
 

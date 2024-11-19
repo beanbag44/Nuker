@@ -57,7 +57,7 @@ class FastBreak:Module("Fast Break", "Breaks blocks faster") {
         onInGameEvent<TickEvent.Pre> {
             if (!enabled) return@onInGameEvent
             queue.removeIf{
-                !canReach(player.pos, it.blockPos, CoreConfig.radius)
+                !canReach(player.pos, it.blockPos, CoreConfig.breakRadius)
             }
             val startedBlocks = checkAttemptBreaks(queue.toList())
             queue.removeIf{

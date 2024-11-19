@@ -2,7 +2,7 @@ package me.beanbag.nuker.handlers
 
 import me.beanbag.nuker.ModConfigs.inventoryHandler
 import me.beanbag.nuker.ModConfigs.mc
-import me.beanbag.nuker.eventsystem.EventBus
+import me.beanbag.nuker.eventsystem.EventBus.MIN_PRIORITY
 import me.beanbag.nuker.eventsystem.events.PacketEvent
 import me.beanbag.nuker.eventsystem.events.RenderEvent
 import me.beanbag.nuker.eventsystem.events.TickEvent
@@ -35,13 +35,13 @@ object BreakingHandler : IHandler {
     override var currentlyBeingUsedBy: Module? = null
     override var priority: Int = 0
 
-    val blockTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockTimeout }
+    val blockBreakTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockBreakTimeout }
     var breakingContexts = arrayOfNulls<BreakingContext>(2)
     private var packetCounter = 0
 
     init {
-        onInGameEvent<TickEvent.Pre>(priority = EventBus.MAX_PRIORITY) {
-            if (inventoryHandler.externalInControl()) {
+        onInGameEvent<TickEvent.Pre>(MIN_PRIORITY) {
+            if (inventoryHandler.externalInControl() || PlacementHandler.usedThisTick) {
                 nullifyBreakingContext(0)
                 nullifyBreakingContext(1)
                 return@onInGameEvent
@@ -141,7 +141,7 @@ object BreakingHandler : IHandler {
     private fun InGame.onBlockBreak(contextIndex: Int) {
         breakingContexts[contextIndex]?.apply {
             BrokenBlockHandler.putBrokenBlock(pos, state, !CoreConfig.validateBreak)
-            blockTimeouts.put(pos)
+            blockBreakTimeouts.put(pos)
 
             if (!CoreConfig.validateBreak) {
                 ThreadUtils.runOnMainThread {
@@ -188,7 +188,7 @@ object BreakingHandler : IHandler {
         breakingContexts.forEach { it?.apply {
             val index = if (breakType.isPrimary()) 0 else 1
 
-            if (!canReach(player.eyePos, pos, CoreConfig.radius) && breakType.isPrimary()) {
+            if (!canReach(player.eyePos, pos, CoreConfig.breakRadius) && breakType.isPrimary()) {
                 abortBreakPacket(pos)
                 nullifyBreakingContext(index)
                 return@forEach

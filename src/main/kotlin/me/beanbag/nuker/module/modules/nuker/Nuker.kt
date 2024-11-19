@@ -2,8 +2,9 @@ package me.beanbag.nuker.module.modules.nuker
 
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
-import me.beanbag.nuker.handlers.BreakingHandler.blockTimeouts
+import me.beanbag.nuker.handlers.BreakingHandler.blockBreakTimeouts
 import me.beanbag.nuker.handlers.BreakingHandler.checkAttemptBreaks
+import me.beanbag.nuker.handlers.PlacementHandler
 import me.beanbag.nuker.module.Module
 import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.DigDirection
@@ -66,6 +67,11 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         "Crouch Lowers Flatten",
         "Lets crouching lower the flatten level by one block",
         false)
+    private val onGround by setting(
+        generalGroup,
+        "On Ground",
+        "Only breaks blocks if the player is on ground",
+        false)
     private val canalMode by setting(generalGroup,
         "Canal Mode",
         "Only breaks blocks that need to be removed for the southern canal",
@@ -97,9 +103,9 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
     init {
         onInGameEvent<TickEvent.Pre> {
-            if (!enabled) return@onInGameEvent
+            if (!enabled || PlacementHandler.usedThisTick) return@onInGameEvent
 
-            if (CoreConfig.onGround && !player.isOnGround) return@onInGameEvent
+            if (onGround && !player.isOnGround) return@onInGameEvent
 
             val blockVolume = getBlockVolume { pos, state ->
                 if (directionalDig != DigDirection.None && !isWithinDigDirection(pos)) return@getBlockVolume true
@@ -132,7 +138,7 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
                 if (canalMode && isValidCanalBlock(pos)) return@getBlockVolume true
 
-                return@getBlockVolume blockTimeouts.values().contains(pos)
+                return@getBlockVolume blockBreakTimeouts.values().contains(pos)
             }
 
             sortBlockVolume(blockVolume, player.eyePos, mineStyle)
@@ -202,9 +208,9 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
     private fun InGame.getBlockVolume(removeIf: ((BlockPos, BlockState) -> Boolean)?) =
         player.run {
             if (shape == VolumeShape.Sphere) {
-                getBlockSphere(this.eyePos, CoreConfig.radius, removeIf)
+                getBlockSphere(this.eyePos, CoreConfig.breakRadius, removeIf)
             } else {
-                getBlockCube(this.eyePos, CoreConfig.radius, removeIf)
+                getBlockCube(this.eyePos, CoreConfig.breakRadius, removeIf)
             }
         }
 }

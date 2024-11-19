@@ -128,17 +128,17 @@ object BlockUtils {
                 && state.fluidState.isStill
     }
 
-    fun InGame.isFlowing(block: PosAndState): Boolean {
-        if (block.blockPos == BlockPos(-10,63,8218)) {
-            System.out.println("breakpoint")
-        }
-        if (block.blockState.fluidState.fluid !is FlowableFluid) {
+    fun InGame.isFlowing(block: PosAndState): Boolean =
+        isFlowing(block.blockPos, block.blockState)
+
+    fun InGame.isFlowing(pos: BlockPos, state: BlockState): Boolean {
+        if (state.fluidState.fluid !is FlowableFluid) {
             return false
         }
-        return !isSource(world.getBlockState(block.blockPos.north()))
-                || !isSource(world.getBlockState(block.blockPos.south()))
-                || !isSource(world.getBlockState(block.blockPos.east()))
-                || !isSource(world.getBlockState(block.blockPos.west()))
+        return !isSource(world.getBlockState(pos.north()))
+                || !isSource(world.getBlockState(pos.south()))
+                || !isSource(world.getBlockState(pos.east()))
+                || !isSource(world.getBlockState(pos.west()))
     }
 
     fun canWalkThrough(state: BlockState): Boolean {
