@@ -7,13 +7,25 @@ import me.beanbag.nuker.ModConfigs
 import me.beanbag.nuker.ModConfigs.meteorIsLoaded
 import me.beanbag.nuker.ModConfigs.meteorIsPresent
 import me.beanbag.nuker.ModConfigs.modules
+import me.beanbag.nuker.eventsystem.events.GameQuitEvent
+import me.beanbag.nuker.eventsystem.onEvent
 import meteordevelopment.meteorclient.systems.Systems
 import net.fabricmc.loader.api.FabricLoader
 import java.io.File
 import java.nio.file.Path
+import java.util.Date
 
 object FileManager {
     var isLoadingSettings = false
+    var lastConfigSave:Date? = null
+    private const val ONE_SECOND = 1000
+
+    init{
+        onEvent<GameQuitEvent> {
+            saveModuleConfigs()
+        }
+    }
+
     fun getMinecraftDir(): Path {
         return FabricLoader.getInstance().gameDir
     }
@@ -28,6 +40,12 @@ object FileManager {
 
     fun saveModuleConfigs() {
         if (meteorIsPresent && !meteorIsLoaded || isLoadingSettings) {
+            return
+        }
+
+        if (lastConfigSave == null || lastConfigSave!!.time + ONE_SECOND * 5 < System.currentTimeMillis()) {
+            lastConfigSave = Date()
+        } else {
             return
         }
         val modulesObject = JsonObject()

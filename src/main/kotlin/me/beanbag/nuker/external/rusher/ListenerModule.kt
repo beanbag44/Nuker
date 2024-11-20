@@ -5,6 +5,7 @@ import me.beanbag.nuker.eventsystem.events.PacketEvent
 import me.beanbag.nuker.eventsystem.events.RenderEvent
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import net.minecraft.network.packet.Packet
+import org.rusherhack.client.api.events.client.EventQuit
 import org.rusherhack.client.api.events.client.EventUpdate
 import org.rusherhack.client.api.events.network.EventPacket
 import org.rusherhack.client.api.events.render.EventRender3D
@@ -45,5 +46,10 @@ class ListenerModule : Module("Listener Module", ModuleCategory.CLIENT) {
         val nukerEvent = PacketEvent.Receive.Pre(event.javaClass.getMethod("getPacket").invoke(event) as Packet<*>)
         EventBus.post(nukerEvent)
         if (nukerEvent.isCanceled()) event.isCancelled = true
+    }
+
+    @Subscribe
+    fun onGameLeft(event: EventQuit) {
+        EventBus.post(me.beanbag.nuker.eventsystem.events.GameQuitEvent())
     }
 }
