@@ -19,9 +19,7 @@ class MeteorEventSubscriber {
 
     @EventHandler
     fun onRender(event: Render3DEvent) {
-//        if (!ModConfigs.rusherIsPresent) { //TODO add this back in when we can hook into rusher's render event
-            EventBus.post(RenderEvent.Render3DEvent(MeteorRenderer3D(event.renderer)))
-//        }
+        EventBus.post(RenderEvent.Render3DEvent(MeteorRenderer3D(event.renderer)))
     }
 
     // hacky workaround to get key binds to work because meteor uses a Map<Class, Module> to trigger key binds, and we only use a single class type
@@ -30,8 +28,8 @@ class MeteorEventSubscriber {
 //        if (event.action == KeyAction.Repeat) return
 //        if (MeteorClient.mc.currentScreen != null || Input.isKeyPressed(GLFW.GLFW_KEY_F3)) return
 //        //Meteor only catches one of the modules and ignores the rest because they are all the same class
-//        val okModules = Modules.get().all.filter { module -> module.javaClass == MeteorModule::class.java }
-//        val hiddenModules = Modules.get().list.filter { module -> module.javaClass == MeteorModule::class.java && okModules.none { it == module } }
+//        val okModules = Modules.get().all.filterIsInstance<MeteorModule>()
+//        val hiddenModules = Modules.get().list.filter { module -> module is MeteorModule && okModules.none { it == module } }
 //        //Aka, the same functionality as meteor's meteordevelopment.meteorclient.systems.modules.Modules.onAction
 //        hiddenModules.forEach { module ->
 //            if (module.keybind.matches(true, event.key, event.modifiers) && (event.action == KeyAction.Press || module.toggleOnBindRelease)) {
