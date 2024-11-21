@@ -46,7 +46,7 @@ object ModConfigs {
             SourceRemover(),
             UnfocusedCPU(),
             FastBreak(),
-//            EquipmentSaver(),
+            EquipmentSaver(),
         ).associateByTo(Reference2ReferenceOpenHashMap()) { it.javaClass }
 
     fun getModuleByName(name: String): Module? {

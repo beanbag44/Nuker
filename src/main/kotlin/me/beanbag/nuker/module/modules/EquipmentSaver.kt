@@ -1,5 +1,6 @@
 package me.beanbag.nuker.module.modules
 
+import me.beanbag.nuker.ModConfigs
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
 import me.beanbag.nuker.module.Module
@@ -12,20 +13,27 @@ import net.minecraft.screen.slot.SlotActionType
 
 class EquipmentSaver:Module("Equipment Saver", "Saves your tools/armor from breaking") {
     private val generalGroup = group("General", "General settings")
-    val minDurability = setting(generalGroup,"Min Durability",
+    private val minDurability = setting(generalGroup,
+        "Min Durability",
         "Stops tools from breaking below this threshold",
         10,
-        min = 1,
-        max = 1000)
+        null,
+        { true },
+        1, 50,
+        1, 50)
 
-    val allowedItems = setting(generalGroup, "Allowed Items",
+    private val allowedItems = setting(generalGroup,
+        "Allowed Items",
         "Items that will be saved",
         mutableListOf(
             Items.NETHERITE_AXE, Items.NETHERITE_HOE, Items.NETHERITE_BOOTS, Items.NETHERITE_LEGGINGS, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_HELMET, Items.NETHERITE_PICKAXE, Items.NETHERITE_SHOVEL, Items.NETHERITE_SWORD,
             Items.DIAMOND_AXE, Items.DIAMOND_HOE, Items.DIAMOND_BOOTS, Items.DIAMOND_LEGGINGS, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_HELMET, Items.DIAMOND_PICKAXE, Items.DIAMOND_SHOVEL, Items.DIAMOND_SWORD,)
        )
+
     init {
         onInGameEvent<TickEvent.Pre> { //This is a fallback in case we don't have mixins
+            if (!ModConfigs.rusherIsPresent) return@onInGameEvent
+
             for (i in HOTBAR_START..HOTBAR_END) {
                 onItemDamaged(player.inventory.getStack(i))
             }
@@ -88,12 +96,12 @@ class EquipmentSaver:Module("Equipment Saver", "Saves your tools/armor from brea
         val inventory: PlayerInventory = player.inventory
         var matchingToolSlot: Int? = null
         for (i in HOTBAR_START..HOTBAR_END) {
-            if (inventory.getStack(i).item === toMove.item && inventory.getStack(i).damage == toMove.damage) {
+            if (inventory.getStack(i).item == toMove.item && inventory.getStack(i).damage == toMove.damage) {
                 matchingToolSlot = i
             }
         }
         for (i in ARMOR_START..ARMOR_END) {
-            if (inventory.getStack(i).item === toMove.item && inventory.getStack(i).damage == toMove.damage) {
+            if (inventory.getStack(i).item == toMove.item && inventory.getStack(i).damage == toMove.damage) {
                 matchingToolSlot = i
             }
         }
@@ -106,16 +114,19 @@ class EquipmentSaver:Module("Equipment Saver", "Saves your tools/armor from brea
         var matchingToolSlot: Int? = null
         var emptySlot: Int? = null
         var nonBreakableSlot: Int? = null
-        for (i in PLAYER_INVENTORY_START downTo (if(toMove.item is ArmorItem) HOTBAR_START else PLAYER_INVENTORY_END)) {
+        for (i in PLAYER_INVENTORY_START downTo if (toMove.item is ArmorItem) HOTBAR_START else PLAYER_INVENTORY_END) {
             val inventoryStack = inventory.getStack(i)
             if (inventoryStack.item === toMove.item && inventoryStack.maxDamage - inventoryStack.damage > minDurability.getValue()) {
                 matchingToolSlot = i
+                continue
             }
             if (inventoryStack.isEmpty) {
                 emptySlot = i
+                continue
             }
             if (inventoryStack.maxDamage == 0) {
                 nonBreakableSlot = i
+                continue
             }
         }
         return matchingToolSlot ?: (emptySlot ?: nonBreakableSlot)
