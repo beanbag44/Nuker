@@ -2,6 +2,7 @@ package me.beanbag.nuker.handlers
 
 import me.beanbag.nuker.ModConfigs.inventoryHandler
 import me.beanbag.nuker.eventsystem.EventBus
+import me.beanbag.nuker.eventsystem.EventBus.MAX_PRIORITY
 import me.beanbag.nuker.eventsystem.EventBus.MIN_PRIORITY
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
@@ -28,7 +29,7 @@ object PlacementHandler : IHandler {
     var usedThisTick = false
 
     init {
-        EventBus.onInGameEvent<TickEvent.Pre>(MIN_PRIORITY) {
+        EventBus.onInGameEvent<TickEvent.Pre>(MAX_PRIORITY) {
             airPlaceList.keys.forEach {
                 it.removeIf {
                     !canPlace(it)

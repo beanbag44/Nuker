@@ -2,7 +2,7 @@ package me.beanbag.nuker.handlers
 
 import me.beanbag.nuker.ModConfigs.inventoryHandler
 import me.beanbag.nuker.ModConfigs.mc
-import me.beanbag.nuker.eventsystem.EventBus.MIN_PRIORITY
+import me.beanbag.nuker.eventsystem.EventBus.MAX_PRIORITY
 import me.beanbag.nuker.eventsystem.events.PacketEvent
 import me.beanbag.nuker.eventsystem.events.RenderEvent
 import me.beanbag.nuker.eventsystem.events.TickEvent
@@ -40,7 +40,7 @@ object BreakingHandler : IHandler {
     private var packetCounter = 0
 
     init {
-        onInGameEvent<TickEvent.Pre>(MIN_PRIORITY) {
+        onInGameEvent<TickEvent.Pre>(99) {
             if (inventoryHandler.externalInControl() || PlacementHandler.usedThisTick) {
                 nullifyBreakingContext(0)
                 nullifyBreakingContext(1)
