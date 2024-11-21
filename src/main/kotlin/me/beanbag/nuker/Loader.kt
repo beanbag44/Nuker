@@ -29,7 +29,7 @@ class Loader : ModInitializer {
             FileManager.loadModuleConfigs()
             for (module in ModConfigs.modules.values) {
                 if (!module.enabled) {
-                    EventBus.unsubscribe(this)
+                    EventBus.unsubscribe(module)
                 }
             }
         }
