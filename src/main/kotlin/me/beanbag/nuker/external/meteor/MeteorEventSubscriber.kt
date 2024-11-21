@@ -1,5 +1,6 @@
 package me.beanbag.nuker.external.meteor
 
+import me.beanbag.nuker.ModConfigs
 import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.eventsystem.events.RenderEvent
 import meteordevelopment.meteorclient.MeteorClient
@@ -15,7 +16,9 @@ class MeteorEventSubscriber {
 
     @EventHandler
     fun onRender(event: Render3DEvent) {
-        EventBus.post(RenderEvent.Render3DEvent(MeteorRenderer3D(event.renderer)))
+        if (!ModConfigs.rusherIsPresent) {
+            EventBus.post(RenderEvent.Render3DEvent(MeteorRenderer3D(event.renderer)))
+        }
     }
 
     // hacky workaround to get key binds to work because meteor uses a Map<Class, Module> to trigger key binds, and we only use a single class type
