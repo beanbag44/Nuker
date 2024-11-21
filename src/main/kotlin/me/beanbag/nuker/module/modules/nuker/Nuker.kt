@@ -103,7 +103,7 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
     init {
         onInGameEvent<TickEvent.Pre> {
-            if (!enabled || PlacementHandler.usedThisTick) return@onInGameEvent
+            if (PlacementHandler.usedThisTick) return@onInGameEvent
 
             if (onGround && !player.isOnGround) return@onInGameEvent
 

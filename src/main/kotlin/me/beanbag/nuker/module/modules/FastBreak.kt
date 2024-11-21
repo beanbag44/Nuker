@@ -31,7 +31,6 @@ class FastBreak:Module("Fast Break", "Breaks blocks faster") {
 
     init {
         onInGameEvent<PacketEvent.Send.Pre> { event ->
-            if (!enabled) return@onInGameEvent
             if (event.packet is PlayerActionC2SPacket
                     && event.packet.action == PlayerActionC2SPacket.Action.START_DESTROY_BLOCK
                     && breakingContexts.none { it?.pos == event.packet.pos }

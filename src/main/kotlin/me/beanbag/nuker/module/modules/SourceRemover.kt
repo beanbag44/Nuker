@@ -25,8 +25,6 @@ class SourceRemover : Module("Source Remover", "Places blocks in water sources t
 
     init {
         onInGameEvent<TickEvent.Pre>(MAX_PRIORITY) {
-            if (!enabled) return@onInGameEvent
-
             val blockVolume = getBlockSphere(player.eyePos, CoreConfig.placeRadius) { pos, state ->
                 blockPlaceTimeouts.values().contains(pos)
                         || !isSource(state)
