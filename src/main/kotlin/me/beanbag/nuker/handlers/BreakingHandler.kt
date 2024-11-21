@@ -160,21 +160,18 @@ object BreakingHandler : IHandler {
     }
 
     private fun InGame.startBreakPacket(pos: BlockPos) {
-        ChatHandler.sendChatLine("Start Break: $pos")
         networkHandler.sendPacket(
             PlayerActionC2SPacket(PlayerActionC2SPacket.Action.START_DESTROY_BLOCK, pos, Direction.UP)
         )
     }
 
     private fun InGame.abortBreakPacket(pos: BlockPos) {
-        ChatHandler.sendChatLine("Abort Break: $pos")
         networkHandler.sendPacket(
             PlayerActionC2SPacket(PlayerActionC2SPacket.Action.ABORT_DESTROY_BLOCK, pos, Direction.UP)
         )
     }
 
     private fun InGame.stopBreakPacket(pos: BlockPos) {
-        ChatHandler.sendChatLine("Stop Break: $pos")
         networkHandler.sendPacket(
             PlayerActionC2SPacket(PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK, pos, Direction.UP)
         )
