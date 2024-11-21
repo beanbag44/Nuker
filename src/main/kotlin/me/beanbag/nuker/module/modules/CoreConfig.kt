@@ -9,7 +9,7 @@ import me.beanbag.nuker.module.modules.nuker.enumsettings.RenderType
 import net.minecraft.item.Items
 import java.awt.Color
 
-object CoreConfig : Module("${ModConfigs.MOD_NAME} Core Configs", "General configs that apply to systems running ${ModConfigs.MOD_NAME}") {
+object CoreConfig : Module("Core Configs", "General configs") {
 
     private val breaking = group("Breaking", "Settings for breaking blocks")
     val breakRadius by setting(breaking,

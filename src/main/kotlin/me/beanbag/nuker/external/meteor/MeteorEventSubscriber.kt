@@ -5,12 +5,8 @@ import me.beanbag.nuker.eventsystem.events.RenderEvent
 import meteordevelopment.meteorclient.MeteorClient
 import meteordevelopment.meteorclient.events.meteor.KeyEvent
 import meteordevelopment.meteorclient.events.render.Render3DEvent
-import meteordevelopment.meteorclient.systems.modules.Modules
-import meteordevelopment.meteorclient.utils.misc.input.Input
-import meteordevelopment.meteorclient.utils.misc.input.KeyAction
 import meteordevelopment.orbit.EventHandler
 import meteordevelopment.orbit.EventPriority
-import org.lwjgl.glfw.GLFW
 
 class MeteorEventSubscriber {
     fun subscribe() {

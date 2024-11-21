@@ -168,9 +168,6 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
             checkAttemptBreaks(blockVolume)
         }
-        for (settingGroup in CoreConfig.settingGroups) {
-            settingGroups.add(settingGroup)
-        }
     }
 
     private fun InGame.isWithinDigDirection(pos: BlockPos): Boolean {

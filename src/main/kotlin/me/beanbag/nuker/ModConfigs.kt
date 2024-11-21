@@ -41,6 +41,7 @@ object ModConfigs {
 
     var modules: MutableMap<Class<out Module>, Module> =
         listOf(
+            CoreConfig,
             Nuker,
             SourceRemover(),
             UnfocusedCPU(),
