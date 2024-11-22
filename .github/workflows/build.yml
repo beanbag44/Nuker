@@ -28,6 +28,7 @@ jobs:
         run: ./gradlew build
 
       - name: Upload build artifacts
+        id: artifact-upload-step
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
@@ -38,6 +39,5 @@ jobs:
         with:
           embed-author: "Nuker"
           embed-title: "Build successful"
-          embed-description: "Build successful for commit ${{ github.sha }} \n [Download the latest build](https://github.com/beanbag/Nuker/actions/runs/${{ github.run_id }}/${{ steps.artifact-upload-step.outputs.artifact-id }}')"
-          embed-timestamp: true
+          embed-description: "Build successful for commit ${{ github.sha }} \n [Download the latest build](${{ steps.artifact-upload-step.outputs.artifact-url }})"
           webhook-url: ${{ secrets.WEBHOOK_URL }}
