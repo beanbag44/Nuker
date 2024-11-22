@@ -15,17 +15,31 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Make Gradlew executable
+        run: chmod +x gradlew
+
       - name: Build with Gradle
         run: ./gradlew build
 
       - name: Upload build artifacts
+        id: artifact-upload-step
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: build/libs/*.jar
+
+      - name: Discord Webhook Action
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          embed-author: "Epic Nuker"
+          username: "Epic Nuker"
+          avatar-url: "https://cdn.discordapp.com/icons/1277071858176495666/e390183f465176a86ad95373373cbf8b.png"
+          embed-title: "Build successful"
+          embed-description: "Build successful for commit ${{ github.sha }} \n [Download the latest build](${{ steps.artifact-upload-step.outputs.artifact-url }})"
+          webhook-url: ${{ secrets.WEBHOOK_URL }}
