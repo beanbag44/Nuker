@@ -32,3 +32,12 @@ jobs:
         with:
           name: build-artifacts
           path: build/libs/*.jar
+
+      - name: Discord Webhook Action
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          embed-author: "Nuker"
+          embed-title: "Build successful"
+          embed-description: "Build successful for commit ${{ github.sha }} \n [Download the latest build](https://github.com/beanbag/Nuker/actions/runs/${{ github.run_id }}/${{ steps.artifact-upload-step.outputs.artifact-id }}')"
+          embed-timestamp: true
+          webhook-url: ${{ secrets.WEBHOOK_URL }}
