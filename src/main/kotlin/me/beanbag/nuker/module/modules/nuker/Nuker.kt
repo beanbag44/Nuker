@@ -2,6 +2,7 @@ package me.beanbag.nuker.module.modules.nuker
 
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
+import me.beanbag.nuker.handlers.BreakingHandler
 import me.beanbag.nuker.handlers.BreakingHandler.blockBreakTimeouts
 import me.beanbag.nuker.handlers.BreakingHandler.checkAttemptBreaks
 import me.beanbag.nuker.handlers.PlacementHandler
@@ -25,6 +26,7 @@ import me.beanbag.nuker.utils.BlockUtils.isWithinABaritoneSelection
 import me.beanbag.nuker.utils.BlockUtils.sortBlockVolume
 import me.beanbag.nuker.utils.BlockUtils.willReleaseLiquids
 import me.beanbag.nuker.utils.InGame
+import me.beanbag.nuker.utils.InventoryUtils.swapTo
 import me.beanbag.nuker.utils.LitematicaUtils
 import me.beanbag.nuker.utils.LitematicaUtils.updateSchematicMismatches
 import net.minecraft.block.Block
@@ -47,6 +49,10 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         "Mine Style",
         "The order which blocks are broken in",
         VolumeSort.Closest)
+    private val returnToSlot by setting(generalGroup,
+        "Return To Slot",
+        "Returns to the original inventory slot before nuker was activated",
+        true)
     private val flattenMode by setting(generalGroup,
         "Flatten Mode",
         "The style which nuker flattens terrain with",
@@ -100,6 +106,9 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         "Blacklist",
         "List of blocks that won't be broken",
         mutableListOf<Block>()) { whitelistMode == WhitelistMode.Blacklist }
+
+    private var originalSlot = -1
+    private var breaking = false
 
     init {
         onInGameEvent<TickEvent.Pre> {
@@ -166,7 +175,22 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
                 }
             }
 
-            checkAttemptBreaks(blockVolume)
+            if (returnToSlot) {
+                val selectedSlot = player.inventory.selectedSlot
+
+                if (BreakingHandler.breakingContexts.all { it == null }) {
+                    if (breaking && originalSlot != -1 && selectedSlot != originalSlot) {
+                        swapTo(originalSlot)
+                        breaking = false
+                    } else {
+                        originalSlot = selectedSlot
+                    }
+                }
+            }
+
+            val breakList = checkAttemptBreaks(blockVolume)
+
+            if (returnToSlot && breakList.isNotEmpty()) breaking = true
         }
     }
 
