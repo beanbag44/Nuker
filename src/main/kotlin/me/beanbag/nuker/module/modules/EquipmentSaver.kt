@@ -1,14 +1,16 @@
 package me.beanbag.nuker.module.modules
 
-import me.beanbag.nuker.ModConfigs
-import me.beanbag.nuker.eventsystem.events.TickEvent
+import me.beanbag.nuker.eventsystem.events.PacketEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
+import me.beanbag.nuker.handlers.ChatHandler
 import me.beanbag.nuker.module.Module
 import me.beanbag.nuker.utils.InGame
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.ArmorItem
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
+import net.minecraft.network.packet.s2c.play.EntityDamageS2CPacket
+import net.minecraft.network.packet.s2c.play.PlayerActionResponseS2CPacket
 import net.minecraft.screen.slot.SlotActionType
 
 class EquipmentSaver:Module("Equipment Saver", "Saves your tools/armor from breaking") {
@@ -31,15 +33,17 @@ class EquipmentSaver:Module("Equipment Saver", "Saves your tools/armor from brea
        )
 
     init {
-        onInGameEvent<TickEvent.Pre> { //This is a fallback in case we don't have mixins
-            if (!ModConfigs.rusherIsPresent) return@onInGameEvent
+        onInGameEvent<PacketEvent.Receive.Pre> {
+            //This packet doesn't update the damage, but it is called when the server sends a response to a player action
+            // ... might not work for armor
+            if (it.packet is PlayerActionResponseS2CPacket || it.packet is EntityDamageS2CPacket) {
+                for (i in HOTBAR_START..HOTBAR_END) {
+                    onItemDamaged(player.inventory.getStack(i))
+                }
 
-            for (i in HOTBAR_START..HOTBAR_END) {
-                onItemDamaged(player.inventory.getStack(i))
-            }
-
-            for(i in ARMOR_START..ARMOR_END) {
-                onItemDamaged(player.inventory.getStack(i))
+                for(i in ARMOR_START..ARMOR_END) {
+                    onItemDamaged(player.inventory.getStack(i))
+                }
             }
         }
     }
@@ -64,6 +68,7 @@ class EquipmentSaver:Module("Equipment Saver", "Saves your tools/armor from brea
         }
         val fromSlot = moveFromSlot(stack)
         val toSlot = moveToSlot(stack)
+        ChatHandler.sendChatLine("Moving ${stack.name.string} from slot $fromSlot to slot $toSlot")
         if (fromSlot != null && toSlot != null) {
             if ((HOTBAR_START..HOTBAR_END).contains(fromSlot)){
                 swap(fromSlot, toSlot)
@@ -116,7 +121,7 @@ class EquipmentSaver:Module("Equipment Saver", "Saves your tools/armor from brea
         var nonBreakableSlot: Int? = null
         for (i in PLAYER_INVENTORY_START downTo if (toMove.item is ArmorItem) HOTBAR_START else PLAYER_INVENTORY_END) {
             val inventoryStack = inventory.getStack(i)
-            if (inventoryStack.item === toMove.item && inventoryStack.maxDamage - inventoryStack.damage > minDurability.getValue()) {
+            if (inventoryStack.item == toMove.item && inventoryStack.maxDamage - inventoryStack.damage > minDurability.getValue()) {
                 matchingToolSlot = i
                 continue
             }

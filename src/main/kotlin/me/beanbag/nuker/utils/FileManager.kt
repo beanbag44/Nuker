@@ -35,7 +35,7 @@ object FileManager {
     }
 
     fun configFile(): File {
-        return getConfigDir().resolve("${ModConfigs.MOD_NAME.lowercase()}.json").toFile()
+        return getConfigDir().resolve("${ModConfigs.MOD_NAME}.json").toFile()
     }
 
     fun saveModuleConfigs() {
@@ -43,7 +43,7 @@ object FileManager {
             return
         }
 
-        if (lastConfigSave == null || lastConfigSave!!.time + ONE_SECOND * 5 < System.currentTimeMillis()) {
+        if (lastConfigSave == null || lastConfigSave!!.time + ONE_SECOND * 5 < Date().time) {
             lastConfigSave = Date()
         } else {
             return
@@ -65,9 +65,9 @@ object FileManager {
     }
 
     fun loadModuleConfigs() {
-        isLoadingSettings = true
         val configFile = configFile()
         if (!configFile.exists()) return
+        isLoadingSettings = true
 
         val rootObject = Gson().fromJson(configFile.readText(), JsonObject::class.java)
         val modulesObject = rootObject.getAsJsonObject("modules")
