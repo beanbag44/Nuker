@@ -17,10 +17,8 @@ import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.VolumeSort
 import me.beanbag.nuker.utils.BlockUtils.getBlockCube
 import me.beanbag.nuker.utils.BlockUtils.getBlockSphere
-import me.beanbag.nuker.utils.BlockUtils.getState
 import me.beanbag.nuker.utils.BlockUtils.isBlockBreakable
 import me.beanbag.nuker.utils.BlockUtils.isBlockInFlatten
-import me.beanbag.nuker.utils.BlockUtils.isStateEmpty
 import me.beanbag.nuker.utils.BlockUtils.isValidCanalBlock
 import me.beanbag.nuker.utils.BlockUtils.isWithinABaritoneSelection
 import me.beanbag.nuker.utils.BlockUtils.sortBlockVolume
@@ -215,15 +213,6 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
             DigDirection.None -> true
         }
-    }
-
-    private fun InGame.isValidStaircaseBlock(pos: BlockPos): Boolean {
-        val up = pos.up()
-        return isStateEmpty(up.getState(world))
-                && isStateEmpty(up.east().getState(world))
-                && isStateEmpty(up.south().getState(world))
-                && isStateEmpty(up.west().getState(world))
-                && isStateEmpty(up.north().getState(world))
     }
 
     private fun InGame.getBlockVolume(removeIf: ((BlockPos, BlockState) -> Boolean)?) =
