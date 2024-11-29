@@ -1,6 +1,5 @@
 package me.beanbag.nuker.module.modules
 
-import me.beanbag.nuker.ModConfigs
 import me.beanbag.nuker.module.Module
 import me.beanbag.nuker.module.modules.nuker.enumsettings.BreakMode
 import me.beanbag.nuker.module.modules.nuker.enumsettings.ColourMode

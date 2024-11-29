@@ -9,6 +9,7 @@ import me.beanbag.nuker.ModConfigs.meteorIsPresent
 import me.beanbag.nuker.ModConfigs.modules
 import me.beanbag.nuker.eventsystem.events.GameQuitEvent
 import me.beanbag.nuker.eventsystem.onEvent
+import me.beanbag.nuker.handlers.ChatHandler
 import meteordevelopment.meteorclient.systems.Systems
 import net.fabricmc.loader.api.FabricLoader
 import java.io.File
@@ -17,6 +18,8 @@ import java.util.Date
 
 object FileManager {
     var isLoadingSettings = false
+    var saving = false
+    var awaitingSecondSave = false
     var lastConfigSave:Date? = null
     private const val ONE_SECOND = 1000
 
@@ -39,29 +42,46 @@ object FileManager {
     }
 
     fun saveModuleConfigs() {
-        if (meteorIsPresent && !meteorIsLoaded || isLoadingSettings) {
+        if ((meteorIsPresent && !meteorIsLoaded) || isLoadingSettings || (saving && awaitingSecondSave)) {
             return
         }
 
-        if (lastConfigSave == null || lastConfigSave!!.time + ONE_SECOND * 5 < Date().time) {
-            lastConfigSave = Date()
+        if (saving) {
+            awaitingSecondSave = true
         } else {
-            return
+            startSaveThread()
         }
-        val modulesObject = JsonObject()
-        for (module in modules.values) {
-            modulesObject.add(module.name, module.toJson())
-        }
-        getConfigDir().toFile().mkdirs()
-        configFile().createNewFile() // creates if it doesn't already exist
+    }
 
-        configFile().writeText(
-            GsonBuilder().setPrettyPrinting().create()
-                .toJson(JsonObject().apply { add("modules", modulesObject) })
-        )
-        if (meteorIsPresent) {
-            Systems.save()
+    private fun startSaveThread() {
+        val saveThread = Thread {
+            saving = true
+            lastConfigSave = Date()
+
+            val modulesObject = JsonObject()
+            for (module in modules.values) {
+                modulesObject.add(module.name, module.toJson())
+            }
+            getConfigDir().toFile().mkdirs()
+            configFile().createNewFile() // creates if it doesn't already exist
+
+            configFile().writeText(
+                GsonBuilder().setPrettyPrinting().create()
+                    .toJson(JsonObject().apply { add("modules", modulesObject) })
+            )
+            if (meteorIsPresent) {
+                Systems.save()
+            }
+
+            if (awaitingSecondSave) {
+                awaitingSecondSave = false
+                startSaveThread()
+            } else {
+                saving = false
+            }
         }
+
+        saveThread.start()
     }
 
     fun loadModuleConfigs() {

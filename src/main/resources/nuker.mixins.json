@@ -14,6 +14,7 @@
     "MixinCamera",
     "MixinChatInputSuggester",
     "MixinGameRenderer",
+    "MixinKeyboard",
     "MixinMinecraftClient",
     "MixinMouse",
     "MixinRenderSystem",

@@ -1,6 +1,9 @@
 package me.beanbag.nuker.mixins;
 
+import me.beanbag.nuker.eventsystem.EventBus;
+import me.beanbag.nuker.eventsystem.events.MouseEvent;
 import me.beanbag.nuker.handlers.RotationHandler;
+import me.beanbag.nuker.types.KeyAction;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.Mouse;
 import net.minecraft.util.math.MathHelper;
@@ -43,5 +46,12 @@ public class MixinMouse {
             cursorDeltaY = 0.0;
             ci.cancel();
         }
+    }
+
+    @Inject(method = "onMouseButton", at = @At("HEAD"), cancellable = true)
+    private void onMouseButton(long window, int button, int action, int mods, CallbackInfo ci) {
+        MouseEvent event = new MouseEvent(button, KeyAction.Companion.get(action));
+        EventBus.INSTANCE.post(event);
+        if (event.isCanceled()) ci.cancel();
     }
 }

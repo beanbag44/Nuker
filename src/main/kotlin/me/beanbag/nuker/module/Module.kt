@@ -8,6 +8,7 @@ import me.beanbag.nuker.command.commands.HelpModuleSettingCommand
 import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.handlers.ChatHandler
 import me.beanbag.nuker.module.settings.*
+import me.beanbag.nuker.types.Keybind
 import me.beanbag.nuker.utils.IJsonable
 import net.minecraft.block.Block
 import net.minecraft.entity.EntityType
@@ -15,14 +16,17 @@ import net.minecraft.item.Item
 import net.minecraft.text.HoverEvent
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
+import org.lwjgl.glfw.GLFW.GLFW_KEY_UNKNOWN
 import java.awt.Color
 import java.util.function.Consumer
 
 abstract class Module(var name: String, var description: String, private var alwaysListening: Boolean = false) : IJsonable {
     var settingGroups: MutableList<SettingGroup> = ArrayList()
     private val enabledGroup = SettingGroup("Enabled", "Settings for enabling or disabling the module")
-    var enabled by setting(enabledGroup,"Enabled", "Enables or disables the module", false, null, visible = { true })
+    var enabled by setting(enabledGroup,"Enabled", "Enables or disables the module", false)
+    var keybind by setting(enabledGroup, "Keybind", "Keybind used to enable or disable the module", Keybind(GLFW_KEY_UNKNOWN, 0, true))
     val enabledSetting get() = enabledGroup.settings[0] as BoolSetting
+    val keybindSetting get() = enabledGroup.settings[1] as KeybindSetting
 
     init {
         enabledSetting.getOnChange().add{ enabled ->
@@ -174,6 +178,15 @@ abstract class Module(var name: String, var description: String, private var alw
         filter: (Item) -> Boolean = { true }
     ) = group.add(ItemListSetting(name, description, defaultValue, onChange, visible, filter))
 
+    fun setting(
+        group: SettingGroup,
+        name: String,
+        description: String,
+        defaultValue: Keybind,
+        onChange: MutableList<Consumer<Keybind>>? = null,
+        visible: () -> Boolean = { true },
+    ) = group.add(KeybindSetting(name, description, defaultValue, onChange, visible))
+
     // To support Java
     fun setting(
         group: SettingGroup, name: String, description: String, defaultValue: List<Block>
@@ -207,6 +220,10 @@ abstract class Module(var name: String, var description: String, private var alw
         group: SettingGroup, name: String, description: String, defaultValue: List<Item>
     ) = setting(group, name, description, defaultValue, null)
 
+    fun setting(
+        group: SettingGroup, name: String, description: String, defaultValue: Keybind
+    ) = setting(group, name, description, defaultValue, null)
+
     override fun toJson(): JsonElement {
         val settings = settingGroups.flatMap { it.settings }
         val obj = JsonObject()
@@ -216,6 +233,7 @@ abstract class Module(var name: String, var description: String, private var alw
             }
         }
         obj.add("enabled", enabledGroup.settings[0].toJson())
+        obj.add("keybind", enabledGroup.settings[1].toJson())
         return obj
     }
 
@@ -228,8 +246,10 @@ abstract class Module(var name: String, var description: String, private var alw
             }
         }
         val enabledJson = json.asJsonObject.get("enabled")
+        val keybindJson = json.asJsonObject.get("keybind")
         if (enabledJson != null) {
-            enabledGroup.settings[0].fromJson(enabledJson)
+            enabledSetting.fromJson(enabledJson)
+            keybindSetting.fromJson(keybindJson)
         }
     }
 }
