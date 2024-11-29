@@ -11,10 +11,13 @@ data class Keybind(var value: Int, var modifiers: Int, var isKey: Boolean) {
         return "$value $modifiers $isKey"
     }
 
-    fun matches(value: Int, modifiers: Int, isKey: Boolean): Boolean =
-        this.value == value
-                && this.modifiers == modifiers
-                && this.isKey == isKey
+    fun matches(value: Int, modifiers: Int, isKey: Boolean): Boolean {
+        if (value == -1 || isKey != this.isKey || value != this.value) return false
+        return if (isKey && modifiers != 0)
+            modifiers == this.modifiers
+        else
+            true
+    }
 
     companion object {
         fun fromString(value: String): Keybind {
