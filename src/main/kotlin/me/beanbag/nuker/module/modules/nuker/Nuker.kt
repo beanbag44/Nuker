@@ -18,8 +18,10 @@ import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.VolumeSort
 import me.beanbag.nuker.utils.BlockUtils.getBlockCube
 import me.beanbag.nuker.utils.BlockUtils.getBlockSphere
+import me.beanbag.nuker.utils.BlockUtils.getState
 import me.beanbag.nuker.utils.BlockUtils.isBlockBreakable
 import me.beanbag.nuker.utils.BlockUtils.isBlockInFlatten
+import me.beanbag.nuker.utils.BlockUtils.isStateEmpty
 import me.beanbag.nuker.utils.BlockUtils.isValidCanalBlock
 import me.beanbag.nuker.utils.BlockUtils.isWithinABaritoneSelection
 import me.beanbag.nuker.utils.BlockUtils.sortBlockVolume
@@ -100,11 +102,13 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
     private val whitelist by setting(generalGroup,
         "Whitelist",
         "List of blocks that will be broken",
-        mutableListOf<Block>()) { whitelistMode == WhitelistMode.Whitelist }
+        mutableListOf<Block>(),
+        visible =  { whitelistMode == WhitelistMode.Whitelist })
     private val blackList by setting(generalGroup,
         "Blacklist",
         "List of blocks that won't be broken",
-        mutableListOf<Block>()) { whitelistMode == WhitelistMode.Blacklist }
+        mutableListOf<Block>(),
+        visible =  { whitelistMode == WhitelistMode.Blacklist })
 
     private var originalSlot = -1
     private var breaking = false
@@ -224,6 +228,7 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
                 getBlockCube(this.eyePos, CoreConfig.breakRadius, removeIf)
             }
         }
+
 
     override fun createMeteorImplementation(): meteordevelopment.meteorclient.systems.modules.Module {
         return NukerMeteorImplementation()

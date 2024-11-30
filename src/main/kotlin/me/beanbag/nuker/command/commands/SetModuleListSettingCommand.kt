@@ -27,7 +27,7 @@ class SetModuleListSettingCommand : ICommand {
         val module = ModuleArgument().getModule(command[0]) ?: return
         val setting = ModuleSettingArgument().getSetting(module, command[1]) ?: return
         val listAction = try {
-            ListAction.valueOf(command[2].uppercase())
+            ListAction.valueOf(command[2].lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() })
         } catch (e: IllegalArgumentException) {
             null
         } ?: return

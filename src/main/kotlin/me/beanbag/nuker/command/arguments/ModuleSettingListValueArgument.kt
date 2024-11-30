@@ -3,6 +3,7 @@ package me.beanbag.nuker.command.arguments
 import me.beanbag.nuker.command.ICommandArgument
 import me.beanbag.nuker.command.MatchType
 import me.beanbag.nuker.module.settings.AbstractListSetting
+import net.minecraft.block.Blocks
 
 class ModuleSettingListValueArgument : ICommandArgument {
     override val subArgumentCount: Int
@@ -31,17 +32,17 @@ class ModuleSettingListValueArgument : ICommandArgument {
         if (toMatch.size < 4) {
             return MatchType.PARTIAL
         }
-        try{ ListAction.valueOf(toMatch[2].uppercase()) } catch (e: IllegalArgumentException) { null }?: return MatchType.PARTIAL
+        try{ ListAction.valueOf(toMatch[2].lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }) } catch (e: IllegalArgumentException) { null }?: return MatchType.PARTIAL
         val module = ModuleArgument().getModule(toMatch[0])?: return MatchType.PARTIAL
         val setting = ModuleSettingArgument().getSetting(module, toMatch[1])?: return MatchType.PARTIAL
         if (setting !is AbstractListSetting<*>) {
             return MatchType.NONE
         }
         val value = setting.valueFromString(toMatch[3])
-        if (value != null) {
+        if (value != null && value != listOf(Blocks.AIR)) {
             return MatchType.FULL
         }
-        if (setting.possibleValues()?.any { it.lowercase().startsWith(toMatch[2].lowercase()) } == true) {
+        if (setting.possibleValues()?.any { it.lowercase().startsWith(toMatch[3].lowercase()) } == true) {
             return MatchType.PARTIAL
         }
         return MatchType.NONE
