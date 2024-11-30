@@ -27,7 +27,7 @@ class Loader : ModInitializer {
             }
 //            GUI.initGUI()
             FileManager.loadModuleConfigs()
-            for (module in ModConfigs.modules.values) {
+            for (module in ModConfigs.modules) {
                 if (!module.enabled) {
                     EventBus.unsubscribe(module)
                 }

@@ -58,7 +58,7 @@ object FileManager {
             lastConfigSave = Date()
 
             val modulesObject = JsonObject()
-            for (module in modules.values) {
+            for (module in modules) {
                 modulesObject.add(module.name, module.toJson())
             }
             getConfigDir().toFile().mkdirs()
@@ -90,7 +90,7 @@ object FileManager {
 
         val rootObject = Gson().fromJson(configFile.readText(), JsonObject::class.java)
         val modulesObject = rootObject.getAsJsonObject("modules")
-        for (module in modules.values) {
+        for (module in modules) {
             val moduleObject = modulesObject.getAsJsonObject(module.name)
             if (moduleObject != null) {
                 module.fromJson(moduleObject)

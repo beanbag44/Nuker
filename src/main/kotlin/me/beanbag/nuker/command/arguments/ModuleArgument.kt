@@ -11,9 +11,9 @@ class ModuleArgument : ICommandArgument {
         if (toMatch.isEmpty()) {
             return MatchType.NONE
         }
-        return if (ModConfigs.modules.values.any { it.name.replace(" ", "").lowercase() == toMatch[0].lowercase() }) {
+        return if (ModConfigs.modules.any { it.name.replace(" ", "").lowercase() == toMatch[0].lowercase() }) {
             MatchType.FULL
-        } else if (ModConfigs.modules.values.any {
+        } else if (ModConfigs.modules.any {
                 it.name.replace(" ", "").lowercase().startsWith(toMatch[0].lowercase())
             }) {
             MatchType.PARTIAL
@@ -23,7 +23,7 @@ class ModuleArgument : ICommandArgument {
     }
 
     override fun getSuggestions(toMatch: List<String>): List<String> {
-        val modules = ModConfigs.modules.values.map { ChatHandler.toCamelCaseName(it.name) }
+        val modules = ModConfigs.modules.map { ChatHandler.toCamelCaseName(it.name) }
         if (toMatch.isEmpty()) {
             return modules
         }
@@ -31,6 +31,6 @@ class ModuleArgument : ICommandArgument {
     }
 
     fun getModule(toMatch: String): Module? {
-        return ModConfigs.modules.values.firstOrNull { it.name.replace(" ", "").lowercase() == toMatch.lowercase() }
+        return ModConfigs.modules.firstOrNull { it.name.replace(" ", "").lowercase() == toMatch.lowercase() }
     }
 }

@@ -25,7 +25,7 @@ class ListCommand : ICommand {
 
     override fun execute(command: List<String>) {
         ChatHandler.printHeader()
-        for (loaderModule in ModConfigs.modules.values) {
+        for (loaderModule in ModConfigs.modules) {
             ChatHandler.sendChatLine(Text.empty().append(Text.literal(loaderModule.name).styled {
                 it.withClickEvent(ExecutableClickEvent {
                     ListModuleCommand().execute(listOf(loaderModule.name))

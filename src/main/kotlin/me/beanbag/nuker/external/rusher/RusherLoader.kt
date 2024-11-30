@@ -9,7 +9,7 @@ import org.rusherhack.client.api.plugin.Plugin
 @Suppress("unused")
 class RusherLoader : Plugin() {
     override fun onLoad() {
-        for (module in ModConfigs.modules.values) {
+        for (module in ModConfigs.modules) {
             LogUtils.getLogger().info("Loading module: ${module.name}")
 
             val rusherModule = RusherModule(module.name.replace(" ", ""), module.description, module)

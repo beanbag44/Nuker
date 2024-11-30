@@ -39,7 +39,7 @@ object ModConfigs {
         SetModuleListSettingCommand(),
     )
 
-    var modules: MutableMap<Class<out Module>, Module> =
+    var modules =
         listOf(
             CoreConfig,
             Nuker,
@@ -47,14 +47,14 @@ object ModConfigs {
             UnfocusedCPU(),
             FastBreak(),
             EquipmentSaver(),
-        ).associateByTo(Reference2ReferenceOpenHashMap()) { it.javaClass }
+        )
 
     fun getModuleByName(name: String): Module? {
-        return modules.values.find { it.name.equals(name, true) }
+        return modules.find { it.name.equals(name, true) }
     }
 
     fun <T:Module>getModuleByClass(clazz: Class<out T>): T? {
         @Suppress("UNCHECKED_CAST")
-        return modules[clazz] as T?
+        return modules.find { it.javaClass == clazz } as T?
     }
 }
