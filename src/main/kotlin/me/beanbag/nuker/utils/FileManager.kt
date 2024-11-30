@@ -16,8 +16,10 @@ import java.nio.file.Path
 import java.util.Date
 
 object FileManager {
-    var isLoadingSettings = false
-    var lastConfigSave:Date? = null
+    private var isLoadingSettings = false
+    private var saving = false
+    private var awaitingSecondSave = false
+    private var lastConfigSave: Date? = null
     private const val ONE_SECOND = 1000
 
     init{
@@ -39,29 +41,46 @@ object FileManager {
     }
 
     fun saveModuleConfigs() {
-        if (meteorIsPresent && !meteorIsLoaded || isLoadingSettings) {
+        if ((meteorIsPresent && !meteorIsLoaded) || isLoadingSettings || (saving && awaitingSecondSave)) {
             return
         }
 
-        if (lastConfigSave == null || lastConfigSave!!.time + ONE_SECOND * 5 < Date().time) {
-            lastConfigSave = Date()
+        if (saving) {
+            awaitingSecondSave = true
         } else {
-            return
+            startSaveThread()
         }
-        val modulesObject = JsonObject()
-        for (module in modules.values) {
-            modulesObject.add(module.name, module.toJson())
-        }
-        getConfigDir().toFile().mkdirs()
-        configFile().createNewFile() // creates if it doesn't already exist
+    }
 
-        configFile().writeText(
-            GsonBuilder().setPrettyPrinting().create()
-                .toJson(JsonObject().apply { add("modules", modulesObject) })
-        )
-        if (meteorIsPresent) {
-            Systems.save()
+    private fun startSaveThread() {
+        val saveThread = Thread {
+            saving = true
+            lastConfigSave = Date()
+
+            val modulesObject = JsonObject()
+            for (module in modules.values) {
+                modulesObject.add(module.name, module.toJson())
+            }
+            getConfigDir().toFile().mkdirs()
+            configFile().createNewFile() // creates if it doesn't already exist
+
+            configFile().writeText(
+                GsonBuilder().setPrettyPrinting().create()
+                    .toJson(JsonObject().apply { add("modules", modulesObject) })
+            )
+            if (meteorIsPresent) {
+                Systems.save()
+            }
+
+            if (awaitingSecondSave) {
+                awaitingSecondSave = false
+                startSaveThread()
+            } else {
+                saving = false
+            }
         }
+
+        saveThread.start()
     }
 
     fun loadModuleConfigs() {
