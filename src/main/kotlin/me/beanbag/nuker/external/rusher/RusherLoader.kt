@@ -12,7 +12,7 @@ class RusherLoader : Plugin() {
         for (module in ModConfigs.modules.values) {
             LogUtils.getLogger().info("Loading module: ${module.name}")
 
-            val rusherModule = RusherModule(module.name, module.description, module)
+            val rusherModule = RusherModule(module.name.replace(" ", ""), module.description, module)
             RusherHackAPI.getModuleManager().registerFeature(rusherModule)
         }
         val listenerModule = ListenerModule()
