@@ -1,6 +1,5 @@
 package me.beanbag.nuker
 
-import it.unimi.dsi.fastutil.objects.Reference2ReferenceOpenHashMap
 import me.beanbag.nuker.command.ICommand
 import me.beanbag.nuker.command.commands.*
 import me.beanbag.nuker.handlers.InventoryHandler
@@ -47,6 +46,7 @@ object ModConfigs {
             UnfocusedCPU(),
             FastBreak(),
             EquipmentSaver(),
+            SafeWalk(),
         )
 
     fun getModuleByName(name: String): Module? {

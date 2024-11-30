@@ -32,24 +32,26 @@ class FastBreak:Module("Fast Break", "Breaks blocks faster") {
 
     init {
         onInGameEvent<PacketEvent.Send.Pre> { event ->
-            if (event.packet is PlayerActionC2SPacket
-                    && event.packet.action == PlayerActionC2SPacket.Action.START_DESTROY_BLOCK
+            if (event.packet is PlayerActionC2SPacket) {
+                if (event.packet.action == PlayerActionC2SPacket.Action.START_DESTROY_BLOCK
                     && breakingContexts.none { it?.pos == event.packet.pos }
-                    && queue.none { it.blockPos == event.packet.pos }
-                ) {
-                event.cancel()
-                if (doQueue.getValue()){
-                    queue.add(PosAndState(event.packet.pos, world.getBlockState(event.packet.pos)))
-                } else {
-                    queue = ConcurrentLinkedQueue(
-                        listOf(PosAndState(event.packet.pos, world.getBlockState(event.packet.pos)))
-                    )
-                }
-                val startedBlocks = checkAttemptBreaks(queue.toList())
-                queue.removeIf{
-                    startedBlocks.any { startedBlock ->
-                        startedBlock.blockPos == it.blockPos
+                    && queue.none { it.blockPos == event.packet.pos }) {
+                    event.cancel()
+                    if (doQueue.getValue()){
+                        queue.add(PosAndState(event.packet.pos, world.getBlockState(event.packet.pos)))
+                    } else {
+                        queue = ConcurrentLinkedQueue(
+                            listOf(PosAndState(event.packet.pos, world.getBlockState(event.packet.pos)))
+                        )
                     }
+                    val startedBlocks = checkAttemptBreaks(queue.toList())
+                    queue.removeIf{
+                        startedBlocks.any { startedBlock ->
+                            startedBlock.blockPos == it.blockPos
+                        }
+                    }
+                } else if (queue.any { it.blockPos == event.packet.pos } && breakingContexts.none { it?.pos == event.packet.pos }) {
+                    event.cancel()
                 }
             }
         }

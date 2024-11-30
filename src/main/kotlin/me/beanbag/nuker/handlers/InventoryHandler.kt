@@ -23,15 +23,16 @@ class InventoryHandler : IHandler {
 
     private var ticksTillResume = 0
     var externalIsUsingItem = false
-    /** Keeps track of whether a packet is getting sent from this mod or from the player/external mod */
+    /** Helps keep track of whether a packet is getting sent from this mod or from the player/external mod */
     var isSendingPacket = false
 
     var swapCoolDown = 0
+    var selectSlotCoolDown = 0
     var dropsThisTick = 0
 
     private val pendingInventorySlotActions = mutableListOf<InventorySlotAction>()
 
-    fun externalInControl() = /*ticksTillResume > 0 ||*/ externalIsUsingItem
+    fun externalInControl() = ticksTillResume > 0 || externalIsUsingItem
 
     init {
 
@@ -53,9 +54,7 @@ class InventoryHandler : IHandler {
 //        PlayerActionC2SPacket.Action.SWAP_ITEM_WITH_OFFHAND
 
         onInGameEvent<TickEvent.Pre>(priority = EventBus.MAX_PRIORITY + 1) {
-            if (ticksTillResume > 0) {
-                ticksTillResume--
-            }
+            tickReset()
             if (!mc.options.useKey.isPressed && externalIsUsingItem) {
                 externalIsUsingItem = false
             }
@@ -80,24 +79,34 @@ class InventoryHandler : IHandler {
     }
 
     private fun tickReset() {
-        ticksTillResume--
-        swapCoolDown--
+        if (ticksTillResume > 0) ticksTillResume--
+        if (swapCoolDown > 0) swapCoolDown--
+        if (selectSlotCoolDown > 0) selectSlotCoolDown--
         dropsThisTick = 0
     }
 
     fun interact(action: InventoryAction) {
-        when (action) {
-            is SwapAction -> {
-                swapCoolDown = swapCooldownTicks.getValue()
-            }
-            is DropAction -> {
-                //drop
-            }
-            is SelectOnHotbarAction -> {
-                //update selected
-            }
-            is MoveAndDiscardIfNeededAction -> {
-                //move and discard
+        runInGame {
+            when (action) {
+                is SwapAction -> {
+                    swapCoolDown = swapCooldownTicks.getValue()
+                }
+                is DropAction -> {
+                    //drop
+                }
+                is SelectSlotAction -> {
+                    //update selected
+                    if (player.inventory?.selectedSlot == action.hotbarIndex || action.hotbarIndex !in 0..8 || selectSlotCoolDown > 0) {
+                        return@runInGame
+                    }
+
+                    player.inventory?.selectedSlot = action.hotbarIndex
+                    sendPacket(UpdateSelectedSlotC2SPacket(action.hotbarIndex))
+                    selectSlotCoolDown = 1
+                }
+                is MoveAndDiscardIfNeededAction -> {
+                    //move and discard
+                }
             }
         }
     }
@@ -142,6 +151,6 @@ class SwapAction(var fromSlot: Slot, var toSlotSlot: Slot) : InventoryAction
 
 class DropAction(var slot: Slot, var all: Boolean = false) : InventoryAction
 
-class SelectOnHotbarAction(var hotbarIndex: Int) : InventoryAction
+class SelectSlotAction(var hotbarIndex: Int) : InventoryAction
 
 class MoveAndDiscardIfNeededAction(var fromSlot: Slot, var toSlot: Slot) : InventoryAction
