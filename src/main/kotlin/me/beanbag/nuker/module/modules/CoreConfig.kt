@@ -1,6 +1,7 @@
 package me.beanbag.nuker.module.modules
 
 import me.beanbag.nuker.ModConfigs
+import me.beanbag.nuker.external.meteor.MeteorModule
 import me.beanbag.nuker.module.Module
 import me.beanbag.nuker.module.modules.nuker.enumsettings.BreakMode
 import me.beanbag.nuker.module.modules.nuker.enumsettings.ColourMode
@@ -114,4 +115,10 @@ object CoreConfig : Module("Core Configs", "General configs") {
     private val inventory = group("Inventory", "Settings for inventory management")
     val swapCooldownTicks = setting(inventory, "Swap Cooldown (Ticks)", "The delay between inventory actions with SlotActionType.SWAP", 1, null, { true }, 0, 20, 0, 20)
     val throwawayBlocks = setting(inventory, "Throwaway Blocks", "Blocks that can be thrown away if needed. For example, when moving a piece of armor to your inventory", listOf(Items.COBBLESTONE, Items.STONE, Items.DIRT, Items.NETHERRACK, Items.DIORITE, Items.ANDESITE, Items.GRANITE, Items.GRAVEL, Items.ROTTEN_FLESH, Items.BONE), null)
+
+    override fun createMeteorImplementation(): meteordevelopment.meteorclient.systems.modules.Module {
+        return CoreConfigMeteorImplementation()
+    }
+
+    class CoreConfigMeteorImplementation : MeteorModule(this)
 }

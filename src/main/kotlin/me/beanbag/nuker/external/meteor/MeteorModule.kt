@@ -4,7 +4,7 @@ import me.beanbag.nuker.module.Module
 import java.util.function.Consumer
 import meteordevelopment.meteorclient.systems.modules.Module as MeteorModule
 
-class MeteorModule(var module: Module) : MeteorModule(MeteorLoader.CATEGORY, module.name, module.description) {
+abstract class MeteorModule(var module: Module) : MeteorModule(MeteorLoader.CATEGORY, module.name, module.description) {
 
     init {
         for (settingGroup in module.settingGroups) {

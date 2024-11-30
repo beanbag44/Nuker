@@ -2,6 +2,7 @@ package me.beanbag.nuker.module.modules.nuker
 
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
+import me.beanbag.nuker.external.meteor.MeteorModule
 import me.beanbag.nuker.handlers.BreakingHandler
 import me.beanbag.nuker.handlers.BreakingHandler.blockBreakTimeouts
 import me.beanbag.nuker.handlers.BreakingHandler.checkAttemptBreaks
@@ -223,4 +224,10 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
                 getBlockCube(this.eyePos, CoreConfig.breakRadius, removeIf)
             }
         }
+
+    override fun createMeteorImplementation(): meteordevelopment.meteorclient.systems.modules.Module {
+        return NukerMeteorImplementation()
+    }
+
+    class NukerMeteorImplementation : MeteorModule(this)
 }

@@ -18,7 +18,7 @@ class MeteorLoader : MeteorAddon() {
         LogUtils.getLogger().info("Initializing $MOD_NAME Addon")
 
         for (module in ModConfigs.modules.values) {
-            val meteorModule: Module = MeteorModule(module)
+            val meteorModule: Module = module.createMeteorImplementation()
             Modules.get().add(meteorModule)
         }
         MeteorEventSubscriber().subscribe()

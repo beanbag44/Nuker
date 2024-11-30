@@ -2,6 +2,7 @@ package me.beanbag.nuker.module.modules
 
 import me.beanbag.nuker.eventsystem.events.PacketEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
+import me.beanbag.nuker.external.meteor.MeteorModule
 import me.beanbag.nuker.handlers.ChatHandler
 import me.beanbag.nuker.module.Module
 import me.beanbag.nuker.utils.InGame
@@ -13,7 +14,7 @@ import net.minecraft.network.packet.s2c.play.EntityDamageS2CPacket
 import net.minecraft.network.packet.s2c.play.PlayerActionResponseS2CPacket
 import net.minecraft.screen.slot.SlotActionType
 
-class EquipmentSaver:Module("Equipment Saver", "Saves your tools/armor from breaking") {
+class EquipmentSaver : Module("Equipment Saver", "Saves your tools/armor from breaking") {
     private val generalGroup = group("General", "General settings")
     private val minDurability = setting(generalGroup,
         "Min Durability",
@@ -161,4 +162,10 @@ class EquipmentSaver:Module("Equipment Saver", "Saves your tools/armor from brea
         }
         return null
     }
+
+    override fun createMeteorImplementation(): meteordevelopment.meteorclient.systems.modules.Module {
+        return EquipmentSaverMeteorImplementation(this)
+    }
+
+    class EquipmentSaverMeteorImplementation(module: Module) : MeteorModule(module)
 }

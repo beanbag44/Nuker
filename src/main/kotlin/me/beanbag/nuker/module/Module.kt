@@ -9,6 +9,7 @@ import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.handlers.ChatHandler
 import me.beanbag.nuker.module.settings.*
 import me.beanbag.nuker.utils.IJsonable
+import meteordevelopment.meteorclient.systems.modules.Module
 import net.minecraft.block.Block
 import net.minecraft.entity.EntityType
 import net.minecraft.item.Item
@@ -232,4 +233,6 @@ abstract class Module(var name: String, var description: String, private var alw
             enabledGroup.settings[0].fromJson(enabledJson)
         }
     }
+
+    abstract fun createMeteorImplementation(): Module
 }
