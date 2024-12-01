@@ -32,7 +32,9 @@ class InventoryHandler : IHandler {
 
     private val pendingInventorySlotActions = mutableListOf<InventorySlotAction>()
 
-    fun externalInControl() = ticksTillResume > 0 || externalIsUsingItem
+//    fun externalInControl() = ticksTillResume > 0 || externalIsUsingItem
+
+    fun externalInControl() = false
 
     init {
 

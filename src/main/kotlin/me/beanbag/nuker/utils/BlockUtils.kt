@@ -177,6 +177,8 @@ object BlockUtils {
             }
         }
 
+        if (pos == player.supportingBlockPos) return false
+
         val playerLookDir = player.horizontalFacing
         val smartFlattenDir = if (flattenMode == FlattenMode.Smart) {
             playerLookDir
