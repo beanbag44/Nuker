@@ -24,7 +24,7 @@ class ModuleSettingListValueArgument : ICommandArgument {
             return settingMatch
         }
 
-        val listActionMatch = ListActionArgument().getMatch(toMatch.subList(2, toMatch.size))
+        val listActionMatch = EnumArgument(ListAction.entries).getMatch(toMatch.subList(2, toMatch.size))
         if (listActionMatch == MatchType.NONE || listActionMatch == MatchType.PARTIAL && toMatch.size == 3) {
             return listActionMatch
         }
@@ -63,11 +63,16 @@ class ModuleSettingListValueArgument : ICommandArgument {
             return listOf()
         }
         if (toMatch.size == 3 && ModuleSettingArgument().getMatch(toMatch) == MatchType.FULL) {
-            return ListActionArgument().getSuggestions(toMatch.subList(2, toMatch.size))
+            return EnumArgument(ListAction.entries).getSuggestions(toMatch.subList(2, toMatch.size))
         }
 
 
         val allPossibleValues = setting.possibleValues()
         return allPossibleValues?.filter { it.lowercase().startsWith(toMatch[3].lowercase()) } ?: listOf()
     }
+}
+
+enum class ListAction {
+    Add,
+    Remove,
 }
