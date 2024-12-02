@@ -25,6 +25,7 @@ import me.beanbag.nuker.utils.BlockUtils.isStateEmpty
 import me.beanbag.nuker.utils.BlockUtils.isValidCanalBlock
 import me.beanbag.nuker.utils.BlockUtils.isWithinABaritoneSelection
 import me.beanbag.nuker.utils.BlockUtils.sortBlockVolume
+import me.beanbag.nuker.utils.BlockUtils.sortBlockVolumeGravityBlocksDown
 import me.beanbag.nuker.utils.BlockUtils.willReleaseLiquids
 import me.beanbag.nuker.utils.InGame
 import me.beanbag.nuker.utils.InventoryUtils.swapTo
@@ -156,26 +157,7 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
             sortBlockVolume(blockVolume, player.eyePos, mineStyle)
 
             if (topDownGravityBlocks) {
-                val tempList = arrayListOf(*blockVolume.toTypedArray())
-                blockVolume.clear()
-
-                tempList.forEach { block ->
-                    var scannerBlock = block
-                    while (true) {
-                        scannerBlock = PosAndState.from(scannerBlock.blockPos.up(), world)
-
-                        if (tempList.contains(scannerBlock)
-                            && scannerBlock.blockState.block is FallingBlock
-                            && !blockVolume.contains(scannerBlock)
-                            ) {
-                            continue
-                        }
-
-                        val finalBlock = PosAndState.from(scannerBlock.blockPos.down(), world)
-                        blockVolume.add(finalBlock)
-                        break
-                    }
-                }
+                sortBlockVolumeGravityBlocksDown(blockVolume)
             }
 
             if (returnToSlot) {

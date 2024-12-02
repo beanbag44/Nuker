@@ -105,6 +105,29 @@ object BlockUtils {
             }
         }
 
+    fun InGame.sortBlockVolumeGravityBlocksDown(posAndStateList: ArrayList<PosAndState>) {
+        val tempList = arrayListOf(*posAndStateList.toTypedArray())
+        posAndStateList.clear()
+
+        tempList.forEach { block ->
+            var scannerBlock = block
+            while (true) {
+                scannerBlock = PosAndState.from(scannerBlock.blockPos.up(), world)
+
+                if (tempList.contains(scannerBlock)
+                    && scannerBlock.blockState.block is FallingBlock
+                    && !posAndStateList.contains(scannerBlock)
+                ) {
+                    continue
+                }
+
+                val finalBlock = PosAndState.from(scannerBlock.blockPos.down(), world)
+                posAndStateList.add(finalBlock)
+                break
+            }
+        }
+    }
+
     fun InGame.isBlockBreakable(pos: BlockPos, state: BlockState): Boolean = state.getHardness(world, pos) != -1f
             && state.block.hardness != 600f
             && !isStateEmpty(state)
