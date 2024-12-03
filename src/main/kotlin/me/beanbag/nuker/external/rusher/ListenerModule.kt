@@ -5,6 +5,7 @@ import me.beanbag.nuker.eventsystem.events.PacketEvent
 import me.beanbag.nuker.eventsystem.events.PlayerMoveEvent
 import me.beanbag.nuker.eventsystem.events.RenderEvent
 import me.beanbag.nuker.eventsystem.events.TickEvent
+import net.minecraft.client.util.math.MatrixStack
 import net.minecraft.network.packet.Packet
 import org.rusherhack.client.api.events.client.EventQuit
 import org.rusherhack.client.api.events.client.EventUpdate
@@ -34,7 +35,14 @@ class ListenerModule : Module("Listener Module", ModuleCategory.CLIENT) {
 
     @Subscribe
     fun onRender(event: EventRender3D) {
-        EventBus.post(RenderEvent.Render3DEvent(RusherRenderer3D()))
+        EventBus.post(
+            RenderEvent.Render3DEvent(
+                RusherRenderer3D(
+                    event.renderer,
+                    event.javaClass.superclass.getMethod("getMatrixStack").invoke(event) as MatrixStack
+                )
+            )
+        )
     }
 
     @Subscribe
