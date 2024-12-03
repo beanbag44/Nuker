@@ -3,6 +3,7 @@ package me.beanbag.nuker.external.rusher
 import com.mojang.logging.LogUtils
 import me.beanbag.nuker.ModConfigs
 import me.beanbag.nuker.ModConfigs.MOD_NAME
+import me.beanbag.nuker.eventsystem.EventBus
 import org.rusherhack.client.api.RusherHackAPI
 import org.rusherhack.client.api.plugin.Plugin
 
@@ -14,9 +15,12 @@ class RusherLoader : Plugin() {
 
             val rusherModule = RusherModule(module.name.replace(" ", ""), module.description, module)
             RusherHackAPI.getModuleManager().registerFeature(rusherModule)
+
+            if (!module.enabled) {
+                EventBus.unsubscribe(module)
+            }
         }
-        val listenerModule = ListenerModule()
-        RusherHackAPI.getModuleManager().registerFeature(listenerModule)
+        RusherHackAPI.getModuleManager().registerFeature(ListenerModule())
         RusherHackAPI.getCommandManager().registerFeature(RusherCommands())
 
         ModConfigs.rusherIsPresent = true
