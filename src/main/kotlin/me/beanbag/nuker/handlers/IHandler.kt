@@ -4,11 +4,13 @@ interface IHandler {
     var currentlyBeingUsedBy: Module?
     var priority: Int
 
-    fun setUsedBy(module: Module) {
+    private fun setUsedBy(module: Module) {
         currentlyBeingUsedBy = module
     }
 
-    fun clearUsedBy() {
+    private fun clearUsedBy() {
         currentlyBeingUsedBy = null
     }
+
+//    fun getUsabilityState(): Enum<*>
 }
