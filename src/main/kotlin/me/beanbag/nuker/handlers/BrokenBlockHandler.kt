@@ -40,6 +40,7 @@ object BrokenBlockHandler : IHandler {
     }
 
     fun putBrokenBlock(pos: BlockPos, state: BlockState, broken: Boolean) {
+        blockQueue.values().removeIf { it == pos }
         blockQueue.put(BrokenBlockPos(pos, state, broken))
     }
 
