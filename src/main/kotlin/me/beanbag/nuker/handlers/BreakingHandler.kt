@@ -2,12 +2,13 @@ package me.beanbag.nuker.handlers
 
 import me.beanbag.nuker.ModConfigs.inventoryHandler
 import me.beanbag.nuker.ModConfigs.mc
-import me.beanbag.nuker.eventsystem.EventBus.MAX_PRIORITY
 import me.beanbag.nuker.eventsystem.events.PacketEvent
 import me.beanbag.nuker.eventsystem.events.RenderEvent
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.eventsystem.onEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
+import me.beanbag.nuker.inventory.Interacted
+import me.beanbag.nuker.inventory.SelectHotbarSlotAction
 import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.module.modules.nuker.enumsettings.*
 import me.beanbag.nuker.render.IRenderer3D
@@ -21,7 +22,6 @@ import me.beanbag.nuker.utils.BlockUtils.isBlockBroken
 import me.beanbag.nuker.utils.BlockUtils.state
 import me.beanbag.nuker.utils.InventoryUtils.percentDamagePerTick
 import me.beanbag.nuker.utils.InventoryUtils.getBestTool
-import me.beanbag.nuker.utils.InventoryUtils.swapTo
 import net.minecraft.block.BlockState
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
@@ -31,17 +31,21 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 import java.awt.Color
 
-object BreakingHandler : IHandler {
-    override var currentlyBeingUsedBy: Module? = null
+object BreakingHandler : IHandler, IHandlerController {
+    override var currentlyBeingUsedBy: IHandlerController? = null
     override var priority: Int = 0
 
+    override fun getPriority(): HandlerPriority {
+        return HandlerPriority(priority, false)
+    }
     val blockBreakTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockBreakTimeout }
     var breakingContexts = arrayOfNulls<BreakingContext>(2)
     private var packetCounter = 0
 
     init {
         onInGameEvent<TickEvent.Pre>(99) {
-            if (inventoryHandler.externalInControl() || PlacementHandler.usedThisTick) {
+            if (!canUseInventory() || PlacementHandler.usedThisTick) {
+                //TODO actually cancel the breaking if needed
                 nullifyBreakingContext(0)
                 nullifyBreakingContext(1)
                 return@onInGameEvent
@@ -75,8 +79,19 @@ object BreakingHandler : IHandler {
         }
     }
 
+    private fun canUseInventory(): Boolean {
+        val inventoryPriority = inventoryHandler.currentlyBeingUsedBy?.getPriority()
+        if (inventoryPriority != null && inventoryPriority > (currentlyBeingUsedBy?.getPriority() ?: HandlerPriority.lowest()))  {
+            return false
+        }
+        return true
+    }
+
     fun InGame.checkAttemptBreaks(blockVolume: List<PosAndState>): List<PosAndState> {
-        if (inventoryHandler.externalInControl()) return emptyList()
+        if (!canUseInventory()) {
+            return emptyList()
+        }
+
         val startedBlocks = mutableListOf<PosAndState>()
         blockVolume.forEach { block ->
             if (checkAttemptBreak(block)) startedBlocks.add(block)
@@ -122,7 +137,8 @@ object BreakingHandler : IHandler {
         }
 
         if (breakingContexts[1] == null) {
-            if (swapTo(bestTool)) packetCounter++
+            //TODO
+//            if (swapTo(bestTool)) packetCounter++
         }
 
         if (isInstaBreak) {
@@ -214,6 +230,10 @@ object BreakingHandler : IHandler {
                 onBlockBreak(index)
             }
         }}
+        //TODO is this the right place to release hotbar control?
+        if (breakingContexts.all { it == null }) {
+            inventoryHandler.releaseHotbarControl(this@BreakingHandler)
+        }
     }
 
     private fun onBlockUpdate(pos: BlockPos, state: BlockState) {
@@ -244,8 +264,18 @@ object BreakingHandler : IHandler {
     }
 
     private fun InGame.updateSelectedSlot() {
+        //TODO handle this correctly w/ packet counter
         breakingContexts.firstOrNull()?.run {
-            if (swapTo(bestTool)) packetCounter++
+            if (player.inventory.selectedSlot == bestTool) {
+                return
+            }
+            val result = inventoryHandler.tryInteract(
+                this@BreakingHandler,
+                false,
+                actions = { inventory -> listOf(SelectHotbarSlotAction(bestTool)) })
+            if (result is Interacted) {
+                packetCounter++
+            }
         }
     }
 

@@ -13,7 +13,7 @@ import net.minecraft.client.util.InputUtil
 import org.rusherhack.client.api.RusherHackAPI
 
 object RotationHandler: IHandler {
-    override var currentlyBeingUsedBy: Module? = null
+    override var currentlyBeingUsedBy: IHandlerController? = null
     override var priority = 0
     private var rotatedThisTick = false
     private var ticksSinceLastRotation = 0

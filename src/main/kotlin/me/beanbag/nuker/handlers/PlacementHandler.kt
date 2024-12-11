@@ -13,7 +13,6 @@ import me.beanbag.nuker.utils.BlockUtils.canReach
 import me.beanbag.nuker.utils.BlockUtils.isStateEmpty
 import me.beanbag.nuker.utils.InGame
 import me.beanbag.nuker.utils.InventoryUtils.getInHotbar
-import me.beanbag.nuker.utils.InventoryUtils.swapTo
 import net.minecraft.item.BlockItem
 import net.minecraft.sound.SoundCategory
 import net.minecraft.util.Hand
@@ -23,7 +22,7 @@ import net.minecraft.util.math.Direction
 
 object PlacementHandler : IHandler {
     override var priority = 0
-    override var currentlyBeingUsedBy: Module? = null
+    override var currentlyBeingUsedBy: IHandlerController? = null
     val blockPlaceTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockPlaceTimeout }
     private val airPlaceList = mutableMapOf<ArrayList<PosAndState>, PlacementPreference>()
     var usedThisTick = false
@@ -45,7 +44,8 @@ object PlacementHandler : IHandler {
             with(airPlaceList.keys.elementAt(0)) {
                 val preferences = airPlaceList[this]
                 with(this[0]) {
-                    swapTo(blockState.block.asItem())
+                    //TODO
+//                    swapTo(blockState.block.asItem())
                     preferences?.let { preferences ->
                         airPlace(blockPos, preferences.direction, preferences.swing, preferences.awaitServerResponse)
                     }
@@ -76,7 +76,7 @@ object PlacementHandler : IHandler {
         }
 
         with(posAndStateList[0]) {
-            swapTo(blockState.block.asItem())
+//            swapTo(blockState.block.asItem())
             airPlace(blockPos, direction, swing, awaitServerResponse)
         }
         posAndStateList.removeAt(0)

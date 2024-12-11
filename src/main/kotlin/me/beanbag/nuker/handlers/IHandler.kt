@@ -1,10 +1,10 @@
 package me.beanbag.nuker.handlers
 
 interface IHandler {
-    var currentlyBeingUsedBy: Module?
+    var currentlyBeingUsedBy: IHandlerController?
     var priority: Int
 
-    private fun setUsedBy(module: Module) {
+    private fun setUsedBy(module: IHandlerController) {
         currentlyBeingUsedBy = module
     }
 

@@ -113,8 +113,26 @@ object CoreConfig : Module("Core Configs", "General configs") {
 
 
     private val inventory = group("Inventory", "Settings for inventory management")
-    val swapCooldownTicks = setting(inventory, "Swap Cooldown (Ticks)", "The delay between inventory actions with SlotActionType.SWAP", 1, null, { true }, 0, 20, 0, 20)
-    val throwawayBlocks = setting(inventory, "Throwaway Blocks", "Blocks that can be thrown away if needed. For example, when moving a piece of armor to your inventory", listOf(Items.COBBLESTONE, Items.STONE, Items.DIRT, Items.NETHERRACK, Items.DIORITE, Items.ANDESITE, Items.GRANITE, Items.GRAVEL, Items.ROTTEN_FLESH, Items.BONE), null)
+    val usableHotbarSlot = setting(inventory,
+        "Usable Hotbar Slot",
+        "The hotbar slot that can be used for inventory actions when needed",
+        8, min = 1, max = 9)
+    val selectOnHotbarCooldown = setting(inventory,
+        "Select On Hotbar Cooldown (Ticks)",
+        "The delay between selecting hotbar slots",
+        1, null, { true }, 0, 20, 0, 20)
+    val swapCooldownTicks = setting(inventory,
+        "Swap Cooldown (Ticks)",
+        "The delay between swapping items with items on the hotbar",
+        1, null, { true }, 0, 20, 0, 20)
+    val maxDropsPerTick = setting(inventory,
+        "Max Drops Per Tick",
+        "The maximum drops that can happen every tick",
+        32, min = 0, max = 64)
+    val throwawayBlocks = setting(inventory,
+        "Throwaway Blocks",
+        "Blocks that can be thrown away if needed. For example, when moving a piece of armor to your inventory to save it from being broken",
+        listOf(Items.COBBLESTONE, Items.STONE, Items.DIRT, Items.NETHERRACK, Items.DIORITE, Items.ANDESITE, Items.GRANITE, Items.GRAVEL, Items.ROTTEN_FLESH, Items.BONE))
 
     override fun createMeteorImplementation(): meteordevelopment.meteorclient.systems.modules.Module {
         return CoreConfigMeteorImplementation()

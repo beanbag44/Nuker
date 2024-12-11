@@ -13,7 +13,6 @@ import me.beanbag.nuker.utils.BlockUtils
 import me.beanbag.nuker.utils.BlockUtils.getBlockSphere
 import me.beanbag.nuker.utils.BlockUtils.isSource
 import me.beanbag.nuker.utils.InventoryUtils.getInHotbar
-import me.beanbag.nuker.utils.InventoryUtils.swapTo
 import net.minecraft.block.Blocks
 import net.minecraft.util.math.Direction
 
@@ -47,7 +46,8 @@ class SourceRemover : Module("Source Remover", "Places blocks in water sources t
                 if (blockSlot != -1) break
             }
             if (blockSlot == -1) return@onInGameEvent
-            swapTo(blockSlot)
+            //TODO
+//            swapTo(blockSlot)
             airPlace(placeBlock.blockPos, Direction.UP, CoreConfig.swingOnPlace, CoreConfig.validatePlace)
         }
     }

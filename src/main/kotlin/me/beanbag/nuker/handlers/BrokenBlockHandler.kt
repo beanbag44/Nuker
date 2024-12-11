@@ -17,7 +17,7 @@ import net.minecraft.util.math.BlockPos
 
 object BrokenBlockHandler : IHandler {
     override var priority = 0
-    override var currentlyBeingUsedBy: Module? = null
+    override var currentlyBeingUsedBy: IHandlerController? = null
 
     private val blockQueue = TimeoutSet<BrokenBlockPos> { if (validateBreak) 40 else ghostBlockTimeout }
         .setOnTimeout { pos ->

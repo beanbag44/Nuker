@@ -28,7 +28,7 @@ import me.beanbag.nuker.utils.BlockUtils.sortBlockVolume
 import me.beanbag.nuker.utils.BlockUtils.sortBlockVolumeGravityBlocksDown
 import me.beanbag.nuker.utils.BlockUtils.willReleaseLiquids
 import me.beanbag.nuker.utils.InGame
-import me.beanbag.nuker.utils.InventoryUtils.swapTo
+//import me.beanbag.nuker.utils.InventoryUtils.swapTo
 import me.beanbag.nuker.utils.LitematicaUtils
 import me.beanbag.nuker.utils.LitematicaUtils.updateSchematicMismatches
 import net.minecraft.block.Block
@@ -165,7 +165,8 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
                 if (BreakingHandler.breakingContexts.all { it == null }) {
                     if (breaking && originalSlot != -1 && selectedSlot != originalSlot) {
-                        swapTo(originalSlot)
+                        //TODO
+//                        swapTo(originalSlot)
                         breaking = false
                     } else {
                         originalSlot = selectedSlot

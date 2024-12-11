@@ -10,25 +10,25 @@ import net.minecraft.util.math.BlockPos
 object InventoryUtils {
     const val HOTBAR_SIZE = 9
 
-    fun InGame.swapTo(item: Item): Boolean {
-        val hotbarSlot = getInHotbar(item)
-        if (hotbarSlot == -1) return false
-        swapTo(hotbarSlot)
-        return true
-    }
-
-    fun InGame.swapTo(slot: Int): Boolean {
-        if (player.inventory?.selectedSlot == slot
-            || slot !in 0..8) {
-            return false
-        }
-
-        player.inventory?.selectedSlot = slot
-        inventoryHandler.isSendingPacket = true
-        networkHandler.sendPacket(UpdateSelectedSlotC2SPacket(slot))
-        inventoryHandler.isSendingPacket = true
-        return true
-    }
+//    fun InGame.swapTo(item: Item): Boolean {
+//        val hotbarSlot = getInHotbar(item)
+//        if (hotbarSlot == -1) return false
+//        swapTo(hotbarSlot)
+//        return true
+//    }
+//
+//    fun InGame.swapTo(slot: Int): Boolean {
+//        if (player.inventory?.selectedSlot == slot
+//            || slot !in 0..8) {
+//            return false
+//        }
+//
+//        player.inventory?.selectedSlot = slot
+//        inventoryHandler.isSendingPacket = true
+//        networkHandler.sendPacket(UpdateSelectedSlotC2SPacket(slot))
+//        inventoryHandler.isSendingPacket = true
+//        return true
+//    }
 
     fun InGame.getBestTool(state: BlockState, pos: BlockPos): Int {
         val selectedSlot = player.inventory.selectedSlot

@@ -12,7 +12,7 @@ import net.minecraft.text.Text
 
 object ChatHandler : IHandler {
     override var priority = 0
-    override var currentlyBeingUsedBy: Module? = null
+    override var currentlyBeingUsedBy: IHandlerController? = null
 
     init {
 
