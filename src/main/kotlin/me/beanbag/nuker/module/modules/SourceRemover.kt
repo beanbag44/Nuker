@@ -50,7 +50,10 @@ class SourceRemover : Module("Source Remover", "Places blocks in water sources t
                 blockSlot = getInHotbar(block.asItem())
                 if (blockSlot != -1) break
             }
-            if (blockSlot == -1) return@onInGameEvent
+            if (blockSlot == -1) {
+                inventoryHandler.releaseSlot(this@SourceRemover)
+                return@onInGameEvent
+            }
             inventoryHandler.selectSlot(this@SourceRemover, SelectHotbarSlotAction(blockSlot, true))
             airPlace(placeBlock.blockPos, Direction.UP, CoreConfig.swingOnPlace, CoreConfig.validatePlace)
         }
