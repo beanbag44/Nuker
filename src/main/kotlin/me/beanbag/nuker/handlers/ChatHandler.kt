@@ -7,20 +7,17 @@ import me.beanbag.nuker.ModConfigs.mc
 import me.beanbag.nuker.ModConfigs.modColor
 import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.eventsystem.events.PacketEvent
+import me.beanbag.nuker.eventsystem.onEvent
 import net.minecraft.network.packet.c2s.play.ChatMessageC2SPacket
 import net.minecraft.text.Text
 
-object ChatHandler : IHandler {
-    override var priority = 0
-    override var currentlyBeingUsedBy: IHandlerController? = null
-
+object ChatHandler  {
     init {
-
-        EventBus.subscribe<PacketEvent.Send.Pre>(this) { event ->
+        onEvent<PacketEvent.Send.Pre> { event ->
             val packet = event.packet
 
             if (packet !is ChatMessageC2SPacket || !packet.chatMessage.startsWith(COMMAND_PREFIX)) {
-                return@subscribe
+                return@onEvent
             }
             val commandParts = packet.chatMessage.substring(COMMAND_PREFIX.length).lowercase().split(" ")
             commands.firstOrNull {
@@ -28,7 +25,7 @@ object ChatHandler : IHandler {
             }?.execute(packet.chatMessage.substring(COMMAND_PREFIX.length).split(" ").filter { it.isNotBlank() })
 
             event.cancel()
-            return@subscribe
+            return@onEvent
         }
     }
 

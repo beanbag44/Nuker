@@ -21,7 +21,6 @@ import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 
 object PlacementHandler : IHandler {
-    override var priority = 0
     override var currentlyBeingUsedBy: IHandlerController? = null
     val blockPlaceTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockPlaceTimeout }
     private val airPlaceList = mutableMapOf<ArrayList<PosAndState>, PlacementPreference>()
@@ -44,6 +43,7 @@ object PlacementHandler : IHandler {
             with(airPlaceList.keys.elementAt(0)) {
                 val preferences = airPlaceList[this]
                 with(this[0]) {
+                    
                     //TODO
 //                    swapTo(blockState.block.asItem())
                     preferences?.let { preferences ->

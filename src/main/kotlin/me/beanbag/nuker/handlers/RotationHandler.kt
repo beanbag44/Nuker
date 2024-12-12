@@ -14,7 +14,6 @@ import org.rusherhack.client.api.RusherHackAPI
 
 object RotationHandler: IHandler {
     override var currentlyBeingUsedBy: IHandlerController? = null
-    override var priority = 0
     private var rotatedThisTick = false
     private var ticksSinceLastRotation = 0
     var freeLooking = false

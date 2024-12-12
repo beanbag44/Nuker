@@ -7,6 +7,8 @@ import me.beanbag.nuker.command.ExecutableClickEvent
 import me.beanbag.nuker.command.commands.HelpModuleSettingCommand
 import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.handlers.ChatHandler
+import me.beanbag.nuker.handlers.HandlerPriority
+import me.beanbag.nuker.handlers.IHandlerController
 import me.beanbag.nuker.module.settings.*
 import me.beanbag.nuker.utils.IJsonable
 import meteordevelopment.meteorclient.systems.modules.Module
@@ -19,7 +21,7 @@ import net.minecraft.util.Formatting
 import java.awt.Color
 import java.util.function.Consumer
 
-abstract class Module(var name: String, var description: String, private var alwaysListening: Boolean = false) : IJsonable {
+abstract class Module(var name: String, var description: String, private var alwaysListening: Boolean = false, priority: HandlerPriority = HandlerPriority.normal()) : IJsonable, IHandlerController {
     var settingGroups: MutableList<SettingGroup> = ArrayList()
     private val enabledGroup = SettingGroup("Enabled", "Settings for enabling or disabling the module")
     var enabled by setting(enabledGroup,"Enabled", "Enables or disables the module", false, null, visible = { true })
@@ -36,6 +38,9 @@ abstract class Module(var name: String, var description: String, private var alw
         }
     }
 
+    override fun getPriority(): HandlerPriority {
+        return HandlerPriority.lowest()
+    }
     protected fun addGroup(setting: SettingGroup): SettingGroup {
         settingGroups.add(setting)
         return setting

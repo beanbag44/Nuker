@@ -3,7 +3,6 @@ package me.beanbag.nuker.module.modules.nuker
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
 import me.beanbag.nuker.external.meteor.MeteorModule
-import me.beanbag.nuker.handlers.BreakingHandler
 import me.beanbag.nuker.handlers.BreakingHandler.blockBreakTimeouts
 import me.beanbag.nuker.handlers.BreakingHandler.checkAttemptBreaks
 import me.beanbag.nuker.handlers.PlacementHandler
@@ -14,26 +13,21 @@ import me.beanbag.nuker.module.modules.nuker.enumsettings.FlattenMode
 import me.beanbag.nuker.module.modules.nuker.enumsettings.VolumeShape
 import me.beanbag.nuker.module.modules.nuker.enumsettings.WhitelistMode
 import me.beanbag.nuker.module.settings.SettingGroup
-import me.beanbag.nuker.types.PosAndState
 import me.beanbag.nuker.types.VolumeSort
 import me.beanbag.nuker.utils.BlockUtils.getBlockCube
 import me.beanbag.nuker.utils.BlockUtils.getBlockSphere
-import me.beanbag.nuker.utils.BlockUtils.getState
 import me.beanbag.nuker.utils.BlockUtils.isBlockBreakable
 import me.beanbag.nuker.utils.BlockUtils.isBlockInFlatten
-import me.beanbag.nuker.utils.BlockUtils.isStateEmpty
 import me.beanbag.nuker.utils.BlockUtils.isValidCanalBlock
 import me.beanbag.nuker.utils.BlockUtils.isWithinABaritoneSelection
 import me.beanbag.nuker.utils.BlockUtils.sortBlockVolume
 import me.beanbag.nuker.utils.BlockUtils.sortBlockVolumeGravityBlocksDown
 import me.beanbag.nuker.utils.BlockUtils.willReleaseLiquids
 import me.beanbag.nuker.utils.InGame
-//import me.beanbag.nuker.utils.InventoryUtils.swapTo
 import me.beanbag.nuker.utils.LitematicaUtils
 import me.beanbag.nuker.utils.LitematicaUtils.updateSchematicMismatches
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
-import net.minecraft.block.FallingBlock
 import net.minecraft.util.math.BlockPos
 
 object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
@@ -51,10 +45,6 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         "Mine Style",
         "The order which blocks are broken in",
         VolumeSort.Closest)
-    private val returnToSlot by setting(generalGroup,
-        "Return To Slot",
-        "Returns to the original inventory slot before nuker was activated",
-        true)
     private val flattenMode by setting(generalGroup,
         "Flatten Mode",
         "The style which nuker flattens terrain with",
@@ -111,8 +101,6 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         mutableListOf<Block>(),
         visible =  { whitelistMode == WhitelistMode.Blacklist })
 
-    private var originalSlot = -1
-    private var breaking = false
 
     init {
         onInGameEvent<TickEvent.Pre> {
@@ -160,23 +148,7 @@ object Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
                 sortBlockVolumeGravityBlocksDown(blockVolume)
             }
 
-            if (returnToSlot) {
-                val selectedSlot = player.inventory.selectedSlot
-
-                if (BreakingHandler.breakingContexts.all { it == null }) {
-                    if (breaking && originalSlot != -1 && selectedSlot != originalSlot) {
-                        //TODO
-//                        swapTo(originalSlot)
-                        breaking = false
-                    } else {
-                        originalSlot = selectedSlot
-                    }
-                }
-            }
-
-            val breakList = checkAttemptBreaks(blockVolume)
-
-            if (returnToSlot && breakList.isNotEmpty()) breaking = true
+            checkAttemptBreaks(blockVolume)
         }
     }
 

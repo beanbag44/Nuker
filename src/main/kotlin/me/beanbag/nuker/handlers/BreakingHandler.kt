@@ -33,10 +33,9 @@ import java.awt.Color
 
 object BreakingHandler : IHandler, IHandlerController {
     override var currentlyBeingUsedBy: IHandlerController? = null
-    override var priority: Int = 0
 
     override fun getPriority(): HandlerPriority {
-        return HandlerPriority(priority, false)
+        return currentlyBeingUsedBy?.getPriority() ?: HandlerPriority.lowest()
     }
     val blockBreakTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockBreakTimeout }
     var breakingContexts = arrayOfNulls<BreakingContext>(2)
@@ -45,7 +44,7 @@ object BreakingHandler : IHandler, IHandlerController {
     init {
         onInGameEvent<TickEvent.Pre>(99) {
             if (!canUseInventory() || PlacementHandler.usedThisTick) {
-                //TODO actually cancel the breaking if needed
+                //TODO actually cancel the breaking
                 nullifyBreakingContext(0)
                 nullifyBreakingContext(1)
                 return@onInGameEvent
@@ -53,6 +52,12 @@ object BreakingHandler : IHandler, IHandlerController {
             packetCounter = 0
             updateSelectedSlot()
             updateBreakingContexts()
+        }
+
+        onInGameEvent<TickEvent.Post> {
+            if (breakingContexts.all { it == null } && packetCounter == 0) {
+                inventoryHandler.releaseSlot(this@BreakingHandler)
+            }
         }
 
         onEvent<PacketEvent.Receive.Pre>{ event ->
@@ -137,8 +142,7 @@ object BreakingHandler : IHandler, IHandlerController {
         }
 
         if (breakingContexts[1] == null) {
-            //TODO
-//            if (swapTo(bestTool)) packetCounter++
+            updateSelectedSlot()
         }
 
         if (isInstaBreak) {
@@ -230,10 +234,6 @@ object BreakingHandler : IHandler, IHandlerController {
                 onBlockBreak(index)
             }
         }}
-        //TODO is this the right place to release hotbar control?
-        if (breakingContexts.all { it == null }) {
-            inventoryHandler.releaseHotbarControl(this@BreakingHandler)
-        }
     }
 
     private fun onBlockUpdate(pos: BlockPos, state: BlockState) {
@@ -264,15 +264,11 @@ object BreakingHandler : IHandler, IHandlerController {
     }
 
     private fun InGame.updateSelectedSlot() {
-        //TODO handle this correctly w/ packet counter
         breakingContexts.firstOrNull()?.run {
             if (player.inventory.selectedSlot == bestTool) {
                 return
             }
-            val result = inventoryHandler.tryInteract(
-                this@BreakingHandler,
-                false,
-                actions = { inventory -> listOf(SelectHotbarSlotAction(bestTool)) })
+            val result = inventoryHandler.selectSlot(this@BreakingHandler, SelectHotbarSlotAction(bestTool, retainControl =  true))
             if (result is Interacted) {
                 packetCounter++
             }

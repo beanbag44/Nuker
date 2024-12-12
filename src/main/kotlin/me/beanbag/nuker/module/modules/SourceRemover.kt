@@ -1,11 +1,13 @@
 package me.beanbag.nuker.module.modules
 
+import me.beanbag.nuker.ModConfigs.inventoryHandler
 import me.beanbag.nuker.eventsystem.EventBus.MAX_PRIORITY
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
 import me.beanbag.nuker.external.meteor.MeteorModule
 import me.beanbag.nuker.handlers.PlacementHandler.airPlace
 import me.beanbag.nuker.handlers.PlacementHandler.blockPlaceTimeouts
+import me.beanbag.nuker.inventory.SelectHotbarSlotAction
 import me.beanbag.nuker.module.Module
 import me.beanbag.nuker.module.settings.SettingGroup
 import me.beanbag.nuker.types.VolumeSort
@@ -34,7 +36,10 @@ class SourceRemover : Module("Source Remover", "Places blocks in water sources t
                         || !isSource(state)
                         || !state.isReplaceable
             }
-            if (blockVolume.isEmpty()) return@onInGameEvent
+            if (blockVolume.isEmpty()) {
+                inventoryHandler.releaseSlot(this@SourceRemover)
+                return@onInGameEvent
+            }
 
             BlockUtils.sortBlockVolume(blockVolume, player.eyePos, sortMode)
 
@@ -46,8 +51,7 @@ class SourceRemover : Module("Source Remover", "Places blocks in water sources t
                 if (blockSlot != -1) break
             }
             if (blockSlot == -1) return@onInGameEvent
-            //TODO
-//            swapTo(blockSlot)
+            inventoryHandler.selectSlot(this@SourceRemover, SelectHotbarSlotAction(blockSlot, true))
             airPlace(placeBlock.blockPos, Direction.UP, CoreConfig.swingOnPlace, CoreConfig.validatePlace)
         }
     }

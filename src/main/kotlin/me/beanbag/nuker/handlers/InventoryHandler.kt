@@ -1,7 +1,6 @@
 package me.beanbag.nuker.handlers
 
 import me.beanbag.nuker.eventsystem.EventBus
-import me.beanbag.nuker.eventsystem.events.PacketEvent
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
 import me.beanbag.nuker.inventory.*
@@ -13,156 +12,119 @@ import net.minecraft.screen.slot.SlotActionType
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
 
-open class InventoryHandler : IHandler {
+class InventoryHandler :IHandler{
     override var currentlyBeingUsedBy: IHandlerController?
-        get() = currentAction?.controller
+        get() = selectHotbarQueue.firstOrNull()?.controller
         set(value) {}
 
-    override var priority: Int = 0
-
-    var currentAction: QueuedActions? = null
-
-    private val queuedActions = mutableListOf<QueuedActions>()
+    val selectHotbarQueue = mutableListOf<QueuedSelectHotbarController>()
+    val slotActionQueue = mutableListOf<QueuedSlotActionController>()
 
     /** Aka, if an external mod or the player is controlling the selected hotbar slot */
     var externalIsUsingItem = false
-    /** Tracks whether a packet is getting sent from this mod or from the player/external mod */
-    private var isSendingPacket = false
-    /** The hotbar slot to swap back to once the mod is no longer controlling the selectedSlot */
-    var originalHotbarSlot: Int? = null
 
-    //Cooldowns
-    var externalControlCooldown = 0  //TODO: Add setting to core configs
-    var selectOnHotbarCooldown = 0
-    var swapCooldown = 0
-    var pickupCooldown = 0 //TODO: Add setting to core configs
-    var quickMoveCooldown = 0 //TODO: Add setting to core configs
-    var cloneCooldown = 0 //TODO: Add setting to core configs
-    var quickCraftCooldown = 0 //TODO: Add setting to core configs
-    var pickupAllCooldown = 0 //TODO: Add setting to core configs
+    private val actionableInventory = ActionableInventory()
 
-    var dropsThisTick = 0
+    class QueuedSlotActionController (val controller: IHandlerController, var didInteractThisTick:Boolean)
+    class QueuedSelectHotbarController (val controller: IHandlerController, var action:SelectHotbarSlotAction)
 
     init {
-
-        //onInGameEvent<PlayerSwitchedHotbarSlot> {}
-        //onInGameEvent<PlayerClickedTheMouse> {}
-        //onInGameEvent<PlayerMovedMouse> {}
-
-        //onInGameEvent<externalModSwitchedSlots> {}
-        //onInGameEvent<externalModInteractedWithHand> {}
-
-        //user clickedSlot
-        // ClickSlotC2SPacket
-
-        //started using item
-        // PlayerInteractItemC2SPacket
-
-        //stopped using item
-//        PlayerActionC2SPacket.Action.RELEASE_USE_ITEM
-//        PlayerActionC2SPacket.Action.SWAP_ITEM_WITH_OFFHAND
-
-        onInGameEvent<TickEvent.Pre>(priority = EventBus.MAX_PRIORITY + 1) {
-            if (!mc.options.useKey.isPressed && externalIsUsingItem) {
-                externalIsUsingItem = false
-            }
-        }
-
-        onInGameEvent<PacketEvent.Send.Pre>{ event ->
-//            val packet = event.packet
-//
-//            if (packet is UpdateSelectedSlotC2SPacket && BreakingHandler.breakingContexts.none { it?.bestTool == packet.selectedSlot }) {
-//                ticksTillResume = 24
-//            } else if (event.packet is PlayerInteractItemC2SPacket) {
-//                if (player.getStackInHand(event.packet.hand).item.use(world, player, event.packet.hand).result.isAccepted) {
-//                    externalIsUsingItem = true
-//                    ticksTillResume = 24
-//                }
-//            } else if (packet is PlayerActionC2SPacket) {
-//                if (packet.action == PlayerActionC2SPacket.Action.RELEASE_USE_ITEM) {
-//                    externalIsUsingItem = false
-//                }
-//            }
-        }
-        onInGameEvent<TickEvent.Pre> {
+        onInGameEvent<TickEvent.Pre>(priority = EventBus.MAX_PRIORITY) {
             resetCooldowns()
+            for (queuedController in slotActionQueue) {
+                queuedController.didInteractThisTick = false
+            }
         }
+
         onInGameEvent<TickEvent.Post> {
-            runQueuedActions()
-        }
-    }
-
-    fun tryInteract(
-        owner: IHandlerController,
-        queue: Boolean = true,
-        actions: (currentInventory: InventoryState) -> List<IInventoryAction>,
-        onFinished: (() -> Unit)? = null
-    ): IInventoryResult {
-        //Handler is already being used by higher priority controller
-        if (currentAction?.controller != null && owner.getPriority() <= currentAction!!.controller.getPriority()) {
-            if (queue) {
-                queuedActions.add(QueuedActions(owner, actions, queue, onFinished))
-                return Started()
-            }
-            return CantControl()
-        } else if (currentAction != null && queue) { // This controller has priority over the other handler
-            currentAction?.let{ if (it.queueable) queuedActions.add(0, it) else it.onFinished?.invoke()}
-            currentAction = QueuedActions(owner, actions, queue, onFinished)
-        }
-
-        val potentialActions = actions(InventoryState.get())
-        //loop through and see if we can do all the actions immediately, of if it needs to be started and then queued
-        val mockHandler = MockInventoryHandler(this)
-        var willNeedToQueue = false
-        for(potentialAction in potentialActions) {
-            val result = potentialAction.performAction(mockHandler)
-            if (result == SlotActionResult.AWAITING_COOLDOWN) {
-                willNeedToQueue = true
-                break
-            }
-        }
-
-        if (willNeedToQueue && !queue) {
-            return CantControl()
-        }
-
-        if (willNeedToQueue && currentAction == null) {
-            queuedActions.add(QueuedActions(owner, actions, queue, onFinished))
-        } else {
-            currentAction = QueuedActions(owner, actions, queue, onFinished)
-            for(potentialAction in potentialActions) {
-                if (potentialAction.performAction(this) == SlotActionResult.AWAITING_COOLDOWN) {
-                    break
+            if (actionableInventory.selectOnHotbarCooldown == 0 && selectHotbarQueue.size == 0 && actionableInventory.swapBackToSlot != null) {
+                val result = SelectHotbarSlotAction(actionableInventory.swapBackToSlot!!).performAction(actionableInventory)
+                if (result == SlotActionResult.SUCCESS) {
+                    actionableInventory.swapBackToSlot = null
                 }
-//                if (potentialAction is SelectHotbarSlotAction) {
-//
-//                }
             }
-            return Started()
-        }
-        currentAction = null
-        onFinished?.invoke()
-        return Interacted()
-    }
-
-    open fun interactWithSlot(action: SlotActionType, slot: Slot, data:Int = 0) {
-        runInGame {
-            isSendingPacket = true
-            interactionManager.clickSlot(player.currentScreenHandler.syncId, slot.id, data, action, player)
-            isSendingPacket = false
+            slotActionQueue.removeIf { !it.didInteractThisTick }
         }
     }
 
-    open fun sendPacket(packet: Packet<*>) {
-        runInGame {
-            isSendingPacket = true
-            networkHandler.sendPacket(packet)
-            isSendingPacket = false
+
+    fun selectSlot(owner: IHandlerController, action:SelectHotbarSlotAction): IInventoryResult {
+        val queueIndex = selectHotbarQueue.indexOfFirst { it.controller == owner }
+        //add to the queue and return
+        if (queueIndex == -1 && action.retainControl) {
+            var addedToQueue = false
+            selectHotbarQueue.forEachIndexed { index, queuedSelectHotbarController ->
+                if (queuedSelectHotbarController.controller.getPriority() < owner.getPriority()) {
+                    if (index == 0) {
+                        selectHotbarQueue.first().action.onLostControl.invoke()
+                    }
+                    selectHotbarQueue.add(index, QueuedSelectHotbarController(owner, action))
+                    addedToQueue = true
+                    return@forEachIndexed
+                }
+            }
+            if (!addedToQueue) {
+                selectHotbarQueue.add(QueuedSelectHotbarController(owner, action))
+            }
+        }
+
+        if (selectHotbarQueue.size == 0 ||
+            selectHotbarQueue.first().controller == owner ||
+            selectHotbarQueue.first().controller.getPriority() < owner.getPriority()
+        ) {
+            val result = action.performAction(actionableInventory)
+            return when (result) {
+                SlotActionResult.SUCCESS -> Interacted()
+                SlotActionResult.AWAITING_COOLDOWN -> AwaitingCooldown()
+            }
+        }
+        return CantControl()
+    }
+
+    fun releaseSlot(owner: IHandlerController) = selectHotbarQueue.removeIf { it.controller == owner }
+
+    /**
+     * @param controller The controller that is trying to interact with the inventory
+     * @param action The action that the controller is trying to perform
+     * @param hasMoreActions Whether the controller is done interacting with the inventory. If true, the controller will stay in control until next tick
+     */
+    fun interact(controller: IHandlerController, action: SlotAction, hasMoreActions: Boolean = false): IInventoryResult {
+        //add to queue
+        val queueIndex = slotActionQueue.indexOfFirst { it.controller == controller }
+        if (queueIndex == -1) {
+            var addedToQueue = false
+            slotActionQueue.forEachIndexed { index, queuedController ->
+                if (queuedController.controller.getPriority() < controller.getPriority()) {
+                    slotActionQueue.add(index, QueuedSlotActionController(controller, true))
+                    addedToQueue = true
+                    return@forEachIndexed
+                }
+            }
+            if (!addedToQueue) {
+                slotActionQueue.add(QueuedSlotActionController(controller, true))
+            }
+        }
+        if (slotActionQueue.first().controller == controller) {
+            val result = action.performAction(actionableInventory)
+            slotActionQueue.first().didInteractThisTick = true
+            return when (result) {
+                SlotActionResult.SUCCESS -> {
+                    if (!hasMoreActions) {
+                        slotActionQueue.removeAt(0)
+                    }
+                    Interacted()
+                }
+                SlotActionResult.AWAITING_COOLDOWN -> AwaitingCooldown()
+            }
+        } else {
+            val matchingQueueItem = slotActionQueue.firstOrNull { it.controller == controller }
+            matchingQueueItem?.didInteractThisTick = true
+            return CantControl()
         }
     }
 
     fun offhandDoohickey() {
-        sendPacket(
+        actionableInventory.sendPacket(
             PlayerActionC2SPacket(
                 PlayerActionC2SPacket.Action.SWAP_ITEM_WITH_OFFHAND,
                 BlockPos(420, 69, 420),
@@ -171,55 +133,50 @@ open class InventoryHandler : IHandler {
         )
     }
 
-    fun releaseHotbarControl(owner:IHandlerController) {
-        //TODO
-    }
-
     private fun resetCooldowns() {
-        if (externalControlCooldown > 0) externalControlCooldown--
-        if (swapCooldown > 0) swapCooldown--
-        if (pickupCooldown > 0) pickupCooldown--
-        if (quickMoveCooldown > 0) quickMoveCooldown--
-        if (cloneCooldown > 0) cloneCooldown--
-        if (quickCraftCooldown > 0) quickCraftCooldown--
-        if (pickupAllCooldown > 0) pickupAllCooldown--
+        if (actionableInventory.externalControlCooldown > 0) actionableInventory.externalControlCooldown--
+        if (actionableInventory.selectOnHotbarCooldown > 0) actionableInventory.selectOnHotbarCooldown--
+        if (actionableInventory.swapCooldown > 0) actionableInventory.swapCooldown--
+        if (actionableInventory.pickupCooldown > 0) actionableInventory.pickupCooldown--
+        if (actionableInventory.quickMoveCooldown > 0) actionableInventory.quickMoveCooldown--
+        if (actionableInventory.cloneCooldown > 0) actionableInventory.cloneCooldown--
+        if (actionableInventory.quickCraftCooldown > 0) actionableInventory.quickCraftCooldown--
+        if (actionableInventory.pickupAllCooldown > 0) actionableInventory.pickupAllCooldown--
 
-        dropsThisTick = 0
+        actionableInventory.dropsThisTick = 0
     }
+}
 
-    private fun runQueuedActions() {
-        while (queuedActions.size > 0) {
-            val queuedAction = queuedActions[0]
-            for (action in queuedAction.actions(InventoryState.get())) {
-                if (action.performAction(this) == SlotActionResult.AWAITING_COOLDOWN) {
-                    return
-                }
-            }
-            queuedAction.onFinished?.invoke()
-            queuedActions.removeAt(0)
+class ActionableInventory {
+    /** Tracks whether a packet is getting sent from this mod or from the player/external mod */
+    private var isSendingPacket = false
+
+    var swapBackToSlot: Int? = null
+
+    var selectOnHotbarCooldown = 0
+    var swapCooldown = 0
+    var externalControlCooldown = 0  //TODO: Add setting to core configs
+    var pickupCooldown = 0 //TODO: Add setting to core configs
+    var quickMoveCooldown = 0 //TODO: Add setting to core configs
+    var cloneCooldown = 0 //TODO: Add setting to core configs
+    var quickCraftCooldown = 0 //TODO: Add setting to core configs
+    var pickupAllCooldown = 0 //TODO: Add setting to core configs
+
+    var dropsThisTick = 0
+
+    fun sendPacket(packet: Packet<*>) {
+        runInGame {
+            isSendingPacket = true
+            networkHandler.sendPacket(packet)
+            isSendingPacket = false
         }
     }
 
-    class QueuedActions(
-        val controller: IHandlerController,
-        val actions: (currentInventory: InventoryState) -> List<IInventoryAction>,
-        val queueable: Boolean,
-        val onFinished: (() -> Unit)? = null
-    )
-}
-
-class MockInventoryHandler(handler: InventoryHandler) : InventoryHandler() {
-    init {
-        externalControlCooldown = handler.externalControlCooldown
-        selectOnHotbarCooldown = handler.selectOnHotbarCooldown
-        swapCooldown = handler.swapCooldown
-        pickupCooldown = handler.pickupCooldown
-        quickMoveCooldown = handler.quickMoveCooldown
-        cloneCooldown = handler.cloneCooldown
-        quickCraftCooldown = handler.quickCraftCooldown
-        pickupAllCooldown = handler.pickupAllCooldown
+    fun interactWithSlot(action: SlotActionType, slot: Slot, data:Int = 0) {
+        runInGame {
+            isSendingPacket = true
+            interactionManager.clickSlot(player.currentScreenHandler.syncId, slot.id, data, action, player)
+            isSendingPacket = false
+        }
     }
-    override fun sendPacket(packet: Packet<*>) {}
-
-    override fun interactWithSlot(action: SlotActionType, slot: Slot, data:Int) {}
 }

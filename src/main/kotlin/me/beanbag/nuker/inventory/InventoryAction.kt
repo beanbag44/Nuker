@@ -1,7 +1,7 @@
 package me.beanbag.nuker.inventory
 
 import me.beanbag.nuker.ModConfigs.mc
-import me.beanbag.nuker.handlers.InventoryHandler
+import me.beanbag.nuker.handlers.ActionableInventory
 import me.beanbag.nuker.module.modules.CoreConfig
 import me.beanbag.nuker.utils.runInGame
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket
@@ -11,7 +11,7 @@ import net.minecraft.screen.slot.SlotActionType
 
 
 interface IInventoryAction {
-    fun performAction(handler:InventoryHandler) : SlotActionResult
+    fun performAction(actionableInventory: ActionableInventory) : SlotActionResult
 }
 
 enum class SlotActionResult {
@@ -19,16 +19,21 @@ enum class SlotActionResult {
     AWAITING_COOLDOWN
 }
 
-class SelectHotbarSlotAction(private val index: Int): IInventoryAction {
-    override fun performAction(handler: InventoryHandler): SlotActionResult {
+/**
+ * If retainControl is set to true, the caller is responsible for releasing control in the handler
+ */
+class SelectHotbarSlotAction(private val index: Int, val retainControl: Boolean = false, val onLostControl: () -> Unit = {}): IInventoryAction {
+    override fun performAction(actionableInventory: ActionableInventory): SlotActionResult {
         if (runInGame { return@runInGame if (player.inventory.selectedSlot == index) SlotActionResult.SUCCESS else null } != null) {
             return SlotActionResult.SUCCESS
         }
-        if (handler.selectOnHotbarCooldown > 0) return SlotActionResult.AWAITING_COOLDOWN
-        handler.originalHotbarSlot = mc.player?.inventory?.selectedSlot
+        if (actionableInventory.selectOnHotbarCooldown > 0) return SlotActionResult.AWAITING_COOLDOWN
+        if (actionableInventory.swapBackToSlot == null) {
+            actionableInventory.swapBackToSlot = mc.player?.inventory?.selectedSlot
+        }
         mc.player?.inventory?.selectedSlot = index
-        handler.sendPacket(UpdateSelectedSlotC2SPacket(index))
-        handler.selectOnHotbarCooldown = CoreConfig.selectOnHotbarCooldown.getValue()
+        actionableInventory.sendPacket(UpdateSelectedSlotC2SPacket(index))
+        actionableInventory.selectOnHotbarCooldown = CoreConfig.selectOnHotbarCooldown.getValue()
         return SlotActionResult.SUCCESS
     }
 }
@@ -37,9 +42,9 @@ abstract class SlotAction: IInventoryAction
 
 /** Performs a normal slot click. This can pickup or place items in the slot, possibly merging the cursor stack into the slot, or swapping the slot stack with the cursor stack if they can't be merged.*/
 class PickupAction(private val slot: Slot) : SlotAction() {
-    override fun performAction(handler: InventoryHandler): SlotActionResult {
-        if (handler.pickupCooldown > 0) return SlotActionResult.AWAITING_COOLDOWN
-        handler.interactWithSlot(SlotActionType.PICKUP, slot)
+    override fun performAction(actionableInventory: ActionableInventory): SlotActionResult {
+        if (actionableInventory.pickupCooldown > 0) return SlotActionResult.AWAITING_COOLDOWN
+        actionableInventory.interactWithSlot(SlotActionType.PICKUP, slot)
 //        handler.pickupCooldown = CoreConfig.pickupCooldown.getValue()
         return SlotActionResult.SUCCESS
     }
@@ -47,9 +52,9 @@ class PickupAction(private val slot: Slot) : SlotAction() {
 
 /** Performs a shift-click. This usually quickly moves items between the player's inventory and the open screen handler.*/
 class QuickMoveAction(val slot: Slot) : SlotAction() {
-    override fun performAction(handler: InventoryHandler): SlotActionResult {
-        if (handler.quickMoveCooldown > 0) return SlotActionResult.AWAITING_COOLDOWN
-        handler.interactWithSlot(SlotActionType.QUICK_MOVE, slot)
+    override fun performAction(actionableInventory: ActionableInventory): SlotActionResult {
+        if (actionableInventory.quickMoveCooldown > 0) return SlotActionResult.AWAITING_COOLDOWN
+        actionableInventory.interactWithSlot(SlotActionType.QUICK_MOVE, slot)
 //        handler.quickMoveCooldown = CoreConfig.quickMoveCooldown.getValue()
         return SlotActionResult.SUCCESS
     }
@@ -61,9 +66,9 @@ class QuickMoveAction(val slot: Slot) : SlotAction() {
  * When the action type is swap, the click data is the hotbar slot to swap with (0-8).
  */
 class SwapAction(val slot: Slot, val hotbarIndex:Int) : SlotAction() {
-    override fun performAction(handler: InventoryHandler): SlotActionResult {
-        if (handler.swapCooldown > 0) return SlotActionResult.AWAITING_COOLDOWN
-        handler.interactWithSlot(SlotActionType.SWAP, slot, hotbarIndex)
+    override fun performAction(actionableInventory: ActionableInventory): SlotActionResult {
+        if (actionableInventory.swapCooldown > 0) return SlotActionResult.AWAITING_COOLDOWN
+        actionableInventory.interactWithSlot(SlotActionType.SWAP, slot, hotbarIndex)
 //        handler.swapCooldown = CoreConfig.swapCooldown.getValue()
         return SlotActionResult.SUCCESS
     }
@@ -71,9 +76,9 @@ class SwapAction(val slot: Slot, val hotbarIndex:Int) : SlotAction() {
 
 /** Clones the item in the slot. Usually triggered by middle clicking an item in creative mode. */
 class CloneAction(val slot: Slot) : SlotAction() {
-    override fun performAction(handler: InventoryHandler): SlotActionResult {
-        if (handler.cloneCooldown > 0) return SlotActionResult.AWAITING_COOLDOWN
-        handler.interactWithSlot(SlotActionType.CLONE, slot)
+    override fun performAction(actionableInventory: ActionableInventory): SlotActionResult {
+        if (actionableInventory.cloneCooldown > 0) return SlotActionResult.AWAITING_COOLDOWN
+        actionableInventory.interactWithSlot(SlotActionType.CLONE, slot)
 //        handler.cloneCooldown = CoreConfig.cloneCooldown.getValue()
         return SlotActionResult.SUCCESS
     }
@@ -83,10 +88,10 @@ class CloneAction(val slot: Slot) : SlotAction() {
  *
  * When the action type is throw, the click data determines whether to throw a whole stack (1) or a single item from that stack (0). */
 class DropAction(private val slot: Slot, private val fullStack:Boolean) : SlotAction() {
-    override fun performAction(handler: InventoryHandler): SlotActionResult {
-        if (handler.dropsThisTick >= CoreConfig.maxDropsPerTick.getValue()) return SlotActionResult.AWAITING_COOLDOWN
-        handler.interactWithSlot(SlotActionType.THROW, slot, if (fullStack) 1 else 0)
-        handler.dropsThisTick++
+    override fun performAction(actionableInventory: ActionableInventory): SlotActionResult {
+        if (actionableInventory.dropsThisTick >= CoreConfig.maxDropsPerTick.getValue()) return SlotActionResult.AWAITING_COOLDOWN
+        actionableInventory.interactWithSlot(SlotActionType.THROW, slot, if (fullStack) 1 else 0)
+        actionableInventory.dropsThisTick++
         return SlotActionResult.SUCCESS
     }
 }
@@ -97,10 +102,10 @@ class DropAction(private val slot: Slot, private val fullStack:Boolean) : SlotAc
  *
  * The stage is packed into the click data along with the mouse button that was clicked. See {@link net.minecraft.screen.ScreenHandler#packQuickCraftData(int, int) ScreenHandler.packQuickCraftData(int, int)} for details. */
 class QuickCraftAction(val slot: Slot, val stage:Int, val mouseButton:Int) : SlotAction() {
-    override fun performAction(handler: InventoryHandler): SlotActionResult {
-        if (handler.quickCraftCooldown > 0) return SlotActionResult.AWAITING_COOLDOWN
+    override fun performAction(actionableInventory: ActionableInventory): SlotActionResult {
+        if (actionableInventory.quickCraftCooldown > 0) return SlotActionResult.AWAITING_COOLDOWN
 
-        handler.interactWithSlot(SlotActionType.QUICK_CRAFT, slot, ScreenHandler.packQuickCraftData(stage, mouseButton))
+        actionableInventory.interactWithSlot(SlotActionType.QUICK_CRAFT, slot, ScreenHandler.packQuickCraftData(stage, mouseButton))
 //        handler.quickCraftCooldown = CoreConfig.quickCraftCooldown.getValue()
         return SlotActionResult.SUCCESS
     }
@@ -108,9 +113,9 @@ class QuickCraftAction(val slot: Slot, val stage:Int, val mouseButton:Int) : Slo
 
 /** Replenishes the cursor stack with items from the screen handler. This is usually triggered by the player double clicking. */
 class PickupAllAction(private val slot: Slot) : SlotAction() {
-    override fun performAction(handler: InventoryHandler): SlotActionResult {
-        if (handler.pickupAllCooldown > 0) return SlotActionResult.AWAITING_COOLDOWN
-        handler.interactWithSlot(SlotActionType.QUICK_CRAFT, slot)
+    override fun performAction(actionableInventory: ActionableInventory): SlotActionResult {
+        if (actionableInventory.pickupAllCooldown > 0) return SlotActionResult.AWAITING_COOLDOWN
+        actionableInventory.interactWithSlot(SlotActionType.QUICK_CRAFT, slot)
 //        handler.pickupAllCooldown = CoreConfig.pickupAllCooldown.getValue()
         return SlotActionResult.SUCCESS
     }

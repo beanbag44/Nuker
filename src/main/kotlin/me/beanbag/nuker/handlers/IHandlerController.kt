@@ -7,7 +7,9 @@ interface IHandlerController {
 class HandlerPriority(val priority: Int, val isLifeSupport:Boolean) {
 
     companion object {
-        fun lowest() : HandlerPriority = HandlerPriority(0, false)
+        fun lowest() : HandlerPriority = HandlerPriority(-100, false)
+        fun normal() : HandlerPriority = HandlerPriority(0, false)
+        fun highest() : HandlerPriority = HandlerPriority(100, false)
     }
 
     operator fun compareTo(other: HandlerPriority): Int {

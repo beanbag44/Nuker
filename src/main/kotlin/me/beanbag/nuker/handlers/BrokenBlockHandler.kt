@@ -16,7 +16,6 @@ import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
 import net.minecraft.util.math.BlockPos
 
 object BrokenBlockHandler : IHandler {
-    override var priority = 0
     override var currentlyBeingUsedBy: IHandlerController? = null
 
     private val blockQueue = TimeoutSet<BrokenBlockPos> { if (validateBreak) 40 else ghostBlockTimeout }
