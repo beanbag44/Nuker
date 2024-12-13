@@ -40,7 +40,7 @@ object ModConfigs {
 
     var modules = listOf(
         CoreConfig,
-        Nuker,
+        Nuker(),
         SourceRemover(),
         UnfocusedCPU(),
         FastBreak(),

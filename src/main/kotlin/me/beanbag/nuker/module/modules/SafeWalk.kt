@@ -2,7 +2,7 @@ package me.beanbag.nuker.module.modules
 
 import me.beanbag.nuker.eventsystem.events.PlayerMoveEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
-import me.beanbag.nuker.external.meteor.MeteorModule
+import me.beanbag.nuker.external.meteor.SafeWalkMeteorImplementation
 import me.beanbag.nuker.module.Module
 
 class SafeWalk : Module("Safe Walk", "Prevents you from falling off blocks") {
@@ -35,6 +35,4 @@ class SafeWalk : Module("Safe Walk", "Prevents you from falling off blocks") {
     override fun createMeteorImplementation(): meteordevelopment.meteorclient.systems.modules.Module {
        return SafeWalkMeteorImplementation(this)
     }
-    class SafeWalkMeteorImplementation(module:Module) : MeteorModule(module)
-
 }

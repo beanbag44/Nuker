@@ -21,3 +21,17 @@ abstract class MeteorModule(var module: Module) : MeteorModule(MeteorLoader.CATE
         module.enabledSetting.setValue(isActive)
     }
 }
+
+class NukerMeteorImplementation(module: Module) : me.beanbag.nuker.external.meteor.MeteorModule(module)
+
+class CoreConfigMeteorImplementation(module: Module) : me.beanbag.nuker.external.meteor.MeteorModule(module)
+
+class EquipmentSaverMeteorImplementation(module: Module) : me.beanbag.nuker.external.meteor.MeteorModule(module)
+
+class FastBreakMeteorImplementation(module: Module) : me.beanbag.nuker.external.meteor.MeteorModule(module)
+
+class SafeWalkMeteorImplementation(module:Module) : me.beanbag.nuker.external.meteor.MeteorModule(module)
+
+class SourceRemoverMeteorImplementation(module: Module) : me.beanbag.nuker.external.meteor.MeteorModule(module)
+
+class UnfocusedCPUMeteorImplementation(module: Module) : me.beanbag.nuker.external.meteor.MeteorModule(module)
