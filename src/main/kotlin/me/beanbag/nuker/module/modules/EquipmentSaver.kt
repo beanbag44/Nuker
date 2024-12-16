@@ -2,7 +2,6 @@ package me.beanbag.nuker.module.modules
 
 import me.beanbag.nuker.eventsystem.events.PacketEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
-import me.beanbag.nuker.external.meteor.EquipmentSaverMeteorImplementation
 import me.beanbag.nuker.handlers.ChatHandler
 import me.beanbag.nuker.module.Module
 import me.beanbag.nuker.utils.InGame
@@ -161,9 +160,5 @@ class EquipmentSaver : Module("Equipment Saver", "Saves your tools/armor from br
             }
         }
         return null
-    }
-
-    override fun createMeteorImplementation(): meteordevelopment.meteorclient.systems.modules.Module {
-        return EquipmentSaverMeteorImplementation(this)
     }
 }

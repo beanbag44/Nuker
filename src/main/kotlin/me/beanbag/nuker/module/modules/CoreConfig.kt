@@ -1,6 +1,5 @@
 package me.beanbag.nuker.module.modules
 
-import me.beanbag.nuker.external.meteor.CoreConfigMeteorImplementation
 import me.beanbag.nuker.module.Module
 import me.beanbag.nuker.module.modules.nuker.enumsettings.BreakMode
 import me.beanbag.nuker.module.modules.nuker.enumsettings.ColourMode
@@ -132,8 +131,4 @@ object CoreConfig : Module("Core Configs", "General configs") {
         "Throwaway Blocks",
         "Blocks that can be thrown away if needed. For example, when moving a piece of armor to your inventory to save it from being broken",
         listOf(Items.COBBLESTONE, Items.STONE, Items.DIRT, Items.NETHERRACK, Items.DIORITE, Items.ANDESITE, Items.GRANITE, Items.GRAVEL, Items.ROTTEN_FLESH, Items.BONE))
-
-    override fun createMeteorImplementation(): meteordevelopment.meteorclient.systems.modules.Module {
-        return CoreConfigMeteorImplementation(this)
-    }
 }

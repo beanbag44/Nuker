@@ -3,7 +3,6 @@ package me.beanbag.nuker.module.modules
 import me.beanbag.nuker.ModConfigs.mc
 import me.beanbag.nuker.eventsystem.EventBus
 import me.beanbag.nuker.eventsystem.events.RenderEvent
-import me.beanbag.nuker.external.meteor.UnfocusedCPUMeteorImplementation
 import me.beanbag.nuker.module.Module
 
 class UnfocusedCPU : Module("Unfocused CPU", "limits frame rate when the game window is not focused"){
@@ -11,7 +10,7 @@ class UnfocusedCPU : Module("Unfocused CPU", "limits frame rate when the game wi
     val fps = setting(generalGroup, "Target FPS",
         "Target FPS to set as the limit when the window is not focused",
         1,
-        min = 1,
+        min = 0,
         max = 100)
 
     init {
@@ -21,9 +20,5 @@ class UnfocusedCPU : Module("Unfocused CPU", "limits frame rate when the game wi
         enabledSetting.getOnChange().add {
             mc.window.framerateLimit = if (it) fps.getValue() else mc.options.maxFps.value
         }
-    }
-
-    override fun createMeteorImplementation(): meteordevelopment.meteorclient.systems.modules.Module {
-        return UnfocusedCPUMeteorImplementation(this)
     }
 }

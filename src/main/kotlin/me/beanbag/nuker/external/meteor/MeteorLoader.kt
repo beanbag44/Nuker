@@ -1,11 +1,9 @@
 package me.beanbag.nuker.external.meteor
 
 import com.mojang.logging.LogUtils
-import me.beanbag.nuker.ModConfigs
 import me.beanbag.nuker.ModConfigs.MOD_NAME
 import meteordevelopment.meteorclient.addons.MeteorAddon
 import meteordevelopment.meteorclient.systems.modules.Category
-import meteordevelopment.meteorclient.systems.modules.Module
 import meteordevelopment.meteorclient.systems.modules.Modules
 
 class MeteorLoader : MeteorAddon() {
@@ -17,9 +15,8 @@ class MeteorLoader : MeteorAddon() {
     override fun onInitialize() {
         LogUtils.getLogger().info("Initializing $MOD_NAME Addon")
 
-        for (module in ModConfigs.modules) {
-            val meteorModule: Module = module.createMeteorImplementation()
-            Modules.get().add(meteorModule)
+        for (module in MeteorModule.modules) {
+            Modules.get().add(module)
         }
         MeteorEventSubscriber().subscribe()
     }

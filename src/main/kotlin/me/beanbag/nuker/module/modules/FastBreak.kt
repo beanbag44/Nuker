@@ -4,7 +4,6 @@ import me.beanbag.nuker.eventsystem.events.PacketEvent
 import me.beanbag.nuker.eventsystem.events.RenderEvent
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
-import me.beanbag.nuker.external.meteor.FastBreakMeteorImplementation
 import me.beanbag.nuker.handlers.BreakingHandler.breakingContexts
 import me.beanbag.nuker.handlers.BreakingHandler.checkAttemptBreaks
 import me.beanbag.nuker.module.Module
@@ -76,9 +75,5 @@ class FastBreak:Module("Fast Break", "Breaks blocks faster") {
                 renderEvent.renderer3D.boxLines(Box.from(Vec3d.of(queueBlock.blockPos)), color)
             }
         }
-    }
-
-    override fun createMeteorImplementation(): meteordevelopment.meteorclient.systems.modules.Module {
-        return FastBreakMeteorImplementation(this)
     }
 }

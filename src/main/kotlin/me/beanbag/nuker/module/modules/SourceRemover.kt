@@ -4,7 +4,6 @@ import me.beanbag.nuker.ModConfigs.inventoryHandler
 import me.beanbag.nuker.eventsystem.EventBus.MAX_PRIORITY
 import me.beanbag.nuker.eventsystem.events.TickEvent
 import me.beanbag.nuker.eventsystem.onInGameEvent
-import me.beanbag.nuker.external.meteor.SourceRemoverMeteorImplementation
 import me.beanbag.nuker.handlers.PlacementHandler.airPlace
 import me.beanbag.nuker.handlers.PlacementHandler.blockPlaceTimeouts
 import me.beanbag.nuker.inventory.SelectHotbarSlotAction
@@ -57,9 +56,5 @@ class SourceRemover : Module("Source Remover", "Places blocks in water sources t
             inventoryHandler.selectSlot(this@SourceRemover, SelectHotbarSlotAction(blockSlot, true))
             airPlace(placeBlock.blockPos, Direction.UP, CoreConfig.swingOnPlace, CoreConfig.validatePlace)
         }
-    }
-
-    override fun createMeteorImplementation(): meteordevelopment.meteorclient.systems.modules.Module {
-        return SourceRemoverMeteorImplementation(this)
     }
 }
