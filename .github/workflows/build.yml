@@ -2,9 +2,8 @@ name: Build latest commit
 
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+    tags:
+      - "*"
 
 jobs:
   build:
@@ -40,6 +39,6 @@ jobs:
           embed-author: "Epic Nuker"
           username: "Epic Nuker"
           avatar-url: "https://cdn.discordapp.com/icons/1277071858176495666/e390183f465176a86ad95373373cbf8b.png"
-          embed-title: "Build successful"
-          embed-description: "Build successful for commit ${{ github.sha }} \n [Download the latest build](${{ steps.artifact-upload-step.outputs.artifact-url }})"
+          embed-title: "New Release"
+          filename: "build/libs/Nuker-${{github.ref_name}}.jar"
           webhook-url: ${{ secrets.WEBHOOK_URL }}
