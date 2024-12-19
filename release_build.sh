@@ -16,7 +16,7 @@ if [ ! -f "gradle.properties" ]; then
 fi
 
 # Update the version in gradle.properties
-sed -i "s/version=.*/version=$NEW_VERSION/" gradle.properties
+sed -i "s/mod_version=.*/mod_version=$NEW_VERSION/" gradle.properties
 
 # Add the changes to git
 git add gradle.properties
