@@ -19,7 +19,7 @@ public class MixinMouse {
     @Shadow private double cursorDeltaY;
     @Shadow @Final
     private MinecraftClient client;
-    @Inject(method = "updateMouse", at = @At(value = "FIELD", target = "Lnet/minecraft/client/Mouse;cursorDeltaX:D", opcode = Opcodes.PUTFIELD, shift = At.Shift.BEFORE), cancellable = true)
+    @Inject(method = "updateMouse", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/tutorial/TutorialManager;onUpdateMouse(DD)V", opcode = Opcodes.PUTFIELD, shift = At.Shift.BEFORE), cancellable = true)
     private void updateMouseChangeLookDirection(CallbackInfo ci) {
         if (RotationHandler.INSTANCE.getFreeLooking()) {
             double f = this.client.options.getMouseSensitivity().getValue() * 0.6000000238418579 + 0.20000000298023224;

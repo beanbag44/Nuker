@@ -19,7 +19,7 @@ public class MixinClientConnection {
     @Inject(method = "send(Lnet/minecraft/network/packet/Packet;)V", at = @At("HEAD"), cancellable = true)
     private void send(Packet<?> packet, CallbackInfo callback) {
         if (packet instanceof BundleS2CPacket bundle) {
-            for (Iterator<Packet<ClientPlayPacketListener>> it = bundle.getPackets().iterator(); it.hasNext(); ) {
+            for (Iterator<Packet<? super ClientPlayPacketListener>> it = bundle.getPackets().iterator(); it.hasNext(); ) {
                 PacketEvent.Send.Pre event = new PacketEvent.Send.Pre(packet);
                 EventBus.INSTANCE.post(event);
 

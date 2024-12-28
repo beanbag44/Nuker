@@ -3,8 +3,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.net.URI
 
 plugins {
-    kotlin("jvm") version "2.0.10"
-    id("fabric-loom") version "1.7.1"
+    kotlin("jvm") version "2.1.0"
+    id("fabric-loom") version "1.9-SNAPSHOT"
     id("maven-publish")
 }
 
@@ -15,7 +15,7 @@ base {
     archivesName.set(project.property("archives_base_name") as String)
 }
 
-val targetJavaVersion = 17
+val targetJavaVersion = 21
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
     // Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
@@ -82,9 +82,9 @@ dependencies {
     modImplementation("dev.babbaj:nether-pathfinder:1.4.1")
     modImplementation("meteordevelopment:baritone:${project.property("minecraft_version")}-SNAPSHOT")
     modImplementation("meteordevelopment:meteor-client:${project.property("meteor_version")}")
-    modImplementation("maven.modrinth:malilib:0.18.3")
-    modImplementation("maven.modrinth:litematica:0.17.3")
-    configurations.getByName("rusherhackApi")("org.rusherhack:rusherhack-api:1.20.4-SNAPSHOT")
+    modImplementation("maven.modrinth:malilib:0.19.0")
+    modImplementation("maven.modrinth:litematica:0.18.1")
+    configurations.getByName("rusherhackApi")("org.rusherhack:rusherhack-api:1.20.6-SNAPSHOT")
 }
 
 tasks.processResources {

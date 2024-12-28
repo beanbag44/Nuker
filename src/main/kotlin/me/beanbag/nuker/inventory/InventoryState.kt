@@ -8,6 +8,7 @@ import net.minecraft.entity.effect.StatusEffect
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.recipe.Recipe
+import net.minecraft.registry.entry.RegistryEntry
 import net.minecraft.screen.*
 import net.minecraft.screen.slot.*
 import net.minecraft.village.TradeOffer
@@ -77,8 +78,8 @@ class AnvilScreenState(
 
 class BeaconScreenState(
     val paymentSlot: Slot,
-    val primaryEffect: StatusEffect?,
-    val secondaryEffect: StatusEffect?,
+    val primaryEffect: RegistryEntry<StatusEffect>?,
+    val secondaryEffect: RegistryEntry<StatusEffect>?,
 ) : InventoryState() {
     constructor(handler: BeaconScreenHandler) : this(
         handler.getSlot(0),
