@@ -2,6 +2,7 @@ package me.beanbag.nuker.external.meteor
 
 import me.beanbag.nuker.ModConfigs
 import me.beanbag.nuker.module.Module
+import me.beanbag.nuker.module.modules.*
 import me.beanbag.nuker.module.modules.nuker.Nuker
 import java.util.function.Consumer
 import meteordevelopment.meteorclient.systems.modules.Module as MeteorModule
@@ -10,12 +11,12 @@ abstract class MeteorModule(var module: Module) : MeteorModule(MeteorLoader.CATE
     companion object {
         val modules = listOf(
             NukerMeteorImplementation(ModConfigs.getModuleByClass(Nuker::class.java)!!),
-            CoreConfigMeteorImplementation(ModConfigs.getModuleByClass(Nuker::class.java)!!),
-            EquipmentSaverMeteorImplementation(ModConfigs.getModuleByClass(Nuker::class.java)!!),
-            FastBreakMeteorImplementation(ModConfigs.getModuleByClass(Nuker::class.java)!!),
-            SafeWalkMeteorImplementation(ModConfigs.getModuleByClass(Nuker::class.java)!!),
-            SourceRemoverMeteorImplementation(ModConfigs.getModuleByClass(Nuker::class.java)!!),
-            UnfocusedCPUMeteorImplementation(ModConfigs.getModuleByClass(Nuker::class.java)!!),
+            CoreConfigMeteorImplementation(ModConfigs.getModuleByClass(CoreConfig::class.java)!!),
+            EquipmentSaverMeteorImplementation(ModConfigs.getModuleByClass(EquipmentSaver::class.java)!!),
+            FastBreakMeteorImplementation(ModConfigs.getModuleByClass(FastBreak::class.java)!!),
+            SafeWalkMeteorImplementation(ModConfigs.getModuleByClass(SafeWalk::class.java)!!),
+            SourceRemoverMeteorImplementation(ModConfigs.getModuleByClass(SourceRemover::class.java)!!),
+            UnfocusedCPUMeteorImplementation(ModConfigs.getModuleByClass(UnfocusedCPU::class.java)!!),
         )
     }
     init {
