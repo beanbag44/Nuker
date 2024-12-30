@@ -9,7 +9,6 @@
     "MixinEntity",
     "MixinInGameHud",
     "MixinMeteorClient",
-    "MixinMeteorModules",
     "litematica.ISchematicVerifierAccessor"
   ],
   "client": [
