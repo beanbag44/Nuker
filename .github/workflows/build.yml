@@ -36,7 +36,7 @@ jobs:
       - name: GET all workspace
         id: get-commit-message
         run: |
-          printf "commit-message=$(curl -L \
+          echo -e "commit-message=$(curl -L \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ github.token }}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
