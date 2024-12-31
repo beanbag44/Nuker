@@ -10,8 +10,7 @@ fi
 # Set the new version
 NEW_VERSION=$1
 RELEASE_MESSAGE=${@/$NEW_VERSION/}
-COMMIT_MESSAGE="Version updated to $NEW_VERSION
-$RELEASE_MESSAGE"
+COMMIT_MESSAGE="Version updated to $NEW_VERSION - $RELEASE_MESSAGE"
 
 # Check if the gradle.properties file exists
 if [ ! -f "gradle.properties" ]; then
