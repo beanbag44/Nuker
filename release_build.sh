@@ -23,7 +23,8 @@ sed -i '' "s/mod_version=.*/mod_version=$NEW_VERSION/" gradle.properties
 git add gradle.properties
 
 # Commit the changes
-git commit -m "Version updated to $NEW_VERSION \n$RELEASE_MESSAGE"
+COMMIT_MESSAGE=$'Version updated to $NEW_VERSION\n$RELEASE_MESSAGE'
+git commit -m "$COMMIT_MESSAGE"
 
 # Push the changes
 git push
