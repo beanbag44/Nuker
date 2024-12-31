@@ -10,6 +10,9 @@ fi
 # Set the new version
 NEW_VERSION=$1
 RELEASE_MESSAGE=${@/$NEW_VERSION/}
+COMMIT_MESSAGE="Version updated to $NEW_VERSION
+$RELEASE_MESSAGE"
+
 # Check if the gradle.properties file exists
 if [ ! -f "gradle.properties" ]; then
     echo "Error: gradle.properties file not found."
@@ -23,7 +26,6 @@ sed -i '' "s/mod_version=.*/mod_version=$NEW_VERSION/" gradle.properties
 git add gradle.properties
 
 # Commit the changes
-COMMIT_MESSAGE=$'Version updated to $NEW_VERSION\n$RELEASE_MESSAGE'
 git commit -m "$COMMIT_MESSAGE"
 
 # Push the changes

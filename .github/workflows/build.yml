@@ -47,8 +47,8 @@ jobs:
         with:
           embed-author: "Epic Nuker"
           username: "Epic Nuker"
-          title: "New Build"
-          content: ${{ steps.get-commit-message.outputs.commit-message }}
+          embed-title: "New Build"
+          content: ${{steps.get-commit-message.outputs.commit-message}}
           avatar-url: "https://cdn.discordapp.com/icons/1277071858176495666/e390183f465176a86ad95373373cbf8b.png"
           filename: "build/libs/Nuker-${{github.ref_name}}.jar"
           webhook-url: ${{ secrets.WEBHOOK_URL }}
