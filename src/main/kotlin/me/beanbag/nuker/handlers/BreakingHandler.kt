@@ -50,7 +50,6 @@ object BreakingHandler : IHandler, IHandlerController {
                 return@onInGameEvent
             }
             packetCounter = 0
-            updateSelectedSlot()
             updateBreakingContexts()
         }
 
@@ -220,6 +219,7 @@ object BreakingHandler : IHandler, IHandlerController {
             }
             mineTicks++
             bestTool = getBestTool(state, pos)
+            if (index == 0) updateSelectedSlot()
             updateBreakDeltas(percentDamagePerTick(state, pos, bestTool))
 
             val threshold = if (index == 0) {
