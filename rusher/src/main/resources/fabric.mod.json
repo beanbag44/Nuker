@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "rusher_module",
+  "version": "${version}",
+
+  "name": "rusher_module",
+  "description": "Epic Nuker",
+  "authors": [],
+  "contact": {},
+
+  "license": "All-Rights-Reserved",
+  "icon": "assets/icon.png",
+
+  "environment": "client",
+  "entrypoints": {
+    "main": [ "mc.merge.rusher_module.RusherInitializer" ]
+  },
+
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-language-kotlin": ">=${kotlin_loader_version}",
+    "minecraft": "${minecraft_version}"
+  }
+}

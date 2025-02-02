@@ -2,31 +2,21 @@
   "schemaVersion": 1,
   "id": "nuker",
   "version": "${version}",
-  "name": "Nuker",
-  "description": "Epic nuking mod for nuking terrain",
+  "name": "nuker",
+  "description": "Epic Nuker",
   "authors": ["Beanbag", "PoTheMagicDragon"],
-  "contact": {
-    "sources": "https://github.com/beanbag44/Nuker"
-  },
+  "contact": { "sources": "https://github.com/beanbag44/Nuker" },
   "license": "MIT",
   "icon": "assets/icon.png",
   "environment": "client",
   "entrypoints": {
-    "main": [
-      "me.beanbag.nuker.Loader"
-    ],
-    "meteor": [
-      "me.beanbag.nuker.external.meteor.MeteorLoader"
-    ]
+    "main": [ "mc.merge.Loader"],
+    "meteor": [ "mc.merge.external.meteor.MeteorLoader"]
   },
-  "mixins": [
-    "nuker.mixins.json"
-  ],
+  "mixins": [ "merge.mixins.json" ],
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric-language-kotlin": ">=${kotlin_loader_version}",
-    "fabric": "*",
     "minecraft": "${minecraft_version}"
-  },
-  "accessWidener": "nuker.accesswidener"
+  }
 }

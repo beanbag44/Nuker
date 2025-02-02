@@ -1,0 +1,13 @@
+{
+  "Plugin-Class": "mc.merge.rusher_module.RusherLoader",
+  "Name": "Epic Nuker",
+  "Version": "${mod_version}",
+  "Description": "Epic nuking mod for nuking terrain",
+  "Authors": [
+    "Beanbag",
+    "PoTheMagicDragon"
+  ],
+  "Minecraft-Versions": [
+    "${minecraft_version}"
+  ]
+}

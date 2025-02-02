@@ -1,0 +1,25 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "mc.merge.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "MixinClientConnection",
+    "MixinEntity",
+    "litematica.ISchematicVerifierAccessor",
+    "meteor.MixinMeteorClient"
+  ],
+  "client": [
+    "MixinCamera",
+    "MixinChatInputSuggester",
+    "MixinGameRenderer",
+    "MixinInGameHud",
+    "MixinMinecraftClient",
+    "MixinMouse",
+    "MixinRenderSystem",
+    "MixinScreen"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
