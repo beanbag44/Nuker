@@ -19,9 +19,13 @@ object ChatHandler  {
                 return@onEvent
             }
             val commandParts = packet.chatMessage.substring(COMMAND_PREFIX.length).lowercase().split(" ")
-            commands.firstOrNull {
+            val command = commands.firstOrNull {
                 it.isMatch(commandParts)
-            }?.execute(packet.chatMessage.substring(COMMAND_PREFIX.length).split(" ").filter { it.isNotBlank() })
+            }
+            if (command != null) {
+                command.execute(packet.chatMessage.substring(COMMAND_PREFIX.length).split(" ").filter { it.isNotBlank() })
+                mc.commandHistoryManager.add(packet.chatMessage.substring(COMMAND_PREFIX.length))
+            }
 
             event.cancel()
             return@onEvent
