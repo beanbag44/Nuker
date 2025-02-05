@@ -3,17 +3,22 @@ package mc.merge.util
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
+import mc.merge.Loader.Companion.rusherPluginAlreadyExists
 import mc.merge.ModCore
 import mc.merge.ModCore.meteorIsLoaded
 import mc.merge.ModCore.meteorIsPresent
+import mc.merge.ModCore.modules
 import mc.merge.event.events.GameQuitEvent
 import mc.merge.event.onEvent
-import mc.merge.ModCore.modules
 import meteordevelopment.meteorclient.systems.Systems
 import net.fabricmc.loader.api.FabricLoader
 import java.io.File
+import java.io.IOException
+import java.io.InputStream
+import java.nio.file.FileAlreadyExistsException
+import java.nio.file.Files
 import java.nio.file.Path
-import java.util.Date
+import java.util.*
 
 object FileManager {
     private var isLoadingSettings = false
@@ -97,5 +102,59 @@ object FileManager {
             }
         }
         isLoadingSettings = false
+    }
+
+    fun addRusherPlugin() {
+        val mergeDetailsJsonString = javaClass.getResourceAsStream("/merge.json")?.bufferedReader()?.use { it.readText() } ?: return
+
+        val json = Gson().fromJson(mergeDetailsJsonString, JsonObject::class.java)
+        val modId = json.get("mod_id").asString
+        val rusherVersion = json.get("rusher_wrapper_version").asString
+        val minecraftVersion = json.get("minecraft_version").asString
+        val rusherFileName = "$modId-rusher-$minecraftVersion-$rusherVersion.jar"
+
+        //Delete old rusher plugin(s)
+        val rusherPluginDir = getMinecraftDir().resolve("rusherhack/plugins").toFile()
+        if (rusherPluginDir.exists()) {
+            for (file in rusherPluginDir.listFiles()!!) {
+                if (file.name.contains("$modId-rusher")) {
+                    if (file.name != rusherFileName) {
+                        file.delete()
+                    } else {
+                        rusherPluginAlreadyExists = true
+                    }
+                }
+            }
+        }
+
+        //Copy new rusher plugin(s)
+        if (!rusherPluginAlreadyExists) {
+            copyResourceToFile("rusherhack/plugins", rusherFileName)
+        }
+    }
+
+    private fun copyResourceToFile(gameSubFolder: String, resourceName: String) {
+        val gameDirPath = FabricLoader.getInstance().gameDir.toString()
+        var fileStream: InputStream? = null
+        try {
+            Files.createDirectories(File(gameDirPath).toPath().resolve(gameSubFolder))
+            fileStream = javaClass.getResourceAsStream("/$resourceName")
+            checkNotNull(fileStream)
+            Files.copy(
+                fileStream,
+                File(gameDirPath + (if (gameSubFolder.isNotEmpty()) "/" else "") + gameSubFolder + "/" + resourceName).toPath()
+            )
+        } catch (e: FileAlreadyExistsException) {
+            //This should happen the majority of the time because the file is already there. This is fine.
+        } catch (e: Exception) {
+            println("Failed to add file: $resourceName")
+        } finally {
+            if (fileStream != null) {
+                try {
+                    fileStream.close()
+                } catch (ignored: IOException) {
+                }
+            }
+        }
     }
 }

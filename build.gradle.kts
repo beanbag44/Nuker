@@ -6,11 +6,14 @@ plugins {
     id("fabric-loom") version "1.9.1"
     id("maven-publish")
 }
-
+val modId = project.property("mod_id") as String
+val modName = project.property("mod_name") as String
+val commandPrefix = project.property("command_prefix") as String
+val rusherWrapperVersion = project.property("rusher_wrapper_version")
 version = project.property("mod_version") as String
 group = project.property("maven_group") as String
 
-base.archivesName = project.property("mod_id") as String + "-" + stonecutter.current.project
+base.archivesName = modId + "-" + stonecutter.current.project
 
 val targetJavaVersion = if (stonecutter.eval(stonecutter.current.version, "<1.20.5")) 17 else 21
 java {
@@ -62,19 +65,36 @@ dependencies {
 tasks {
     processResources {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
-        inputs.property("version", project.version)
         inputs.property("minecraft_version", stonecutter.current.project)
         inputs.property("loader_version", project.property("loader_version"))
         inputs.property("kotlin_loader_version", project.property("kotlin_loader_version"))
+        inputs.property("mod_id", modId)
+        inputs.property("mod_name", modName)
+        inputs.property("command_prefix", commandPrefix)
+        inputs.property("mod_version", project.version)
+        inputs.property("rusher_wrapper_version", rusherWrapperVersion)
 
         filteringCharset = "UTF-8"
 
         filesMatching("fabric.mod.json") {
             expand(
-                "version" to project.version,
+                "mod_id" to modId,
+                "mod_version" to project.version,
+                "mod_name" to modName,
                 "minecraft_version" to stonecutter.current.project,
                 "loader_version" to project.property("loader_version"),
                 "kotlin_loader_version" to project.property("kotlin_loader_version"),
+            )
+        }
+
+        filesMatching("merge.json") {
+            expand(
+                "mod_id" to modId,
+                "mod_name" to modName,
+                "command_prefix" to commandPrefix,
+                "mod_version" to project.version,
+                "rusher_wrapper_version" to rusherWrapperVersion,
+                "minecraft_version" to stonecutter.current.project,
             )
         }
     }

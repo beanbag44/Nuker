@@ -13,14 +13,7 @@ import org.rusherhack.client.api.plugin.Plugin
 @Suppress("unused")
 class RusherLoader : Plugin() {
     override fun onLoad() {
-        try {
-            Class.forName("mc.merge.ModCore")
-            if (!FabricLoader.getInstance().isModLoaded(MOD_ID)) {
-                return
-            }
-        }
-        catch (e: ClassNotFoundException) { return }
-        catch (e: NoClassDefFoundError) { return }
+        if (!FabricLoader.getInstance().isModLoaded(MOD_ID)) { return }
 
         for (module in ModCore.modules) {
             LogUtils.getLogger().info("Loading module: ${module.name}")

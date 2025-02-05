@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "nuker",
-  "version": "${version}",
-  "name": "nuker",
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
   "description": "Epic Nuker",
   "authors": ["Beanbag", "PoTheMagicDragon"],
   "contact": { "sources": "https://github.com/beanbag44/Nuker" },

@@ -8,7 +8,7 @@ stonecutter registerChiseled tasks.register("chiseledBuild", stonecutter.chisele
     group = "project"
     ofTask("build")
 }
-
+//Convenience task for faster builds when working with just rusher
 stonecutter registerChiseled tasks.register("rusherBuild", stonecutter.chiseled) {
     nodes { it.branch.id.contains("rusher") }
     group = "project"

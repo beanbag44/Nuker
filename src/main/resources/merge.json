@@ -1,0 +1,8 @@
+{
+  "mod_id": "${mod_id}",
+  "mod_name": "${mod_name}",
+  "command_prefix": "${command_prefix}",
+  "mod_version": "${mod_version}",
+  "rusher_wrapper_version": "${rusher_wrapper_version}",
+  "minecraft_version": "${minecraft_version}"
+}
