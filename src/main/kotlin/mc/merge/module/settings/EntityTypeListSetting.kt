@@ -18,6 +18,5 @@ class EntityTypeListSetting(
 
     override fun listValueToString(value: EntityType<*>): String = Registries.ENTITY_TYPE.getId(value).toString().replace("minecraft:", "")
 
-    override fun allPossibleValues(): List<String> =  Registries.ENTITY_TYPE.ids.map { it.toString().replace("minecraft:", "") }
-
+    override fun allPossibleValues(): List<String> =  Registries.ENTITY_TYPE.ids.filter{ filter(Registries.ENTITY_TYPE.get(it)) }.map { it.toString().replace("minecraft:", "") }
 }

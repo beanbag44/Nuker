@@ -20,5 +20,5 @@ class ItemListSetting(name: String,
         Registries.ITEM.getId(value).toString().apply { replace("minecraft:", "", true) }
 
     override fun allPossibleValues(): List<String> =
-        Registries.ITEM.ids.map { it.toString().replace("minecraft:", "") }
+        Registries.ITEM.ids.filter { filter(Registries.ITEM.get(it)) }.map { it.toString().replace("minecraft:", "") }
 }

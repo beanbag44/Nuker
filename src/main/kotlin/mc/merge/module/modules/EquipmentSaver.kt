@@ -24,12 +24,21 @@ class EquipmentSaver : Module("Equipment Saver", "Saves your tools/armor from br
         1, 50,
         1, 50)
 
+
+
     private val allowedItems = setting(generalGroup,
         "Allowed Items",
         "Items that will be saved",
         mutableListOf(
             Items.NETHERITE_AXE, Items.NETHERITE_HOE, Items.NETHERITE_BOOTS, Items.NETHERITE_LEGGINGS, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_HELMET, Items.NETHERITE_PICKAXE, Items.NETHERITE_SHOVEL, Items.NETHERITE_SWORD,
-            Items.DIAMOND_AXE, Items.DIAMOND_HOE, Items.DIAMOND_BOOTS, Items.DIAMOND_LEGGINGS, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_HELMET, Items.DIAMOND_PICKAXE, Items.DIAMOND_SHOVEL, Items.DIAMOND_SWORD,)
+            Items.DIAMOND_AXE, Items.DIAMOND_HOE, Items.DIAMOND_BOOTS, Items.DIAMOND_LEGGINGS, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_HELMET, Items.DIAMOND_PICKAXE, Items.DIAMOND_SHOVEL, Items.DIAMOND_SWORD,),
+        filter = {
+            //? if 1.20.4 {
+            it.isDamageable
+            //?} else {
+            /*it.defaultStack.isDamageable
+            *///?}
+        }
        )
 
     init {

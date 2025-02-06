@@ -22,5 +22,5 @@ class BlockListSetting(
         Registries.BLOCK.getId(value).toString().replace("minecraft:", "")
 
     override fun allPossibleValues(): List<String> =
-        Registries.BLOCK.ids.map { it.toString().replace("minecraft:", "") }
+        Registries.BLOCK.ids.filter {  filter(Registries.BLOCK.get(it)) }.map { it.toString().replace("minecraft:", "") }
 }
