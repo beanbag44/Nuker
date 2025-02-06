@@ -18,7 +18,6 @@ class Loader: ModInitializer {
 
         LOGGER.info("Initialized $modName")
         tryInitialize()
-        println("Trying to initialize from ModInitializer")
     }
 
     companion object {

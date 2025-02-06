@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import mc.merge.Loader.Companion.rusherPluginAlreadyExists
 import mc.merge.ModCore
+import mc.merge.ModCore.LOGGER
 import mc.merge.ModCore.meteorIsLoaded
 import mc.merge.ModCore.meteorIsPresent
 import mc.merge.ModCore.modules
@@ -152,7 +153,7 @@ object FileManager {
         } catch (e: FileAlreadyExistsException) {
             //This should happen the majority of the time because the file is already there. This is fine.
         } catch (e: Exception) {
-            println("Failed to add file: $resourceName")
+            LOGGER.warn("Failed to add file: $resourceName")
         } finally {
             if (fileStream != null) {
                 try {
