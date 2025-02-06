@@ -1,8 +1,8 @@
 package mc.merge.module.settings
 
+import mc.merge.util.Versioned
 import net.minecraft.block.Block
 import net.minecraft.registry.Registries
-import net.minecraft.util.Identifier
 import java.util.function.Consumer
 
 class BlockListSetting(
@@ -15,8 +15,7 @@ class BlockListSetting(
 ) : AbstractListSetting<Block>(name, description, defaultValue, onChanged, visible, filter) {
 
     @Suppress("RedundantNullableReturnType")
-    override fun listValueFromString(value: String): Block? =
-        Registries.BLOCK.get(Identifier(value))
+    override fun listValueFromString(value: String): Block? = Registries.BLOCK.get(Versioned.identifier(value))
 
     override fun listValueToString(value: Block): String =
         Registries.BLOCK.getId(value).toString().replace("minecraft:", "")

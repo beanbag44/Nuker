@@ -1,12 +1,12 @@
 package mc.merge.util
 
 import baritone.api.BaritoneAPI
+import mc.merge.ModCore.mc
 import mc.merge.module.modules.nuker.enumsettings.FlattenMode
 import mc.merge.types.PosAndState
 import mc.merge.types.VolumeSort
-import mc.merge.ModCore.mc
+import mc.merge.util.Versioned.enchantmentLevel
 import net.minecraft.block.*
-import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.enchantment.Enchantments
 import net.minecraft.entity.effect.StatusEffectUtil
 import net.minecraft.entity.effect.StatusEffects
@@ -18,7 +18,6 @@ import net.minecraft.registry.tag.FluidTags
 import net.minecraft.state.property.Properties
 import net.minecraft.util.math.*
 import net.minecraft.world.World
-import java.util.*
 
 object BlockUtils {
     const val PLAYER_EYE_HEIGHT: Float = 1.62f
@@ -414,7 +413,7 @@ object BlockUtils {
         val toolSpeed = tool.getMiningSpeedMultiplier(state)
         if (toolSpeed != noToolSpeed) {
             breakingSpeed *= toolSpeed
-            val efficiencyLevel = EnchantmentHelper.getLevel(Enchantments.EFFICIENCY, tool)
+            val efficiencyLevel = enchantmentLevel(Enchantments.EFFICIENCY, tool)
             if (efficiencyLevel > 0 && !tool.isEmpty) {
                 breakingSpeed += (efficiencyLevel * efficiencyLevel + baseEfficiencyIncrease).toFloat()
             }
@@ -434,7 +433,8 @@ object BlockUtils {
             }
         }
         //water
-        if (player.isSubmergedIn(FluidTags.WATER) && !EnchantmentHelper.hasAquaAffinity(player)) {
+
+        if (player.isSubmergedIn(FluidTags.WATER) && enchantmentLevel(Enchantments.AQUA_AFFINITY, player) <= 0) {
             breakingSpeed *= waterModifier
         }
         //in air

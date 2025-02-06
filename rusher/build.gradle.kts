@@ -94,7 +94,6 @@ tasks {
 
     withType<KotlinCompile> {
         compilerOptions.jvmTarget.set(JvmTarget.fromTarget(targetJavaVersion.toString()))
-//        finalizedBy(copyJars)
     }
 
     jar {

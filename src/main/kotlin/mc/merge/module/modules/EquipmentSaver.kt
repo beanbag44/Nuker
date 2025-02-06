@@ -5,6 +5,7 @@ import mc.merge.event.onInGameEvent
 import mc.merge.handler.ChatHandler
 import mc.merge.module.Module
 import mc.merge.util.InGame
+import mc.merge.util.Versioned
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.ArmorItem
 import net.minecraft.item.ItemStack
@@ -32,13 +33,7 @@ class EquipmentSaver : Module("Equipment Saver", "Saves your tools/armor from br
         mutableListOf(
             Items.NETHERITE_AXE, Items.NETHERITE_HOE, Items.NETHERITE_BOOTS, Items.NETHERITE_LEGGINGS, Items.NETHERITE_CHESTPLATE, Items.NETHERITE_HELMET, Items.NETHERITE_PICKAXE, Items.NETHERITE_SHOVEL, Items.NETHERITE_SWORD,
             Items.DIAMOND_AXE, Items.DIAMOND_HOE, Items.DIAMOND_BOOTS, Items.DIAMOND_LEGGINGS, Items.DIAMOND_CHESTPLATE, Items.DIAMOND_HELMET, Items.DIAMOND_PICKAXE, Items.DIAMOND_SHOVEL, Items.DIAMOND_SWORD,),
-        filter = {
-            //? if 1.20.4 {
-            it.isDamageable
-            //?} else {
-            /*it.defaultStack.isDamageable
-            *///?}
-        }
+        filter = { Versioned.damageable(it) }
        )
 
     init {

@@ -14,3 +14,11 @@ stonecutter registerChiseled tasks.register("rusherBuild", stonecutter.chiseled)
     group = "project"
     ofTask("build")
 }
+
+for (ver in stonecutter.versions) {
+    stonecutter registerChiseled tasks.register("build-${ver.project}", stonecutter.chiseled) {
+        versions { _, it -> it == ver }
+        group = "project"
+        ofTask("build")
+    }
+}

@@ -1,8 +1,8 @@
 package mc.merge.module.settings
 
+import mc.merge.util.Versioned
 import net.minecraft.entity.EntityType
 import net.minecraft.registry.Registries
-import net.minecraft.util.Identifier
 import java.util.function.Consumer
 
 class EntityTypeListSetting(
@@ -14,7 +14,7 @@ class EntityTypeListSetting(
     filter: (EntityType<*>) -> Boolean
     ): AbstractListSetting<EntityType<*>>(name, description, defaultValue, onChanged, visible, filter) {
     @Suppress("RedundantNullableReturnType")
-    override fun listValueFromString(value: String): EntityType<*>? = Registries.ENTITY_TYPE.get(Identifier(value))
+    override fun listValueFromString(value: String): EntityType<*>? = Registries.ENTITY_TYPE.get(Versioned.identifier(value))
 
     override fun listValueToString(value: EntityType<*>): String = Registries.ENTITY_TYPE.getId(value).toString().replace("minecraft:", "")
 

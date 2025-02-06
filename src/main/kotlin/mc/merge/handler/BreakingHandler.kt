@@ -331,7 +331,7 @@ object BreakingHandler : IHandler, IHandlerController {
             val threshold = if (breakType.isPrimary()) 2f - CoreConfig.breakThreshold else 1f
             val previousFactor = previousMiningProgress * threshold
             val nextFactor = miningProgress * threshold
-            val currentFactor = LerpUtils.lerp(previousFactor, nextFactor, mc.tickDelta)
+            val currentFactor = LerpUtils.lerp(previousFactor, nextFactor, Versioned.tickDelta())
 
             val fillColour = if (CoreConfig.fillColourMode == ColourMode.Dynamic) {
                 val lerpColour = LerpUtils.lerp(CoreConfig.startFillColour, CoreConfig.endFillColour, currentFactor.toDouble())
