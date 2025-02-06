@@ -6,16 +6,27 @@ plugins {
     id("fabric-loom") version "1.9.1"
     id("maven-publish")
 }
+val mcVersion = stonecutter.current.project
 val modId = project.property("mod_id") as String
 val modName = project.property("mod_name") as String
 val commandPrefix = project.property("command_prefix") as String
 val rusherWrapperVersion = project.property("rusher_wrapper_version")
+val yarnMappings = project.property("yarn_mappings") as String
+val loaderVersion = project.property("loader_version") as String
+val kotlinLoaderVersion = project.property("kotlin_loader_version") as String
+val fabricVersion = project.property("fabric_version") as String
+val meteorVersion = project.property("meteor_version") as String
+val malilibVersion = project.property("malilib_version") as String
+val litematicaVersion = project.property("litematica_version") as String
+val netherPathfinderVersion = project.property("nether_pathfinder_version") as String
+val baritoneVersion = if(mcVersion == "1.21.2") "1.21.1" else mcVersion
+
 version = project.property("mod_version") as String
 group = project.property("maven_group") as String
 
-base.archivesName = modId + "-" + stonecutter.current.project
+base.archivesName = "$modId-$mcVersion"
 
-val targetJavaVersion = if (stonecutter.eval(stonecutter.current.version, "<1.20.5")) 17 else 21
+val targetJavaVersion = if (stonecutter.eval(mcVersion, "<1.20.5")) 17 else 21
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
     targetCompatibility = JavaVersion.toVersion(targetJavaVersion)
@@ -44,30 +55,30 @@ allprojects {
 
 dependencies {
     // To change the versions see the gradle.properties file
-    minecraft("com.mojang:minecraft:${stonecutter.current.project}")
-    mappings("net.fabricmc:yarn:${project.property("yarn_mappings")}:v2")
-    modImplementation("net.fabricmc:fabric-loader:${project.property("loader_version")}")
+    minecraft("com.mojang:minecraft:$mcVersion")
+    mappings("net.fabricmc:yarn:$yarnMappings:v2")
+    modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
 
-    modImplementation("net.fabricmc:fabric-language-kotlin:${project.property("kotlin_loader_version")}")
-    include("net.fabricmc:fabric-language-kotlin:${project.property("kotlin_loader_version")}")
+    modImplementation("net.fabricmc:fabric-language-kotlin:$kotlinLoaderVersion")
+    include("net.fabricmc:fabric-language-kotlin:$kotlinLoaderVersion")
 
-    modImplementation("net.fabricmc.fabric-api:fabric-api:${project.property("fabric_version")}")
-    include("net.fabricmc.fabric-api:fabric-api:${project.property("fabric_version")}")
+    modImplementation("net.fabricmc.fabric-api:fabric-api:$fabricVersion")
+    include("net.fabricmc.fabric-api:fabric-api:$fabricVersion")
 
-    modImplementation("meteordevelopment:baritone:${stonecutter.current.project}-SNAPSHOT")
-    modImplementation("meteordevelopment:meteor-client:${project.property("meteor_version")}")
+    modImplementation("meteordevelopment:baritone:$baritoneVersion-SNAPSHOT")
+    modImplementation("meteordevelopment:meteor-client:$meteorVersion")
 
-    modImplementation("maven.modrinth:malilib:${project.property("malilib_version")}")
-    modImplementation("maven.modrinth:litematica:${project.property("litematica_version")}")
-    modRuntimeOnly("dev.babbaj:nether-pathfinder:${project.property("nether_pathfinder_version")}")
+    modImplementation("maven.modrinth:malilib:$malilibVersion")
+    modImplementation("maven.modrinth:litematica:$litematicaVersion")
+    modRuntimeOnly("dev.babbaj:nether-pathfinder:$netherPathfinderVersion")
 }
 
 tasks {
     processResources {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
-        inputs.property("minecraft_version", stonecutter.current.project)
-        inputs.property("loader_version", project.property("loader_version"))
-        inputs.property("kotlin_loader_version", project.property("kotlin_loader_version"))
+        inputs.property("minecraft_version", mcVersion)
+        inputs.property("loader_version", loaderVersion)
+        inputs.property("kotlin_loader_version", kotlinLoaderVersion)
         inputs.property("mod_id", modId)
         inputs.property("mod_name", modName)
         inputs.property("command_prefix", commandPrefix)
@@ -81,9 +92,9 @@ tasks {
                 "mod_id" to modId,
                 "mod_version" to project.version,
                 "mod_name" to modName,
-                "minecraft_version" to stonecutter.current.project,
-                "loader_version" to project.property("loader_version"),
-                "kotlin_loader_version" to project.property("kotlin_loader_version"),
+                "minecraft_version" to mcVersion,
+                "loader_version" to loaderVersion,
+                "kotlin_loader_version" to kotlinLoaderVersion,
             )
         }
 
@@ -94,12 +105,12 @@ tasks {
                 "command_prefix" to commandPrefix,
                 "mod_version" to project.version,
                 "rusher_wrapper_version" to rusherWrapperVersion,
-                "minecraft_version" to stonecutter.current.project,
+                "minecraft_version" to mcVersion,
             )
         }
     }
 
-    get("sourcesJar").dependsOn(":rusher:${stonecutter.current.project}:copyJars")
+    get("sourcesJar").dependsOn(":rusher:$mcVersion:copyJars")
 
     withType<JavaCompile>().configureEach {
         options.encoding = "UTF-8"

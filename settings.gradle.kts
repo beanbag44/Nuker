@@ -16,7 +16,7 @@ stonecutter {
     centralScript = "build.gradle.kts"
 
     create(rootProject) {
-        versions("1.20.4", "1.20.6", "1.21")
+        versions("1.20.4", "1.20.6", "1.21", "1.21.1")
         vcsVersion = "1.20.4"
         branch("rusher")
     }
