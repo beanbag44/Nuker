@@ -2,8 +2,8 @@ package mc.merge.rusher_module
 
 import com.mojang.logging.LogUtils
 import mc.merge.ModCore
-import mc.merge.ModCore.MOD_ID
-import mc.merge.ModCore.MOD_NAME
+import mc.merge.ModCore.modId
+import mc.merge.ModCore.modName
 import mc.merge.event.EventBus
 import net.fabricmc.loader.api.FabricLoader
 import org.rusherhack.client.api.RusherHackAPI
@@ -13,7 +13,7 @@ import org.rusherhack.client.api.plugin.Plugin
 @Suppress("unused")
 class RusherLoader : Plugin() {
     override fun onLoad() {
-        if (!FabricLoader.getInstance().isModLoaded(MOD_ID)) { return }
+        if (!FabricLoader.getInstance().isModLoaded(modId)) { return }
 
         for (module in ModCore.modules) {
             LogUtils.getLogger().info("Loading module: ${module.name}")
@@ -28,10 +28,10 @@ class RusherLoader : Plugin() {
         RusherHackAPI.getModuleManager().registerFeature(ListenerModule())
 
         ModCore.rusherIsPresent = true
-        LogUtils.getLogger().info("$MOD_NAME - Rusher Plugin Loaded")
+        LogUtils.getLogger().info("$modName - Rusher Plugin Loaded")
     }
 
     override fun onUnload() {
-        LogUtils.getLogger().info("$MOD_NAME Plugin Unloaded!")
+        LogUtils.getLogger().info("$modName Plugin Unloaded!")
     }
 }

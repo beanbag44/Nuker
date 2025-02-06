@@ -1,7 +1,7 @@
 package mc.merge.command.commands
 
-import mc.merge.ModCore.COMMAND_PREFIX
-import mc.merge.ModCore.MOD_NAME
+import mc.merge.ModCore.commandPrefix
+import mc.merge.ModCore.modName
 import mc.merge.ModCore.modColor
 import mc.merge.command.ICommand
 import mc.merge.command.ICommandArgument
@@ -16,7 +16,7 @@ import net.minecraft.util.Formatting
 
 class SetModuleListSettingCommand : ICommand {
     override val helpText: Text
-        get() = Text.literal("$COMMAND_PREFIX[module] [setting] [add | remove] [value]")
+        get() = Text.literal("$commandPrefix[module] [setting] [add | remove] [value]")
             .append(Text.literal(" - Modifies a list setting value").styled {
                 it.withColor(Formatting.GRAY)
             })
@@ -40,7 +40,7 @@ class SetModuleListSettingCommand : ICommand {
                 ListAction.Add -> {
                     setting.addFromString(command[3])
                     ChatHandler.sendChatLine(
-                        (Text.literal("[").append(Text.literal(MOD_NAME).withColor(modColor)).append(Text.of("] "))
+                        (Text.literal("[").append(Text.literal(modName).withColor(modColor)).append(Text.of("] "))
                             .append(
                                 Text.literal("${module.name} - ${setting.getName()}: ")
                                     .withColor(Formatting.GRAY.colorValue!!)
@@ -51,7 +51,7 @@ class SetModuleListSettingCommand : ICommand {
                 ListAction.Remove -> {
                     setting.removeFromString(command[3])
                     ChatHandler.sendChatLine(
-                        (Text.literal("[").append(Text.literal(MOD_NAME).withColor(modColor)).append(Text.of("] "))
+                        (Text.literal("[").append(Text.literal(modName).withColor(modColor)).append(Text.of("] "))
                             .append(
                                 Text.literal("${module.name} - ${setting.getName()}: ")
                                     .withColor(Formatting.GRAY.colorValue!!)

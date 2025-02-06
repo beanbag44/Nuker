@@ -1,6 +1,6 @@
 package mc.merge.command.commands
 
-import mc.merge.ModCore.COMMAND_PREFIX
+import mc.merge.ModCore.commandPrefix
 import mc.merge.command.ICommand
 import mc.merge.command.ICommandArgument
 import mc.merge.command.argument.LiteralArgument
@@ -12,7 +12,7 @@ import net.minecraft.util.Formatting
 
 class HelpModuleSettingCommand : ICommand {
     override val helpText: Text
-        get() = Text.literal("${COMMAND_PREFIX}help [module] [setting]")
+        get() = Text.literal("${commandPrefix}help [module] [setting]")
             .append(Text.literal(" - Lists details about the setting").styled {
                 it.withColor(Formatting.GRAY)
             })

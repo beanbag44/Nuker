@@ -1,6 +1,6 @@
 package mc.merge.command.commands
 
-import mc.merge.ModCore.COMMAND_PREFIX
+import mc.merge.ModCore.commandPrefix
 import mc.merge.command.ICommand
 import mc.merge.command.ICommandArgument
 import mc.merge.command.argument.ModuleArgument
@@ -12,7 +12,7 @@ import net.minecraft.util.Formatting
 
 class SetModuleSettingCommand : ICommand {
     override val helpText: Text
-        get() = Text.literal("$COMMAND_PREFIX[module] [setting] [value]")
+        get() = Text.literal("$commandPrefix[module] [setting] [value]")
             .append(Text.literal(" - Sets a setting to a value").styled {
                 it.withColor(Formatting.GRAY)
             })

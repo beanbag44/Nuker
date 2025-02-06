@@ -1,9 +1,9 @@
 package mc.merge
 
 import mc.merge.ModCore.LOGGER
-import mc.merge.ModCore.MOD_NAME
 import mc.merge.ModCore.meteorIsLoaded
 import mc.merge.ModCore.meteorIsPresent
+import mc.merge.ModCore.modName
 import mc.merge.event.EventBus
 import mc.merge.util.FileManager
 import net.fabricmc.api.ModInitializer
@@ -16,7 +16,7 @@ class Loader: ModInitializer {
     override fun onInitialize() {
         meteorIsPresent = FabricLoader.getInstance().getModContainer("meteor-client").isPresent
 
-        LOGGER.info("Initialized $MOD_NAME")
+        LOGGER.info("Initialized $modName")
         tryInitialize()
         println("Trying to initialize from ModInitializer")
     }

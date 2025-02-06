@@ -42,7 +42,7 @@ object FileManager {
     }
 
     fun configFile(): File {
-        return getConfigDir().resolve("${ModCore.MOD_NAME}.json").toFile()
+        return getConfigDir().resolve("${ModCore.modName}.json").toFile()
     }
 
     fun saveModuleConfigs() {
@@ -131,6 +131,11 @@ object FileManager {
         if (!rusherPluginAlreadyExists) {
             copyResourceToFile("rusherhack/plugins", rusherFileName)
         }
+    }
+
+    fun getJsonResource(fileName:String): JsonObject? {
+        val resourceContents = javaClass.getResourceAsStream(fileName)?.bufferedReader()?.use { it.readText() } ?: return null
+        return Gson().fromJson(resourceContents, JsonObject::class.java)
     }
 
     private fun copyResourceToFile(gameSubFolder: String, resourceName: String) {

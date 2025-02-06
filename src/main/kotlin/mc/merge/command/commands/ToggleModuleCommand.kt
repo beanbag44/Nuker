@@ -4,13 +4,13 @@ import mc.merge.command.ICommand
 import mc.merge.command.ICommandArgument
 import mc.merge.command.argument.ModuleArgument
 import mc.merge.handler.ChatHandler
-import mc.merge.ModCore.COMMAND_PREFIX
+import mc.merge.ModCore.commandPrefix
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
 
 class ToggleModuleCommand : ICommand {
     override val helpText: Text
-        get() = Text.literal("$COMMAND_PREFIX[module]").append(Text.literal(" - Toggles a module on or off").styled { it.withColor(
+        get() = Text.literal("$commandPrefix[module]").append(Text.literal(" - Toggles a module on or off").styled { it.withColor(
             Formatting.GRAY) })
 
     override val args: List<ICommandArgument> = listOf(ModuleArgument())

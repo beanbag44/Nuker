@@ -1,7 +1,7 @@
 package mc.merge.command
 
 
-import mc.merge.ModCore.COMMAND_PREFIX
+import mc.merge.ModCore.commandPrefix
 import net.minecraft.text.Text
 
 interface ICommand {
@@ -26,7 +26,7 @@ interface ICommand {
     }
 
     fun getSuggestions(userInput: String): List<String> {
-        val commandParts = userInput.substring(COMMAND_PREFIX.length).lowercase().split(" ")
+        val commandParts = userInput.substring(commandPrefix.length).lowercase().split(" ")
         var commandIndex = 0
         var argsIndex = 0
 

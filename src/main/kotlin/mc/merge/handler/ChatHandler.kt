@@ -1,7 +1,7 @@
 package mc.merge.handler
 
-import mc.merge.ModCore.COMMAND_PREFIX
-import mc.merge.ModCore.MOD_NAME
+import mc.merge.ModCore.commandPrefix
+import mc.merge.ModCore.modName
 import mc.merge.ModCore.commands
 import mc.merge.ModCore.mc
 import mc.merge.ModCore.modColor
@@ -15,16 +15,16 @@ object ChatHandler  {
         onEvent<PacketEvent.Send.Pre> { event ->
             val packet = event.packet
 
-            if (packet !is ChatMessageC2SPacket || !packet.chatMessage.startsWith(COMMAND_PREFIX)) {
+            if (packet !is ChatMessageC2SPacket || !packet.chatMessage.startsWith(commandPrefix)) {
                 return@onEvent
             }
-            val commandParts = packet.chatMessage.substring(COMMAND_PREFIX.length).lowercase().split(" ")
+            val commandParts = packet.chatMessage.substring(commandPrefix.length).lowercase().split(" ")
             val command = commands.firstOrNull {
                 it.isMatch(commandParts)
             }
             if (command != null) {
-                command.execute(packet.chatMessage.substring(COMMAND_PREFIX.length).split(" ").filter { it.isNotBlank() })
-                mc.commandHistoryManager.add(packet.chatMessage.substring(COMMAND_PREFIX.length))
+                command.execute(packet.chatMessage.substring(commandPrefix.length).split(" ").filter { it.isNotBlank() })
+                mc.commandHistoryManager.add(packet.chatMessage.substring(commandPrefix.length))
             }
 
             event.cancel()
@@ -40,7 +40,7 @@ object ChatHandler  {
     fun printHeader() {
         sendChatLine(
             Text.literal("=========== ")
-                .append(Text.literal("[").append(Text.literal(MOD_NAME).withColor(modColor)).append(Text.of("] ")))
+                .append(Text.literal("[").append(Text.literal(modName).withColor(modColor)).append(Text.of("] ")))
                 .append(Text.literal(" ==========="))
         )
     }

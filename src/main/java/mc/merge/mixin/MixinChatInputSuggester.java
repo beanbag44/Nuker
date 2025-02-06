@@ -44,13 +44,13 @@ public abstract class MixinChatInputSuggester {
         // Anything that is present in the input text before the cursor position
         String prefix = this.textField.getText().substring(0, Math.min(this.textField.getText().length(), this.textField.getCursor()));
 
-        if (!prefix.startsWith(ModCore.COMMAND_PREFIX)) {
+        if (!prefix.startsWith(ModCore.commandPrefix)) {
             return;
         }
 
         List<String> generatedSuggestions = ChatHandler.INSTANCE.getSuggestions(prefix);
         if (prefix.split(" ").length == 1 && !prefix.endsWith(" ")) {
-            generatedSuggestions = generatedSuggestions.stream().map(s -> ModCore.COMMAND_PREFIX + s).toList();
+            generatedSuggestions = generatedSuggestions.stream().map(s -> ModCore.commandPrefix + s).toList();
         }
         if(!generatedSuggestions.isEmpty()) {
             ci.cancel();

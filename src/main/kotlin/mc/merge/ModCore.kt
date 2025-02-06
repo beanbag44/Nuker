@@ -6,6 +6,7 @@ import mc.merge.handler.InventoryHandler
 import mc.merge.module.Module
 import mc.merge.module.modules.nuker.Nuker
 import mc.merge.module.modules.*
+import mc.merge.util.FileManager
 import me.beanbag.nuker.module.modules.*
 import net.minecraft.client.MinecraftClient
 import net.minecraft.util.Formatting
@@ -16,15 +17,15 @@ import java.awt.Color
 object ModCore {
     //Mod specific
     val modColor = Formatting.BLUE.colorValue ?: Color(0, 0, 255).rgb
-    const val MOD_NAME = "Nuker"
-    const val COMMAND_PREFIX = "&&"
-    const val MOD_ID = "nuker"
+    var modName = "Nuker"
+    var commandPrefix = "&&"
+    var modId = "nuker"
 
     val mc: MinecraftClient = MinecraftClient.getInstance()
     var meteorIsPresent = false
     var meteorIsLoaded = false
     var rusherIsPresent = false
-    val LOGGER: Logger = LoggerFactory.getLogger(MOD_NAME)
+    val LOGGER: Logger = LoggerFactory.getLogger(modName)
 
     val inventoryHandler = InventoryHandler()
 
@@ -40,7 +41,7 @@ object ModCore {
         SetModuleListSettingCommand(),
     )
 
-    var modules = listOf<Module>(
+    var modules = listOf(
         CoreConfig,
         Nuker(),
         SourceRemover(),
@@ -49,6 +50,18 @@ object ModCore {
         EquipmentSaver(),
         SafeWalk(),
     )
+
+    init {
+        val json = FileManager.getJsonResource("/merge.json")
+        if (json != null) {
+            modId = json.get("mod_id").asString
+            modName = json.get("mod_name").asString
+            commandPrefix = json.get("command_prefix").asString
+//            ModCore.modVersion = json.get("mod_version").asString
+//            ModCore.rusherWrapperVersion = json.get("rusher_wrapper_version").asString
+//            ModCore.mcVersion = json.get("minecraftVersion").asString
+        }
+    }
 
     fun getModuleByName(name: String): Module? {
         return modules.find { it.name.equals(name, true) }

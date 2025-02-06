@@ -1,6 +1,6 @@
 package mc.merge.command.commands
 
-import mc.merge.ModCore.COMMAND_PREFIX
+import mc.merge.ModCore.commandPrefix
 import mc.merge.ModCore.modColor
 import mc.merge.command.ICommand
 import mc.merge.command.ICommandArgument
@@ -12,7 +12,7 @@ import net.minecraft.util.Formatting
 
 class ListModuleCommand : ICommand {
     override val helpText: Text
-        get() = Text.literal("${COMMAND_PREFIX}list [module]")
+        get() = Text.literal("${commandPrefix}list [module]")
             .append(Text.literal(" - Lists module settings and their current value").styled {
                 it.withColor(Formatting.GRAY)
             })

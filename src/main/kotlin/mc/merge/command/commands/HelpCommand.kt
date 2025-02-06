@@ -1,7 +1,7 @@
 package mc.merge.command.commands
 
 import mc.merge.ModCore
-import mc.merge.ModCore.COMMAND_PREFIX
+import mc.merge.ModCore.commandPrefix
 import mc.merge.command.ExecutableClickEvent
 import mc.merge.command.ICommand
 import mc.merge.command.ICommandArgument
@@ -13,7 +13,7 @@ import net.minecraft.util.Formatting
 
 class HelpCommand : ICommand {
     override val helpText: Text
-        get() = Text.empty().append(Text.literal("${COMMAND_PREFIX}help").styled {
+        get() = Text.empty().append(Text.literal("${commandPrefix}help").styled {
             it.withClickEvent(ExecutableClickEvent { execute(emptyList()) })
                 .withUnderline(true)
                 .withHoverEvent(HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.of("Click to run this command")))

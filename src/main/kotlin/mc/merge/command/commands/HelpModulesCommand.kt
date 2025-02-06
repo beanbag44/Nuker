@@ -1,7 +1,7 @@
 package mc.merge.command.commands
 
 import mc.merge.ModCore
-import mc.merge.ModCore.COMMAND_PREFIX
+import mc.merge.ModCore.commandPrefix
 import mc.merge.command.ExecutableClickEvent
 import mc.merge.command.ICommand
 import mc.merge.command.ICommandArgument
@@ -13,7 +13,7 @@ import net.minecraft.util.Formatting
 
 class HelpModulesCommand: ICommand {
     override val helpText: Text
-        get() = Text.empty().append(Text.literal("${COMMAND_PREFIX}help modules").styled {
+        get() = Text.empty().append(Text.literal("${commandPrefix}help modules").styled {
             it.withClickEvent(ExecutableClickEvent {
                 execute(emptyList())
             })
@@ -28,7 +28,7 @@ class HelpModulesCommand: ICommand {
 
     override fun execute(command: List<String>) {
         ChatHandler.printHeader()
-        ChatHandler.sendChatLine("Click on a module or type \"${COMMAND_PREFIX}help [module]\" for more details")
+        ChatHandler.sendChatLine("Click on a module or type \"${commandPrefix}help [module]\" for more details")
         for (loaderModule in ModCore.modules) {
             ChatHandler.sendChatLine(
                 Text.empty().append(Text.literal(ChatHandler.toCamelCaseName(loaderModule.name)).styled {
