@@ -27,8 +27,6 @@ class Loader: ModInitializer {
             if (meteorIsPresent && !meteorIsLoaded) {
                 return
             }
-            //TODO load mod properties
-
 //            GUI.initGUI()
             FileManager.loadModuleConfigs()
             val rusherPluginJVMArg = System.getProperty("rusherhack.enablePlugins")
