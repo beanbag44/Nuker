@@ -8,7 +8,11 @@ import me.beanbag.nuker.module.modules.SourceRemover
 import java.util.function.Consumer
 
 
-abstract class MeteorModule(var module: Module) : meteordevelopment.meteorclient.systems.modules.Module(MeteorLoader.CATEGORY, module.name, module.description) {
+abstract class MeteorModule(var module: Module) : meteordevelopment.meteorclient.systems.modules.Module(
+    MeteorLoader.CATEGORY,
+    module.name.replace(" ", ""),
+    module.description
+) {
     companion object {
         val modules = listOf(
             NukerMeteorImplementation(ModCore.getModuleByClass(Nuker::class.java)!!),
