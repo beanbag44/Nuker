@@ -66,7 +66,11 @@ dependencies {
     include("net.fabricmc.fabric-api:fabric-api:$fabricVersion")
 
     modImplementation("meteordevelopment:baritone:$baritoneVersion-SNAPSHOT")
-    modImplementation("meteordevelopment:meteor-client:$meteorVersion")
+    if (stonecutter.current.project == "1.21.4") {
+        modImplementation("meteordevelopment:meteor-client:$meteorVersion-SNAPSHOT")
+    } else {
+        modImplementation("meteordevelopment:meteor-client:$meteorVersion")
+    }
 
     modImplementation("maven.modrinth:malilib:$malilibVersion")
     modImplementation("maven.modrinth:litematica:$litematicaVersion")
