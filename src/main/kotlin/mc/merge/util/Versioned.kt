@@ -1,6 +1,7 @@
 package mc.merge.util
 
 import mc.merge.ModCore.mc
+import mc.merge.util.Versioned.enchantmentLevel
 import net.minecraft.enchantment.Enchantment
 import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.enchantment.Enchantments
@@ -10,7 +11,10 @@ import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
 import net.minecraft.registry.Registries
 import net.minecraft.registry.RegistryKey
+import net.minecraft.registry.RegistryKeys
 import net.minecraft.util.Identifier
+//? if >=1.21.2
+/*import net.minecraft.util.PlayerInput*/
 
 object Versioned {
     fun identifier(value: String): Identifier =
@@ -35,23 +39,56 @@ object Versioned {
         /*mc.renderTickCounter.getTickDelta(false)
     *///?}
 
-    //? if <1.21 {
+    //? if <=1.20.6 {
     fun enchantmentLevel(enchantment: Enchantment, itemStack: ItemStack): Int =
         EnchantmentHelper.getLevel(enchantment, itemStack)
-    //?} else {
-    /*fun InGame.enchantmentLevel(enchantment: RegistryKey<Enchantment>, itemStack: ItemStack): Int { /^Enchantments.EFFICIENCY^/
-        val enchantmentEntry = world.registryManager.get(Enchantments.EFFICIENCY.registryRef).getEntry(enchantment).get()
+    //?} else if <=1.21.1 {
+    /*fun InGame.enchantmentLevel(enchantment: RegistryKey<Enchantment>, itemStack: ItemStack): Int {
+        val enchantmentEntry = world.registryManager.get(enchantment.registryRef).getEntry(enchantment).get()
         return EnchantmentHelper.getLevel(enchantmentEntry, itemStack)
+    }
+    *///?} else {
+    /*fun InGame.enchantmentLevel(enchantment: RegistryKey<Enchantment>, itemStack: ItemStack): Int { /^Enchantments.EFFICIENCY^/
+        val itemEnchantments = itemStack.enchantments.enchantmentEntries
+        for (itemEnchantment in itemEnchantments) {
+            if (itemEnchantment.key.matchesKey(enchantment)) {
+                return itemEnchantment.intValue
+            }
+        }
+        return 0
     }
     *///?}
 
-    //? if <1.21 {
+    //? if <=1.20.6 {
     fun enchantmentLevel(enchantment: Enchantment, entity: LivingEntity): Int =
         EnchantmentHelper.getEquipmentLevel(enchantment, entity)
-    //?} else {
-        /*fun InGame.enchantmentLevel(enchantment: RegistryKey<Enchantment>, entity: LivingEntity): Int {
-            val enchantmentEntry = world.registryManager.get(Enchantments.EFFICIENCY.registryRef).getEntry(enchantment).get()
-            return EnchantmentHelper.getEquipmentLevel(enchantmentEntry, entity)
-        }
+    //?} else if <=1.21.1 {
+    /*fun InGame.enchantmentLevel(enchantment: RegistryKey<Enchantment>, entity: LivingEntity): Int {
+        val enchantmentEntry = world.registryManager.get(Enchantments.EFFICIENCY.registryRef).getEntry(enchantment).get()
+        return EnchantmentHelper.getEquipmentLevel(enchantmentEntry, entity)
+    }
+    *///?} else {
+    /*fun InGame.enchantmentLevel(enchantment: RegistryKey<Enchantment>, entity: LivingEntity): Int {
+        val registryValue = world.registryManager.getOrThrow(enchantment.registryRef)
+        val enchantmentValue = registryValue.get(enchantment.value)
+        return EnchantmentHelper.getEquipmentLevel(registryValue.getEntry(enchantmentValue), entity)
+    }
     *///?}
+
+    fun InGame.setSneaking(sneaking: Boolean) {
+        player.isSneaking = sneaking
+        //? if <1.21.2 {
+        player.input.sneaking = sneaking
+        //?} else {
+        /*player.input.playerInput = PlayerInput(
+            player.input.playerInput.forward,
+            player.input.playerInput.backward,
+            player.input.playerInput.left,
+            player.input.playerInput.right,
+            player.input.playerInput.jump,
+            sneaking,
+            player.input.playerInput.sprint
+        )
+        *///?}
+    }
 }

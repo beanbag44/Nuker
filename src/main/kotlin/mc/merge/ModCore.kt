@@ -45,7 +45,6 @@ object ModCore {
         CoreConfig,
         Nuker(),
         SourceRemover(),
-        UnfocusedCPU(),
         FastBreak(),
         EquipmentSaver(),
         SafeWalk(),

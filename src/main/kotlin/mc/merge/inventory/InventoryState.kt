@@ -8,6 +8,8 @@ import net.minecraft.entity.effect.StatusEffect
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.item.ItemStack
 import net.minecraft.recipe.Recipe
+//? if >=1.21.2
+/*import net.minecraft.recipe.RecipeDisplayEntry*/
 //? if >=1.20.5
 /*import net.minecraft.registry.entry.RegistryEntry*/
 import net.minecraft.screen.*
@@ -144,12 +146,20 @@ class CrafterScreenState(
 class CraftingTableScreenState(
     val inputSlots: List<Slot>,
     val outputSlot: CraftingResultSlot,
+    //? if <1.21.2 {
     val recipes: List<Recipe<*>>?,
+    //?} else {
+    /*val recipes: List<RecipeDisplayEntry>?,
+    *///?}
 ) : InventoryState() {
     constructor(handler: CraftingScreenHandler) : this(
         handler.slots.filter { it.id in 1..9 },
         handler.slots.filterIsInstance<CraftingResultSlot>().first(),
-        mc.player?.recipeBook?.orderedResults?.flatMap { it.allRecipes }?.map { it.value }
+        //? if <1.21.2 {
+        mc.player?.recipeBook?.orderedResults?.flatMap{ it.allRecipes }?.map { it.value }
+        //?} else {
+        /*mc.player?.recipeBook?.orderedResults?.flatMap{ it.allRecipes }
+    *///?}
     )
 }
 
@@ -255,14 +265,22 @@ class PlayerInventoryScreenState(
     val armorSlots: List<Slot>,
     val craftingTableSlots: List<Slot>,
     val craftingTableOutput: CraftingResultSlot,
+    //? if <1.21.2 {
     val recipes: List<Recipe<*>>?,
+    //?} else {
+    /*val recipes: List<RecipeDisplayEntry>?,
+    *///?}
 ) : InventoryState() {
     constructor(handler: PlayerScreenHandler) : this(
         handler.getSlot(45),
         handler.slots.filter { it.id in 36..39 },
         handler.slots.filter { it.id in 1..9 },
         handler.getSlot(0) as CraftingResultSlot,
-        mc.player?.recipeBook?.orderedResults?.flatMap { it.allRecipes }?.map { it.value }
+        //? if <1.21.2 {
+        mc.player?.recipeBook?.orderedResults?.flatMap{ it.allRecipes }?.map { it.value }
+        //?} else {
+        /*mc.player?.recipeBook?.orderedResults?.flatMap{ it.allRecipes }
+        *///?}
     )
 }
 

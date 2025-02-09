@@ -3,6 +3,7 @@ package mc.merge.module.modules
 import mc.merge.event.events.PlayerMoveEvent
 import mc.merge.event.onInGameEvent
 import mc.merge.module.Module
+import mc.merge.util.Versioned.setSneaking
 
 class SafeWalk : Module("Safe Walk", "Prevents you from falling off blocks") {
     val generalGroup = group("General", "General settings")
@@ -21,8 +22,7 @@ class SafeWalk : Module("Safe Walk", "Prevents you from falling off blocks") {
                             boundingBox.offset(x * range, -1.0E-6, z * range)
                         ).isPresent
                         if (!supportingBlockExists) {
-                            player.isSneaking = true
-                            player.input.sneaking = true
+                            setSneaking(true)
                         }
                     }
                 }

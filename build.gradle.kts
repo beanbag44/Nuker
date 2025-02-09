@@ -19,7 +19,7 @@ val meteorVersion = project.property("meteor_version") as String
 val malilibVersion = project.property("malilib_version") as String
 val litematicaVersion = project.property("litematica_version") as String
 val netherPathfinderVersion = project.property("nether_pathfinder_version") as String
-val baritoneVersion = if(mcVersion == "1.21.2") "1.21.1" else mcVersion
+val baritoneVersion = if(stonecutter.current.project == "1.21.2") "1.21.3" else mcVersion
 
 version = project.property("mod_version") as String
 group = project.property("maven_group") as String
@@ -109,8 +109,9 @@ tasks {
             )
         }
     }
-
-    get("sourcesJar").dependsOn(":rusher:$mcVersion:copyJars")
+    if (stonecutter.current.project != "1.21.2") {
+        get("sourcesJar").dependsOn(":rusher:$mcVersion:copyJars")
+    }
 
     withType<JavaCompile>().configureEach {
         options.encoding = "UTF-8"

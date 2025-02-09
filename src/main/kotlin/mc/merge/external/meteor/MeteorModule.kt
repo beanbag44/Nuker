@@ -17,7 +17,6 @@ abstract class MeteorModule(var module: Module) : meteordevelopment.meteorclient
             FastBreakMeteorImplementation(ModCore.getModuleByClass(FastBreak::class.java)!!),
             SafeWalkMeteorImplementation(ModCore.getModuleByClass(SafeWalk::class.java)!!),
             SourceRemoverMeteorImplementation(ModCore.getModuleByClass(SourceRemover::class.java)!!),
-            UnfocusedCPUMeteorImplementation(ModCore.getModuleByClass(UnfocusedCPU::class.java)!!),
         )
     }
     init {
@@ -50,5 +49,3 @@ class FastBreakMeteorImplementation(module: Module) : MeteorModule(module)
 class SafeWalkMeteorImplementation(module:Module) : MeteorModule(module)
 
 class SourceRemoverMeteorImplementation(module: Module) : MeteorModule(module)
-
-class UnfocusedCPUMeteorImplementation(module: Module) : MeteorModule(module)
