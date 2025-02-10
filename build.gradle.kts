@@ -132,4 +132,15 @@ tasks {
             rename { "${it}_${project.base.archivesName}" }
         }
     }
+
+    val buildAndCollect = register<Copy>("buildAndCollect") { // this: Copy
+        group = "build"
+        from(remapJar.map { it.archiveFile })
+        into(rootProject.layout.buildDirectory.file("libs/${version}"))
+        dependsOn(build)
+    }
+
+    build{
+        finalizedBy(buildAndCollect)
+    }
 }
