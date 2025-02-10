@@ -19,7 +19,7 @@ val meteorVersion = project.property("meteor_version") as String
 val malilibVersion = project.property("malilib_version") as String
 val litematicaVersion = project.property("litematica_version") as String
 val netherPathfinderVersion = project.property("nether_pathfinder_version") as String
-val baritoneVersion = if(stonecutter.current.project == "1.21.2") "1.21.3" else mcVersion
+val baritoneVersion = if(stonecutter.current.project == "1.21.2") "1.21.3" else stonecutter.current.project
 
 version = project.property("mod_version") as String
 group = project.property("maven_group") as String
