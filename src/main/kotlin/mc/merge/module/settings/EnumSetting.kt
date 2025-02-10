@@ -4,6 +4,7 @@ import java.util.function.Consumer
 import java.util.function.Supplier
 import meteordevelopment.meteorclient.settings.Setting as MeteorSetting
 
+@Suppress("UNCHECKED_CAST")
 class EnumSetting<T : Enum<T>>(
     name: String,
     description: String,
