@@ -12,6 +12,7 @@
   "client": [
     "MixinCamera",
     "MixinChatInputSuggester",
+    "MixinClientPlayNetworkHandler",
     "MixinGameRenderer",
     "MixinInGameHud",
     "MixinMinecraftClient",
