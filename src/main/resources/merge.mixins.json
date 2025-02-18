@@ -4,6 +4,7 @@
   "package": "mc.merge.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "MixinAbstractBlockState",
     "MixinClientConnection",
     "MixinEntity",
     "litematica.ISchematicVerifierAccessor",
@@ -11,7 +12,9 @@
   ],
   "client": [
     "MixinCamera",
+    "MixinChatHud",
     "MixinChatInputSuggester",
+    "MixinClientPlayInteractionHandler",
     "MixinClientPlayNetworkHandler",
     "MixinGameRenderer",
     "MixinInGameHud",

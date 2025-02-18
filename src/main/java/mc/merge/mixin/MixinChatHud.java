@@ -1,0 +1,20 @@
+package mc.merge.mixin;
+
+import mc.merge.event.EventBus;
+import mc.merge.event.events.ChatReceivedEvent;
+import net.minecraft.client.gui.hud.ChatHud;
+import net.minecraft.client.gui.hud.MessageIndicator;
+import net.minecraft.network.message.MessageSignatureData;
+import net.minecraft.text.Text;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+@Mixin(ChatHud.class)
+public class MixinChatHud {
+    @Inject(at = @At("HEAD"), method = "addMessage(Lnet/minecraft/text/Text;Lnet/minecraft/network/message/MessageSignatureData;Lnet/minecraft/client/gui/hud/MessageIndicator;)V", cancellable = true)
+    private void addMessageMixin(Text message, MessageSignatureData signature, MessageIndicator indicator, CallbackInfo ci) {
+        EventBus.INSTANCE.post(new ChatReceivedEvent(message));
+    }
+}

@@ -2,6 +2,7 @@ package mc.merge.util
 
 import mc.merge.ModCore.mc
 import mc.merge.util.Versioned.enchantmentLevel
+import net.minecraft.block.entity.BlockEntity
 import net.minecraft.enchantment.Enchantment
 import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.enchantment.Enchantments
@@ -9,6 +10,7 @@ import net.minecraft.entity.Entity
 import net.minecraft.entity.LivingEntity
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraft.nbt.NbtCompound
 import net.minecraft.registry.Registries
 import net.minecraft.registry.RegistryKey
 import net.minecraft.registry.RegistryKeys
@@ -89,6 +91,14 @@ object Versioned {
             sneaking,
             player.input.playerInput.sprint
         )
+        *///?}
+    }
+
+    fun InGame.writeNbt(blockEntity: BlockEntity, nbt: NbtCompound) {
+        //? if <=1.20.4 {
+        blockEntity.writeNbt(nbt)
+        //?} else {
+        /*blockEntity.writeNbt(nbt, world.registryManager)
         *///?}
     }
 }

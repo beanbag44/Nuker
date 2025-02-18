@@ -22,8 +22,8 @@ import net.minecraft.village.TradeOffer
  */
 open class InventoryState(
     val slots: List<Slot> = mc.player?.currentScreenHandler?.slots ?: emptyList(),
-    val hotbarSlots: List<Slot> = slots.filter { it.id < 9 && it.inventory is PlayerInventory },
-    val inventorySlots: List<Slot> = slots.filter { it.id in 9..35  && it.inventory is PlayerInventory },
+    val hotbarSlots: List<Slot> = slots.filter { it.index < 9 && it.inventory is PlayerInventory },
+    val inventorySlots: List<Slot> = slots.filter { it.index in 9..35  && it.inventory is PlayerInventory },
     val playerHand: ItemStack? = mc.player?.mainHandStack,
     val offhand: ItemStack? = mc.player?.offHandStack,
 ) {
@@ -34,6 +34,10 @@ open class InventoryState(
         handler.getSlot(40).stack,
         handler.getSlot(45).stack
     )
+
+    fun nonPlayerSlots(): List<Slot> = slots.filter { it.inventory !is PlayerInventory }
+    fun playerSlots(): List<Slot> = slots.filter { it.inventory is PlayerInventory }
+
     companion object {
         fun get(): InventoryState = runInGame{fromScreenHandler(player.currentScreenHandler)}!!
 

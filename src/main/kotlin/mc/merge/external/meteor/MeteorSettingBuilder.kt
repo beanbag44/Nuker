@@ -6,6 +6,7 @@ import meteordevelopment.meteorclient.settings.Setting
 import meteordevelopment.meteorclient.utils.render.color.SettingColor
 import net.minecraft.block.Block
 import net.minecraft.entity.EntityType
+import net.minecraft.util.math.BlockPos
 import java.awt.Color
 import java.util.function.Consumer
 
@@ -18,6 +19,20 @@ class MeteorSettingBuilder {
                     .description(setting.getDescription())
                     .defaultValue(setting.getDefaultValue())
                     .onChanged { value: List<Block> -> setting.setValue(value) }
+                    .visible { setting.isVisible() }
+
+                val meteorSetting = builder.build()
+                setting.getOnChange().add(Consumer { value -> meteorSetting.set(value) })
+
+                meteorSetting
+            }
+
+            is BlockPosSetting -> {
+                val builder = meteordevelopment.meteorclient.settings.BlockPosSetting.Builder()
+                    .name(setting.getName())
+                    .description(setting.getDescription())
+                    .defaultValue(setting.getDefaultValue())
+                    .onChanged { value: BlockPos -> setting.setValue(value) }
                     .visible { setting.isVisible() }
 
                 val meteorSetting = builder.build()
@@ -139,6 +154,32 @@ class MeteorSettingBuilder {
             }
             is ItemListSetting -> {
                 val builder = meteordevelopment.meteorclient.settings.ItemListSetting.Builder()
+                    .name(setting.getName())
+                    .description(setting.getDescription())
+                    .defaultValue(setting.getDefaultValue())
+                    .onChanged { value -> setting.setValue(value) }
+                    .visible { setting.isVisible() }
+
+                val meteorSetting = builder.build()
+                setting.getOnChange().add(Consumer { value -> meteorSetting.set(value) })
+
+                meteorSetting
+            }
+            is ItemSetting -> {
+                val builder = meteordevelopment.meteorclient.settings.ItemSetting.Builder()
+                    .name(setting.getName())
+                    .description(setting.getDescription())
+                    .defaultValue(setting.getDefaultValue())
+                    .onChanged { value -> setting.setValue(value) }
+                    .visible { setting.isVisible() }
+
+                val meteorSetting = builder.build()
+                setting.getOnChange().add(Consumer { value -> meteorSetting.set(value) })
+
+                meteorSetting
+            }
+            is StringInputSetting -> {
+                val builder = meteordevelopment.meteorclient.settings.StringSetting.Builder()
                     .name(setting.getName())
                     .description(setting.getDescription())
                     .defaultValue(setting.getDefaultValue())

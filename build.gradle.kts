@@ -39,6 +39,7 @@ loom {
         ideConfigGenerated(true) // Run configurations are not created for subprojects by default
         runDir = "../../run" // Use a shared run folder and create separate worlds
     }
+    accessWidenerPath = rootProject.projectDir.resolve("src/main/resources/accesswidener/${mcVersion}.accesswidener")
 }
 
 allprojects {
@@ -99,6 +100,8 @@ tasks {
                 "minecraft_version" to mcVersion,
                 "loader_version" to loaderVersion,
                 "kotlin_loader_version" to kotlinLoaderVersion,
+                "widenerKey" to "accessWidener",
+                "widenerVersion" to mcVersion,
             )
         }
 

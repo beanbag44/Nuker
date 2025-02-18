@@ -6,6 +6,9 @@ import mc.merge.module.settings.BlockListSetting
 import net.minecraft.block.Block
 import net.minecraft.entity.EntityType
 import net.minecraft.item.Item
+import net.minecraft.item.Items
+import net.minecraft.registry.Registries
+import net.minecraft.util.math.BlockPos
 import org.rusherhack.core.setting.BooleanSetting
 import org.rusherhack.core.setting.NullSetting
 import org.rusherhack.core.setting.NumberSetting
@@ -34,7 +37,8 @@ class RusherSettingBuilder {
                         }
                         onChange { value ->
                             if (value) {
-                                setting.setValue(listOf(setting.getValue(), listOf(setting.listValueFromString(block)!!)).flatten())
+                                val blockValue = setting.listValueFromString(block) ?: return@onChange
+                                setting.setValue(listOf(setting.getValue(), listOf(blockValue)).flatten())
                             } else {
                                 setting.setValue(setting.getValue().filter { setting.listValueToString(it) != (block) })
                             }
@@ -50,6 +54,27 @@ class RusherSettingBuilder {
                     }
                     return@sortWith a.name.compareTo(b.name)
                 }
+                return rhSetting
+            }
+
+            is BlockPosSetting -> {
+                val rhSetting = NullSetting(setting.getName(), setting.getDescription())
+                val xSetting = NumberSetting("X", "X Coordinate", setting.getValue().x.toDouble(), -30000000.0, 30000000.0)
+                val ySetting = NumberSetting("Y", "Y Coordinate", setting.getValue().y.toDouble(), -30000000.0, 30000000.0)
+                val zSetting = NumberSetting("Z", "Z Coordinate", setting.getValue().z.toDouble(), -30000000.0, 30000000.0)
+
+                xSetting.onChange { value -> setting.setValue(BlockPos(value.toInt(), setting.getValue().y, setting.getValue().z)) }
+                ySetting.onChange { value -> setting.setValue(BlockPos(setting.getValue().x, value.toInt(), setting.getValue().z)) }
+                zSetting.onChange { value -> setting.setValue(BlockPos(setting.getValue().x, setting.getValue().y, value.toInt())) }
+
+                setting.getOnChange().add(Consumer{ value -> xSetting.value = value.x.toDouble() })
+                setting.getOnChange().add(Consumer{ value -> ySetting.value = value.y.toDouble() })
+                setting.getOnChange().add(Consumer{ value -> zSetting.value = value.z.toDouble() })
+
+                rhSetting.addSubSettings(xSetting)
+                rhSetting.addSubSettings(ySetting)
+                rhSetting.addSubSettings(zSetting)
+
                 return rhSetting
             }
 
@@ -100,7 +125,8 @@ class RusherSettingBuilder {
                         }
                         onChange { value ->
                             if (value) {
-                                setting.setValue(listOf(setting.getValue(), listOf(setting.listValueFromString(entity)!!)).flatten())
+                                val entityValue = setting.listValueFromString(entity) ?: return@onChange
+                                setting.setValue(listOf(setting.getValue(), listOf(entityValue)).flatten())
                             } else {
                                 setting.setValue(setting.getValue().filter { setting.listValueToString(it) != (entity) })
                             }
@@ -172,7 +198,8 @@ class RusherSettingBuilder {
                         }
                         onChange { value ->
                             if (value) {
-                                setting.setValue(listOf(setting.getValue(), listOf(setting.listValueFromString(item)!!)).flatten())
+                                val itemValue = setting.listValueFromString(item) ?: return@onChange
+                                setting.setValue(listOf(setting.getValue(), listOf(itemValue)).flatten())
                             } else {
                                 setting.setValue(setting.getValue().filter { setting.listValueToString(it) != (item) })
                             }
@@ -189,6 +216,56 @@ class RusherSettingBuilder {
                     a.name.compareTo(b.name)
                 }
 
+
+                return rhSetting
+            }
+            is ItemSetting -> {
+                val rhSetting = NullSetting(setting.getName(), setting.getDescription())
+                val searchSetting = StringSetting("Search", "Search for Items", "")
+                rhSetting.addSubSettings(searchSetting)
+                val itemValue = setting.valueToString()
+
+                setting.possibleValues().forEach { item ->
+                    BooleanSetting(item, itemValue == item).apply{
+                        setVisibility {
+                            setting.isVisible() && (
+                                    searchSetting.value.isEmpty() ||
+                                            item.contains(searchSetting.value, ignoreCase = true) ||
+                                            searchSetting.value.lowercase() == "enabled" && this.value
+                                    )
+                        }
+                        onChange { value ->
+                            if (value) {
+                                setting.setValue(setting.valueFromString(item))
+                            } else {
+                                setting.setValue(Items.AIR)
+                            }
+                        }
+
+                        setting.getOnChange().add(Consumer { value: Item ->
+                            this.value = Registries.ITEM.getId(value).toString()
+                                .apply { replace("minecraft:", "", true) } == this.name
+                        })
+                    }.also { rhSetting.addSubSettings(it) }
+                }
+                rhSetting.subSettings.sortWith{ a, b ->
+                    if (a is StringSetting) {
+                        return@sortWith -1
+                    } else if (b is StringSetting) {
+                        return@sortWith 1
+                    }
+                    a.name.compareTo(b.name)
+                }
+
+                return rhSetting
+            }
+
+            is StringInputSetting -> {
+                val rhSetting = StringSetting(setting.getName(), setting.getDescription(), setting.getValue())
+
+                rhSetting.setVisibility { setting.isVisible() }
+                rhSetting.onChange{value -> setting.setValue(value) }
+                setting.getOnChange().add(Consumer{value -> rhSetting.value = value})
 
                 return rhSetting
             }

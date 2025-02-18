@@ -2,6 +2,7 @@ package mc.merge.util
 
 import baritone.api.BaritoneAPI
 import mc.merge.ModCore.mc
+import mc.merge.module.modules.canal.tools.CanalSpecs.Companion.isCorrectInPosition
 import mc.merge.module.modules.nuker.enumsettings.FlattenMode
 import mc.merge.types.PosAndState
 import mc.merge.types.VolumeSort
@@ -231,8 +232,8 @@ object BlockUtils {
         return false
     }
 
-    fun isValidCanalBlock(pos: BlockPos): Boolean {
-        return true//CanalSpecs.isCorrectInPosition(pos)
+    fun InGame.isValidCanalBlock(pos: BlockPos): Boolean {
+        return isCorrectInPosition(pos)
     }
 
     fun isBlockBroken(currentState: BlockState, newState: BlockState): Boolean {

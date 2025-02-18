@@ -2,16 +2,15 @@ package mc.merge
 
 import mc.merge.command.ICommand
 import mc.merge.command.commands.*
-import mc.merge.event.events.GameJoinedEvent
-import mc.merge.event.onInGameEvent
-import mc.merge.handler.ChatHandler
 import mc.merge.handler.InventoryHandler
+import mc.merge.inventory.EChestMemory
 import mc.merge.module.Module
 import mc.merge.module.modules.CoreConfig
 import mc.merge.module.modules.EquipmentSaver
 import mc.merge.module.modules.FastBreak
 import mc.merge.module.modules.SafeWalk
 import mc.merge.module.modules.nuker.Nuker
+import mc.merge.util.BaritoneProcess
 import mc.merge.util.FileManager
 import me.beanbag.nuker.module.modules.SourceRemover
 import net.minecraft.client.MinecraftClient
@@ -19,7 +18,6 @@ import net.minecraft.util.Formatting
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.awt.Color
-import java.util.*
 
 object ModCore {
     //Mod specific
@@ -35,6 +33,9 @@ object ModCore {
     val LOGGER: Logger = LoggerFactory.getLogger(modName)
 
     val inventoryHandler = InventoryHandler()
+
+    val eChestMemory = EChestMemory()
+    val baritoneProcess = BaritoneProcess()
 
     val commands: List<ICommand> = listOf(
         HelpCommand(),

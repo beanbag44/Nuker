@@ -17,6 +17,7 @@ import net.minecraft.item.Item
 import net.minecraft.text.HoverEvent
 import net.minecraft.text.Text
 import net.minecraft.util.Formatting
+import net.minecraft.util.math.BlockPos
 import java.awt.Color
 import java.util.function.Consumer
 
@@ -91,6 +92,15 @@ abstract class Module(var name: String, var description: String, private var alw
         visible: () -> Boolean = { true },
         filter: (Block) -> Boolean = { true }
     ) = group.add(BlockListSetting(name, description, defaultValue, onChange, visible, filter))
+
+    fun setting(
+        group: SettingGroup,
+        name: String,
+        description: String,
+        defaultValue: BlockPos,
+        onChanged: MutableList<Consumer<BlockPos>>? = null,
+        visible: () -> Boolean = { true },
+    ) = group.add(BlockPosSetting(name, description, defaultValue, onChanged, visible))
 
     fun setting(
         group: SettingGroup,
@@ -180,9 +190,32 @@ abstract class Module(var name: String, var description: String, private var alw
         filter: (Item) -> Boolean = { true }
     ) = group.add(ItemListSetting(name, description, defaultValue, onChange, visible, filter))
 
+    fun setting(
+        group: SettingGroup,
+        name: String,
+        description: String,
+        defaultValue: Item,
+        onChange: MutableList<Consumer<Item>>? = null,
+        visible: () -> Boolean = { true },
+        filter: (Item) -> Boolean = { true }
+    ) = group.add(ItemSetting(name, description, defaultValue, onChange, visible, filter))
+
+    fun setting(
+        group: SettingGroup,
+        name: String,
+        description: String,
+        defaultValue: String,
+        onChanged: MutableList<Consumer<String>>? = null,
+        visible: () -> Boolean = { true },
+    ) = group.add(StringInputSetting(name, description, defaultValue, onChanged, visible))
+
     // To support Java
     fun setting(
         group: SettingGroup, name: String, description: String, defaultValue: List<Block>
+    ) = setting(group, name, description, defaultValue, null)
+
+    fun setting(
+        group: SettingGroup, name: String, description: String, defaultValue: BlockPos
     ) = setting(group, name, description, defaultValue, null)
 
     fun setting(
@@ -211,6 +244,14 @@ abstract class Module(var name: String, var description: String, private var alw
 
     fun setting(
         group: SettingGroup, name: String, description: String, defaultValue: List<Item>
+    ) = setting(group, name, description, defaultValue, null)
+
+    fun setting(
+        group: SettingGroup, name: String, description: String, defaultValue: Item
+    ) = setting(group, name, description, defaultValue, null)
+
+    fun setting(
+        group: SettingGroup, name: String, description: String, defaultValue: String
     ) = setting(group, name, description, defaultValue, null)
 
     override fun toJson(): JsonElement {
