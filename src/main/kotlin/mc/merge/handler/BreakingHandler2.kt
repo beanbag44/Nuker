@@ -244,10 +244,10 @@ class BreakingHandler2 : IHandler, IHandlerController{
     }
 
     private fun packetCount(type: StartBreakType, willSwitchContext:Boolean):Int = when(type) {
-        StartBreakType.Insta -> 2
-        StartBreakType.AdvancedInsta -> if (willSwitchContext) 4 else 3
-        StartBreakType.Normal -> if (willSwitchContext) 3 else 2
-    }
+        StartBreakType.Insta -> 1
+        StartBreakType.AdvancedInsta -> if (willSwitchContext) 3 else 2
+        StartBreakType.Normal -> if (willSwitchContext) 2 else 1
+    } + if (CoreConfig.breakExploit) 1 else 0
 
     private fun onBlockUpdate(pos: BlockPos, state: BlockState) {
         queue.removeIf {
