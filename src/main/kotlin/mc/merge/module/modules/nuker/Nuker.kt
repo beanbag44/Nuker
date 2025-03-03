@@ -148,6 +148,12 @@ class Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
             breakingHandler.breakBlocks(blockVolume, this@Nuker)
         }
+
+        enabledSetting.getOnChange().add{
+            breakingHandler.removeFromQueue {
+                it.owner == this
+            }
+        }
     }
 
     private fun InGame.isWithinDigDirection(pos: BlockPos): Boolean {

@@ -40,6 +40,12 @@ class FastBreak: Module("Fast Break", "Breaks blocks faster") {
             }
         }
 
+        enabledSetting.getOnChange().add{
+            breakingHandler.removeFromQueue {
+                it.owner == this@FastBreak
+            }
+        }
+
 //        onInGameEvent<RenderEvent.Render3DEvent> { renderEvent ->
 //            if (!enabled) return@onInGameEvent
 //            queue.forEachIndexed { index, queueBlock ->

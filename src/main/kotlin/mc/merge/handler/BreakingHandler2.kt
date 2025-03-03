@@ -31,7 +31,9 @@ import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
 import net.minecraft.network.packet.s2c.play.InventoryS2CPacket
 import net.minecraft.util.math.BlockPos
+import net.minecraft.util.math.Box
 import net.minecraft.util.math.Direction
+import net.minecraft.util.math.Vec3d
 import java.awt.Color
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -49,10 +51,14 @@ class BreakingHandler2 : IHandler, IHandlerController{
     var primaryBreakContext:BreakingContext? = null
     var doubleBreakContext: BreakingContext? = null
 
+    var betweenBreakTicks = 0
 
     init{
         onInGameEvent<TickEvent.Pre>(priority = EventBus.MAX_PRIORITY - 1) {
             packetCounter = 0
+            if (betweenBreakTicks > 0) {
+                betweenBreakTicks--
+            }
 
             if (!inventoryHandler.hotBarController.isInControl(this@BreakingHandler2)) { // aka, we lost control at some point
                 primaryBreakContext?.let {
@@ -94,9 +100,21 @@ class BreakingHandler2 : IHandler, IHandlerController{
             }
         }
 
+        onInGameEvent<PacketEvent.Send.Pre> {
+            if(it.packet is PlayerActionC2SPacket
+                && it.packet.action == PlayerActionC2SPacket.Action.START_DESTROY_BLOCK
+                && CoreConfig.breakExploit)
+            { stopBreakPacket(it.packet.pos) }
+        }
+
         onEvent<RenderEvent.Render3DEvent> { event ->
             primaryBreakContext?.drawRenders(event.renderer3D)
             doubleBreakContext?.drawRenders(event.renderer3D)
+
+            queue.forEachIndexed { index, queueBlock ->
+                val color = LerpUtils.lerp(CoreConfig.startFillColour, CoreConfig.endFillColour, index.toDouble() / queue.size)
+                event.renderer3D.boxLines(Box.from(Vec3d.of(queueBlock.pos)), color)
+            }
         }
     }
 
@@ -110,6 +128,7 @@ class BreakingHandler2 : IHandler, IHandlerController{
     }
 
     fun breakBlock(block: PosAndState, controller: IHandlerController, queueIfNeeded: Boolean = true, fromQueue: Boolean = false) {
+        if (betweenBreakTicks > 0) return
         runInGame {
             if (block.blockPos == primaryBreakContext?.pos
                 || block.blockPos == doubleBreakContext?.pos
@@ -251,6 +270,9 @@ class BreakingHandler2 : IHandler, IHandlerController{
     }
 
     fun onBlockBreak(breakingContext: BreakingContext?) {
+        if (breakingContext?.breakType == BreakType.Primary) {
+            betweenBreakTicks = if(CoreConfig.ticksBetweenBreaks > 0) CoreConfig.ticksBetweenBreaks else 0
+        }
         breakingContext?.apply {
             BrokenBlockHandler.putBrokenBlock(pos, state, CoreConfig.validateBreak)
             blockBreakTimeouts.put(pos)
@@ -313,17 +335,14 @@ class BreakingContext(
     fun start() {
         when(startBreakType()) {
             StartBreakType.Insta -> {
-                breakingHandler.stopBreakPacket(pos)
                 breakingHandler.startBreakPacket(pos)
             }
             StartBreakType.AdvancedInsta -> {
-                breakingHandler.stopBreakPacket(pos)
                 breakingHandler.startBreakPacket(pos)
                 breakingHandler.stopBreakPacket(pos)
                 breakingHandler.onBlockBreak(this@BreakingContext)
             }
             StartBreakType.Normal -> {
-                breakingHandler.stopBreakPacket(pos)
                 breakingHandler.startBreakPacket(pos)
             }
         }
@@ -360,6 +379,7 @@ class BreakingContext(
         if (miningProgress >= threshold) {
             if (breakType.isPrimary()) {
                 breakingHandler.stopBreakPacket(pos)
+                breakingHandler.betweenBreakTicks = CoreConfig.ticksBetweenBreaks + 1
             }
             breakingHandler.onBlockBreak(this@BreakingContext)
         }

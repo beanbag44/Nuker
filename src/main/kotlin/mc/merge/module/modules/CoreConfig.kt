@@ -45,6 +45,18 @@ object CoreConfig : Module("Core Configs", "General configs") {
         "Break Timeout",
         "The delay (in ticks) after breaking a block to attempt to break it again",
         20, null, { true }, 0, 100, 0, 100)
+    val ticksBetweenBreaks by setting (breaking,
+        "Ticks Between Breaks",
+        "The delay between breaking blocks",
+        6,
+        min = 0,
+        sliderMax = 10
+    )
+    val breakExploit by setting ( breaking,
+        "Break Exploit",
+        "Sends a stop packet before breaking a block to disable grim checks",
+        true
+    )
 
     private val breakingRender = group("Breaking Render", "Settings for rendering breaking blocks")
     val renders by setting(
