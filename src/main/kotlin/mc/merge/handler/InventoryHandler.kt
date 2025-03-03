@@ -4,9 +4,11 @@ import mc.merge.event.EventBus
 import mc.merge.event.events.TickEvent
 import mc.merge.event.onInGameEvent
 import mc.merge.inventory.*
+import mc.merge.module.modules.CoreConfig
 import mc.merge.util.runInGame
 import net.minecraft.network.packet.Packet
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket
+import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket
 import net.minecraft.screen.slot.Slot
 import net.minecraft.screen.slot.SlotActionType
 import net.minecraft.util.math.BlockPos
@@ -14,19 +16,20 @@ import net.minecraft.util.math.Direction
 
 class InventoryHandler : IHandler {
     override var currentlyBeingUsedBy: IHandlerController?
-        get() = selectHotbarQueue.firstOrNull()?.controller
+        get() = slotActionQueue.firstOrNull()?.controller
         set(value) {}
 
-    val selectHotbarQueue = mutableListOf<QueuedSelectHotbarController>()
-    val slotActionQueue = mutableListOf<QueuedSlotActionController>()
+    private val packetTracker = InventoryPacketTracker()
+    val hotBarController = HotBarController(packetTracker)
+    private val actionableInventory = ActionableInventory(packetTracker)
+
+    private val slotActionQueue = mutableListOf<QueuedSlotActionController>()
 
     /** Aka, if an external mod or the player is controlling the selected hotbar slot */
     var externalIsUsingItem = false
 
-    private val actionableInventory = ActionableInventory()
 
     class QueuedSlotActionController (val controller: IHandlerController, var didInteractThisTick:Boolean)
-    class QueuedSelectHotbarController (val controller: IHandlerController, var action: SelectHotbarSlotAction)
 
     init {
         onInGameEvent<TickEvent.Pre>(priority = EventBus.MAX_PRIORITY) {
@@ -35,53 +38,7 @@ class InventoryHandler : IHandler {
                 queuedController.didInteractThisTick = false
             }
         }
-
-        onInGameEvent<TickEvent.Post> {
-            if (actionableInventory.selectOnHotbarCooldown == 0 && selectHotbarQueue.size == 0 && actionableInventory.swapBackToSlot != null) {
-                val result = SelectHotbarSlotAction(actionableInventory.swapBackToSlot!!).performAction(actionableInventory)
-                if (result == SlotActionResult.SUCCESS) {
-                    actionableInventory.swapBackToSlot = null
-                }
-            }
-            slotActionQueue.removeIf { !it.didInteractThisTick }
-        }
     }
-
-
-    fun selectSlot(owner: IHandlerController, action: SelectHotbarSlotAction): IInventoryResult {
-        val queueIndex = selectHotbarQueue.indexOfFirst { it.controller == owner }
-        //add to the queue and return
-        if (queueIndex == -1 && action.retainControl) {
-            var addedToQueue = false
-            selectHotbarQueue.forEachIndexed { index, queuedSelectHotbarController ->
-                if (queuedSelectHotbarController.controller.getPriority() < owner.getPriority()) {
-                    if (index == 0) {
-                        selectHotbarQueue.first().action.onLostControl.invoke()
-                    }
-                    selectHotbarQueue.add(index, QueuedSelectHotbarController(owner, action))
-                    addedToQueue = true
-                    return@forEachIndexed
-                }
-            }
-            if (!addedToQueue) {
-                selectHotbarQueue.add(QueuedSelectHotbarController(owner, action))
-            }
-        }
-
-        if (selectHotbarQueue.size == 0 ||
-            selectHotbarQueue.first().controller == owner ||
-            selectHotbarQueue.first().controller.getPriority() < owner.getPriority()
-        ) {
-            val result = action.performAction(actionableInventory)
-            return when (result) {
-                SlotActionResult.SUCCESS -> Interacted()
-                SlotActionResult.AWAITING_COOLDOWN -> AwaitingCooldown()
-            }
-        }
-        return CantControl()
-    }
-
-    fun releaseSlot(owner: IHandlerController) = selectHotbarQueue.removeIf { it.controller == owner }
 
     /**
      * @param controller The controller that is trying to interact with the inventory
@@ -128,14 +85,13 @@ class InventoryHandler : IHandler {
             PlayerActionC2SPacket(
                 PlayerActionC2SPacket.Action.SWAP_ITEM_WITH_OFFHAND,
                 BlockPos(420, 69, 420),
-                Direction.UP
+                Direction.DOWN
             )
         )
     }
 
     private fun resetCooldowns() {
         if (actionableInventory.externalControlCooldown > 0) actionableInventory.externalControlCooldown--
-        if (actionableInventory.selectOnHotbarCooldown > 0) actionableInventory.selectOnHotbarCooldown--
         if (actionableInventory.swapCooldown > 0) actionableInventory.swapCooldown--
         if (actionableInventory.pickupCooldown > 0) actionableInventory.pickupCooldown--
         if (actionableInventory.quickMoveCooldown > 0) actionableInventory.quickMoveCooldown--
@@ -147,22 +103,98 @@ class InventoryHandler : IHandler {
     }
 }
 
-class ActionableInventory {
-    /** Tracks whether a packet is getting sent from this mod or from the player/external mod */
-    private var isSendingPacket = false
+class HotBarController(val packetTracker: InventoryPacketTracker) : IHandler {
+    override var currentlyBeingUsedBy: IHandlerController?
+        get() = queue.firstOrNull()?.controller
+        set(value) {  }
 
-    var swapBackToSlot: Int? = null
+    private val queue = mutableListOf<QueuedSelectHotbarController>()
+    private var swapBackToSlot: Int? = null
+    private var swapCooldown = 0
+    private var useCooldown = 0
 
-    var selectOnHotbarCooldown = 0
-    var swapCooldown = 0
-    var externalControlCooldown = 0  //TODO: Add setting to core configs
-    var pickupCooldown = 0 //TODO: Add setting to core configs
-    var quickMoveCooldown = 0 //TODO: Add setting to core configs
-    var cloneCooldown = 0 //TODO: Add setting to core configs
-    var quickCraftCooldown = 0 //TODO: Add setting to core configs
-    var pickupAllCooldown = 0 //TODO: Add setting to core configs
+    class QueuedSelectHotbarController (val controller: IHandlerController, var onLostControl: () -> Unit = {}, var didInteractThisTick:Boolean = true)
 
-    var dropsThisTick = 0
+    init {
+        onInGameEvent<TickEvent.Pre>(priority = EventBus.MAX_PRIORITY) {
+            if (swapCooldown > 0) swapCooldown--
+            if (useCooldown > 0) useCooldown--
+            queue.forEach { it.didInteractThisTick = false }
+        }
+
+        onInGameEvent<TickEvent.Post> {
+            val swapToSlot = swapBackToSlot
+            if (CoreConfig.swapBack.getValue() && swapCooldown == 0 && queue.size == 0 && swapToSlot != null) {
+                selectSlot(swapToSlot)
+                swapBackToSlot = null
+            }
+            queue.removeIf { !it.didInteractThisTick }
+        }
+    }
+
+    fun canUse(testController: IHandlerController): Boolean {
+        return queue.firstOrNull()?.controller == testController && useCooldown == 0
+    }
+
+    fun isInControl(testController: IHandlerController): Boolean {
+        return queue.firstOrNull()?.controller == testController
+    }
+
+    /**
+     * must be called every tick to remain in queue or remain in control
+     * */
+    fun trySelectingSlot(slotIndex: Int, actionController: IHandlerController, onLostControl: () -> Unit = {}) {
+        val queueIndex = queue.indexOfFirst { it.controller == actionController }
+        //add to queue if needed
+        if (queueIndex == -1) {
+            var addedToQueue = false
+            queue.forEachIndexed { index, inQueue ->
+                if (inQueue.controller.getPriority() < actionController.getPriority()) {
+                    if (index == 0) {
+                        queue.first().onLostControl.invoke()
+                    }
+                    queue.add(index, QueuedSelectHotbarController(actionController, onLostControl))
+                    addedToQueue = true
+                    return@forEachIndexed
+                }
+            }
+            if (!addedToQueue) {
+                queue.add(QueuedSelectHotbarController(actionController, onLostControl))
+            }
+        } else {
+            queue[queueIndex].didInteractThisTick = true
+        }
+
+        //select the slot if possible
+        if (queue.firstOrNull()?.controller == actionController) {
+            selectSlot(slotIndex)
+        }
+    }
+
+    private fun selectSlot(index: Int) {
+        runInGame {
+            if (player.inventory.selectedSlot == index) return@runInGame
+
+            if (swapCooldown > 0) return@runInGame
+            if (CoreConfig.swapBack.getValue() && swapBackToSlot == null) {
+                swapBackToSlot = player.inventory.selectedSlot
+            }
+
+            player.inventory.selectedSlot = index
+            packetTracker.sendPacket(UpdateSelectedSlotC2SPacket(index))
+            swapCooldown = CoreConfig.swapHotbarCooldown.getValue()
+            useCooldown = CoreConfig.useHotbarCooldown.getValue()
+        }
+    }
+
+}
+
+class InventoryPacketTracker {
+    var isSendingPacket = false
+
+    init {
+
+    }
 
     fun sendPacket(packet: Packet<*>) {
         runInGame {
@@ -179,4 +211,28 @@ class ActionableInventory {
             isSendingPacket = false
         }
     }
+}
+
+class ActionableInventory(val packetTracker: InventoryPacketTracker) {
+    /** Tracks whether a packet is getting sent from this mod or from the player/external mod */
+//    private var isSendingPacket = false
+
+//    var swapBackToSlot: Int? = null
+//
+//    var selectOnHotbarCooldown = 0
+    var swapCooldown = 0
+    var externalControlCooldown = 0  //TODO: Add setting to core configs
+    var pickupCooldown = 0 //TODO: Add setting to core configs
+    var quickMoveCooldown = 0 //TODO: Add setting to core configs
+    var cloneCooldown = 0 //TODO: Add setting to core configs
+    var quickCraftCooldown = 0 //TODO: Add setting to core configs
+    var pickupAllCooldown = 0 //TODO: Add setting to core configs
+
+    var dropsThisTick = 0
+
+    fun sendPacket(packet: Packet<*>) =
+        packetTracker.sendPacket(packet)
+
+    fun interactWithSlot(action: SlotActionType, slot: Slot, data:Int = 0) =
+        packetTracker.interactWithSlot(action, slot, data)
 }

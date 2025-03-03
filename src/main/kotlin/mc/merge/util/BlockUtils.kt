@@ -403,25 +403,23 @@ object BlockUtils {
 
     fun InGame.getBlockBreakingSpeed(state: BlockState, tool: ItemStack): Float {
         val noToolSpeed = 1.0f
-        val baseEfficiencyIncrease = 1
+        val baseEfficiencyIncrease = 1f
         val hasteLevelIncrease = 0.2f
-        val hasteIncreaseExploit = 1
+        val baseHasteIncrease = 1f
         val waterModifier = 0.2f
         val inAirModifier = 0.2f
 
-        var breakingSpeed = 1.0f
+        var breakingSpeed = tool.getMiningSpeedMultiplier(state)
         //tool
-        val toolSpeed = tool.getMiningSpeedMultiplier(state)
-        if (toolSpeed != noToolSpeed) {
-            breakingSpeed *= toolSpeed
+        if (breakingSpeed > noToolSpeed) {
             val efficiencyLevel = enchantmentLevel(Enchantments.EFFICIENCY, tool)
             if (efficiencyLevel > 0 && !tool.isEmpty) {
-                breakingSpeed += (efficiencyLevel * efficiencyLevel + baseEfficiencyIncrease).toFloat()
+                breakingSpeed += (efficiencyLevel * efficiencyLevel + baseEfficiencyIncrease)
             }
         }
         //haste
         if (StatusEffectUtil.hasHaste(player)) {
-            breakingSpeed += breakingSpeed * (StatusEffectUtil.getHasteAmplifier(player) + hasteIncreaseExploit).toFloat() * hasteLevelIncrease
+            breakingSpeed *= 1f + (StatusEffectUtil.getHasteAmplifier(player) + baseHasteIncrease) * hasteLevelIncrease
         }
         //mining fatigue
         if (player.hasStatusEffect(StatusEffects.MINING_FATIGUE)) {

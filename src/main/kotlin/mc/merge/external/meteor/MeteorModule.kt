@@ -13,10 +13,10 @@ abstract class MeteorModule(var module: Module) : meteordevelopment.meteorclient
         val modules = listOf(
             NukerMeteorImplementation(ModCore.getModuleByClass(Nuker::class.java)!!),
             CoreConfigMeteorImplementation(ModCore.getModuleByClass(CoreConfig::class.java)!!),
+//            SourceRemoverMeteorImplementation(ModCore.getModuleByClass(SourceRemover::class.java)!!),
             EquipmentSaverMeteorImplementation(ModCore.getModuleByClass(EquipmentSaver::class.java)!!),
             FastBreakMeteorImplementation(ModCore.getModuleByClass(FastBreak::class.java)!!),
             SafeWalkMeteorImplementation(ModCore.getModuleByClass(SafeWalk::class.java)!!),
-            SourceRemoverMeteorImplementation(ModCore.getModuleByClass(SourceRemover::class.java)!!),
         )
     }
     init {

@@ -4,6 +4,7 @@ import mc.merge.module.modules.CoreConfig
 import mc.merge.util.runInGame
 import mc.merge.ModCore.mc
 import mc.merge.handler.ActionableInventory
+import mc.merge.handler.HotBarController
 import net.minecraft.network.packet.c2s.play.UpdateSelectedSlotC2SPacket
 import net.minecraft.screen.ScreenHandler
 import net.minecraft.screen.slot.Slot
@@ -17,26 +18,6 @@ interface IInventoryAction {
 enum class SlotActionResult {
     SUCCESS,
     AWAITING_COOLDOWN
-}
-
-/**
- * If retainControl is set to true, the caller is responsible for releasing control in the handler
- */
-class SelectHotbarSlotAction(private val index: Int, val retainControl: Boolean = false, val onLostControl: () -> Unit = {}):
-    IInventoryAction {
-    override fun performAction(actionableInventory: ActionableInventory): SlotActionResult {
-        if (runInGame { return@runInGame if (player.inventory.selectedSlot == index) SlotActionResult.SUCCESS else null } != null) {
-            return SlotActionResult.SUCCESS
-        }
-        if (actionableInventory.selectOnHotbarCooldown > 0) return SlotActionResult.AWAITING_COOLDOWN
-        if (actionableInventory.swapBackToSlot == null) {
-            actionableInventory.swapBackToSlot = mc.player?.inventory?.selectedSlot
-        }
-        mc.player?.inventory?.selectedSlot = index
-        actionableInventory.sendPacket(UpdateSelectedSlotC2SPacket(index))
-        actionableInventory.selectOnHotbarCooldown = CoreConfig.selectOnHotbarCooldown.getValue()
-        return SlotActionResult.SUCCESS
-    }
 }
 
 abstract class SlotAction: IInventoryAction

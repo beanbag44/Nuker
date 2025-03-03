@@ -59,16 +59,12 @@ object InventoryUtils {
     */
     fun InGame.percentDamagePerTick(state: BlockState, pos: BlockPos, toolSlot: Int): Float {
         val blockHardness = state.getHardness(world, pos)
-        if (blockHardness == -1.0f) {
-            return 0.0f
+        return if (blockHardness == -1.0f) {
+            0.0f
         } else {
-            var damage = getBlockBreakingSpeed(state, player.inventory.getStack(toolSlot)) / blockHardness
-            damage /= if (!state.isToolRequired || player.inventory.getStack(toolSlot).isSuitableFor(state)) {
-                30
-            } else {
-                100
-            }
-            return damage
+            getBlockBreakingSpeed(state, player.inventory.getStack(toolSlot)) /
+                blockHardness /
+                if (!state.isToolRequired || player.inventory.getStack(toolSlot).isSuitableFor(state)) { 30f } else { 100f }
         }
     }
 

@@ -16,7 +16,6 @@
   "mixins": [ "merge.mixins.json" ],
   "depends": {
     "fabricloader": ">=${loader_version}",
-    "fabric-language-kotlin": ">=${kotlin_loader_version}",
     "minecraft": "${minecraft_version}"
   },
   "${widenerKey}": "accesswidener/${widenerVersion}.accesswidener"

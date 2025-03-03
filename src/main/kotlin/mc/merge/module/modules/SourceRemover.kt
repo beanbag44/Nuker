@@ -6,7 +6,6 @@ import mc.merge.event.events.TickEvent
 import mc.merge.event.onInGameEvent
 import mc.merge.handler.PlacementHandler.airPlace
 import mc.merge.handler.PlacementHandler.blockPlaceTimeouts
-import mc.merge.inventory.SelectHotbarSlotAction
 import mc.merge.module.Module
 import mc.merge.module.modules.CoreConfig
 import mc.merge.module.settings.SettingGroup
@@ -37,7 +36,6 @@ class SourceRemover : Module("Source Remover", "Places blocks in water sources t
                         || !state.isReplaceable
             }
             if (blockVolume.isEmpty()) {
-                inventoryHandler.releaseSlot(this@SourceRemover)
                 return@onInGameEvent
             }
 
@@ -50,12 +48,15 @@ class SourceRemover : Module("Source Remover", "Places blocks in water sources t
                 blockSlot = getInHotbar(block.asItem())
                 if (blockSlot != -1) break
             }
+
             if (blockSlot == -1) {
-                inventoryHandler.releaseSlot(this@SourceRemover)
                 return@onInGameEvent
             }
-            inventoryHandler.selectSlot(this@SourceRemover, SelectHotbarSlotAction(blockSlot, true))
-            airPlace(placeBlock.blockPos, Direction.UP, CoreConfig.swingOnPlace, CoreConfig.validatePlace)
+
+            inventoryHandler.hotBarController.trySelectingSlot(blockSlot, this@SourceRemover)
+            if (inventoryHandler.hotBarController.canUse(this@SourceRemover)) {
+                airPlace(placeBlock.blockPos, Direction.UP, CoreConfig.swingOnPlace, CoreConfig.validatePlace)
+            }
         }
     }
 }

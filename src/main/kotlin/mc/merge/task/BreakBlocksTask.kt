@@ -1,8 +1,8 @@
 package mc.merge.task
 
+import mc.merge.ModCore.breakingHandler
 import mc.merge.event.events.TickEvent
 import mc.merge.event.onInGameEvent
-import mc.merge.handler.BreakingHandler.checkAttemptBreaks
 import mc.merge.handler.IHandlerController
 import mc.merge.module.modules.CoreConfig
 import mc.merge.types.VolumeSort
@@ -31,7 +31,7 @@ class BreakBlocksTask(
                 return@onInGameEvent
             }
 
-            checkAttemptBreaks(blocksToBreak)
+            breakingHandler.breakBlocks(blocksToBreak, parent)
         }
     }
 }

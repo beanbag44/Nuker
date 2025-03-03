@@ -2,6 +2,7 @@ package mc.merge
 
 import mc.merge.command.ICommand
 import mc.merge.command.commands.*
+import mc.merge.handler.BreakingHandler2
 import mc.merge.handler.InventoryHandler
 import mc.merge.inventory.EChestMemory
 import mc.merge.module.Module
@@ -33,6 +34,7 @@ object ModCore {
     val LOGGER: Logger = LoggerFactory.getLogger(modName)
 
     val inventoryHandler = InventoryHandler()
+    val breakingHandler = BreakingHandler2()
 
     val eChestMemory = EChestMemory()
     val baritoneProcess = BaritoneProcess()
@@ -49,10 +51,10 @@ object ModCore {
         SetModuleListSettingCommand(),
     )
 
-    var modules = listOf(
+    var modules: List<Module> = listOf(
         CoreConfig,
         Nuker(),
-        SourceRemover(),
+//        SourceRemover(),
         FastBreak(),
         EquipmentSaver(),
         SafeWalk(),

@@ -1,9 +1,8 @@
 package mc.merge.module.modules.nuker
 
+import mc.merge.ModCore.breakingHandler
 import mc.merge.event.events.TickEvent
 import mc.merge.event.onInGameEvent
-import mc.merge.handler.BreakingHandler.blockBreakTimeouts
-import mc.merge.handler.BreakingHandler.checkAttemptBreaks
 import mc.merge.handler.PlacementHandler
 import mc.merge.module.Module
 import mc.merge.module.modules.CoreConfig
@@ -138,7 +137,7 @@ class Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
                 if (canalMode && isValidCanalBlock(pos)) return@getBlockVolume true
 
-                return@getBlockVolume blockBreakTimeouts.values().contains(pos)
+                return@getBlockVolume breakingHandler.blockBreakTimeouts.values().contains(pos)
             }
 
             sortBlockVolume(blockVolume, player.eyePos, mineStyle)
@@ -147,7 +146,7 @@ class Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
                 sortBlockVolumeGravityBlocksDown(blockVolume)
             }
 
-            checkAttemptBreaks(blockVolume)
+            breakingHandler.breakBlocks(blockVolume, this@Nuker)
         }
     }
 

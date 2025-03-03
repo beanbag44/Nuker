@@ -1,7 +1,6 @@
 package mc.merge.module.modules
 
 import mc.merge.module.Module
-import mc.merge.module.modules.nuker.enumsettings.BreakMode
 import mc.merge.module.modules.nuker.enumsettings.ColourMode
 import mc.merge.module.modules.nuker.enumsettings.RenderAnimation
 import mc.merge.module.modules.nuker.enumsettings.RenderType
@@ -21,11 +20,6 @@ object CoreConfig : Module("Core Configs", "General configs") {
         "Double Break",
         "Breaks two blocks at once",
         true, null) { true }
-    val breakMode by setting(
-        breaking,
-        "Break Mode",
-        "Changes the way total break amount is calculated",
-        BreakMode.Total, null) { true }
     val validateBreak by setting(
         breaking,
         "Validate Break",
@@ -133,12 +127,30 @@ object CoreConfig : Module("Core Configs", "General configs") {
         false)
 
 
-    private val inventory = group("Inventory", "Settings for inventory management")
+    private val hotbar = group("Hotbar", "Settings for hotbar management")
     val usableHotbarSlot = setting(
-        inventory,
+        hotbar,
         "Usable Hotbar Slot",
         "The hotbar slot that can be used for inventory actions when needed",
         8, min = 1, max = 9)
+    val swapHotbarCooldown = setting(
+        hotbar,
+        "Swap Hotbar Cooldown",
+        "Ticks Between Hotbar Swaps",
+        1, min = 0, sliderMax = 2)
+    val useHotbarCooldown = setting(
+        hotbar,
+        "Use Hotbar Cooldown",
+        "Ticks after swapping before the mod can use the hotbar slot.",
+        1, min = 0, sliderMax = 2)
+    val swapBack = setting(
+        hotbar,
+        "Swap Back",
+        "Swaps back to the original hotbar slot when done",
+        true)
+
+    private val inventory = group("Inventory", "Settings for inventory management")
+
     val selectOnHotbarCooldown = setting(
         inventory,
         "Select On Hotbar Cooldown (Ticks)",
