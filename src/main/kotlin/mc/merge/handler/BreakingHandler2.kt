@@ -78,19 +78,18 @@ class BreakingHandler2 : IHandler, IHandlerController{
                 doubleBreakContext?.tick()
             }
 
+            queue.removeIf {
+                it.state != it.pos.state
+                || !canReach(player.eyePos, it.pos, CoreConfig.breakRadius)
+            }
+
             queue.forEach {
                 breakBlock(PosAndState(it.pos, it.state), it.owner, false, fromQueue = true)
             }
         }
 
         onEvent<PacketEvent.Receive.Pre>{ event ->
-            if (event.packet is InventoryS2CPacket) {
-                println("InventoryS2CPacket")
-                print(event.packet)
-            }
-
             val packet = event.packet
-
             if (packet is BlockUpdateS2CPacket) {
                 onBlockUpdate(packet.pos, packet.state)
             } else if (packet is ChunkDeltaUpdateS2CPacket) {
@@ -270,7 +269,7 @@ class BreakingHandler2 : IHandler, IHandlerController{
     }
 
     fun onBlockBreak(breakingContext: BreakingContext?) {
-        if (breakingContext?.breakType == BreakType.Primary) {
+        if (breakingContext?.breakType == BreakType.Primary && breakingContext.startBreakType() != StartBreakType.Insta) {
             betweenBreakTicks = if(CoreConfig.ticksBetweenBreaks > 0) CoreConfig.ticksBetweenBreaks else 0
         }
         breakingContext?.apply {
@@ -379,7 +378,6 @@ class BreakingContext(
         if (miningProgress >= threshold) {
             if (breakType.isPrimary()) {
                 breakingHandler.stopBreakPacket(pos)
-                breakingHandler.betweenBreakTicks = CoreConfig.ticksBetweenBreaks + 1
             }
             breakingHandler.onBlockBreak(this@BreakingContext)
         }
