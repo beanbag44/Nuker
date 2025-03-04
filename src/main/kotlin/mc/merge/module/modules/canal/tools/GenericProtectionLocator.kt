@@ -12,7 +12,7 @@ class GenericProtectionLocator : IProtectionLocator {
     }
 
     override fun isCorrectInPosition(x: Int, y: Int, z: Int): Boolean {
-        return statesForPosition(x, y, z)!!.map { it.block }.toList().contains(
+        return (statesForPosition(x, y, z)?: listOf()).map { it.block }.toList().contains(
             ModCore.mc.world?.getBlockState(BlockPos(x, y, z))?.block
         )
     }
