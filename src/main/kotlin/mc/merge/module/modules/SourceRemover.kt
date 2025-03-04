@@ -1,4 +1,4 @@
-package me.beanbag.nuker.module.modules
+package mc.merge.module.modules
 
 import mc.merge.ModCore.inventoryHandler
 import mc.merge.event.EventBus.MAX_PRIORITY
@@ -7,7 +7,6 @@ import mc.merge.event.onInGameEvent
 import mc.merge.handler.PlacementHandler.airPlace
 import mc.merge.handler.PlacementHandler.blockPlaceTimeouts
 import mc.merge.module.Module
-import mc.merge.module.modules.CoreConfig
 import mc.merge.module.settings.SettingGroup
 import mc.merge.types.VolumeSort
 import mc.merge.util.BlockUtils

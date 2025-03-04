@@ -6,14 +6,10 @@ import mc.merge.handler.BreakingHandler2
 import mc.merge.handler.InventoryHandler
 import mc.merge.inventory.EChestMemory
 import mc.merge.module.Module
-import mc.merge.module.modules.CoreConfig
-import mc.merge.module.modules.EquipmentSaver
-import mc.merge.module.modules.FastBreak
-import mc.merge.module.modules.SafeWalk
+import mc.merge.module.modules.*
 import mc.merge.module.modules.nuker.Nuker
 import mc.merge.util.BaritoneProcess
 import mc.merge.util.FileManager
-import me.beanbag.nuker.module.modules.SourceRemover
 import net.minecraft.client.MinecraftClient
 import net.minecraft.util.Formatting
 import org.slf4j.Logger
@@ -54,7 +50,7 @@ object ModCore {
     var modules: List<Module> = listOf(
         CoreConfig,
         Nuker(),
-//        SourceRemover(),
+        SourceRemover(),
         FastBreak(),
         EquipmentSaver(),
         SafeWalk(),

@@ -4,7 +4,6 @@ import mc.merge.ModCore
 import mc.merge.module.Module
 import mc.merge.module.modules.*
 import mc.merge.module.modules.nuker.Nuker
-import me.beanbag.nuker.module.modules.SourceRemover
 import java.util.function.Consumer
 
 
@@ -13,7 +12,7 @@ abstract class MeteorModule(var module: Module) : meteordevelopment.meteorclient
         val modules = listOf(
             NukerMeteorImplementation(ModCore.getModuleByClass(Nuker::class.java)!!),
             CoreConfigMeteorImplementation(ModCore.getModuleByClass(CoreConfig::class.java)!!),
-//            SourceRemoverMeteorImplementation(ModCore.getModuleByClass(SourceRemover::class.java)!!),
+            SourceRemoverMeteorImplementation(ModCore.getModuleByClass(SourceRemover::class.java)!!),
             EquipmentSaverMeteorImplementation(ModCore.getModuleByClass(EquipmentSaver::class.java)!!),
             FastBreakMeteorImplementation(ModCore.getModuleByClass(FastBreak::class.java)!!),
             SafeWalkMeteorImplementation(ModCore.getModuleByClass(SafeWalk::class.java)!!),
