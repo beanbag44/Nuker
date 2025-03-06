@@ -28,9 +28,9 @@ class GenericProtectionLocator : IProtectionLocator {
             }
             BRIDGE_MIN_Y -> {
                 return if (x > CanalSpecs.WEST_WALL_X + 2 && x < CanalSpecs.EAST_WALL_X - 2) {
-                    listOf()
-                } else {
                     listOf(Blocks.AIR.defaultState)
+                } else {
+                    listOf(Blocks.OBSIDIAN.defaultState)
                 }
             }
             BRIDGE_MIN_Y + 1 -> {

@@ -100,12 +100,10 @@ class CanalSpecs {
             }
 
             if (isProtection(x, y, z)) {
-                return if (protectionLocator.statesForPosition(x, y, z)!!
-                        .contains(world.getBlockState(pos))
-                ) {
+                return if (protectionLocator.statesForPosition(x, y, z)?.contains(world.getBlockState(pos)) == true) {
                     world.getBlockState(pos)
                 } else {
-                    protectionLocator.statesForPosition(x, y, z)!!.first()!!
+                    protectionLocator.statesForPosition(x, y, z)?.firstOrNull() ?: world.getBlockState(pos)
                 }
             }
 
