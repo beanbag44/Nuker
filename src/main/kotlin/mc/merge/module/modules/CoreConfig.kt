@@ -24,7 +24,7 @@ object CoreConfig : Module("Core Configs", "General configs") {
         breaking,
         "Validate Break",
         "Waits for the server to validate breaks",
-        true, null) { true }
+        false, null) { true }
     val ghostBlockTimeout by setting(
         breaking,
         "Ghost Block Timeout (Ticks)",
@@ -34,12 +34,12 @@ object CoreConfig : Module("Core Configs", "General configs") {
         breaking,
         "Break Threshold",
         "The percentage mined a block should be broken at",
-        0.70f, null, { true },  0f, 1f, 0f, 1f, 0.01f)
+        1.0f, null, { true },  0f, 1f, 0f, 1f, 0.01f)
     val packetLimit by setting(
         breaking,
         "Packet Limit",
         "How many packets can be sent per tick",
-        10, null, { true }, 0, 15, 0, 15)
+        7, null, { true }, 0, 15, 0, 15)
     val blockBreakTimeout by setting(
         breaking,
         "Break Timeout",
@@ -55,7 +55,7 @@ object CoreConfig : Module("Core Configs", "General configs") {
     val breakExploit by setting ( breaking,
         "Break Exploit",
         "Sends a stop packet before breaking a block to disable grim checks",
-        true
+        false
     )
 
     private val breakingRender = group("Breaking Render", "Settings for rendering breaking blocks")
@@ -140,21 +140,21 @@ object CoreConfig : Module("Core Configs", "General configs") {
 
 
     private val hotbar = group("Hotbar", "Settings for hotbar management")
-    val usableHotbarSlot = setting(
-        hotbar,
-        "Usable Hotbar Slot",
-        "The hotbar slot that can be used for inventory actions when needed",
-        8, min = 1, max = 9)
+//    val usableHotbarSlot = setting(
+//        hotbar,
+//        "Usable Hotbar Slot",
+//        "The hotbar slot that can be used for inventory actions when needed",
+//        8, min = 1, max = 9)
     val swapHotbarCooldown = setting(
         hotbar,
         "Swap Hotbar Cooldown",
         "Ticks Between Hotbar Swaps",
-        1, min = 0, sliderMax = 2)
+        0, min = 0, sliderMax = 2)
     val useHotbarCooldown = setting(
         hotbar,
         "Use Hotbar Cooldown",
         "Ticks after swapping before the mod can use the hotbar slot.",
-        1, min = 0, sliderMax = 2)
+        0, min = 0, sliderMax = 2)
     val swapBack = setting(
         hotbar,
         "Swap Back",
@@ -163,24 +163,19 @@ object CoreConfig : Module("Core Configs", "General configs") {
 
     private val inventory = group("Inventory", "Settings for inventory management")
 
-    val selectOnHotbarCooldown = setting(
-        inventory,
-        "Select On Hotbar Cooldown (Ticks)",
-        "The delay between selecting hotbar slots",
-        1, null, { true }, 0, 20, 0, 20)
-    val swapCooldownTicks = setting(
-        inventory,
-        "Swap Cooldown (Ticks)",
-        "The delay between swapping items with items on the hotbar",
-        1, null, { true }, 0, 20, 0, 20)
+//    val swapCooldownTicks = setting(
+//        inventory,
+//        "Swap Cooldown (Ticks)",
+//        "The delay between swapping items with items on the hotbar",
+//        1, null, { true }, 0, 20, 0, 20)
     val maxDropsPerTick = setting(
         inventory,
         "Max Drops Per Tick",
         "The maximum drops that can happen every tick",
         32, min = 0, max = 64)
-    val throwawayBlocks = setting(
-        inventory,
-        "Throwaway Blocks",
-        "Blocks that can be thrown away if needed. For example, when moving a piece of armor to your inventory to save it from being broken",
-        listOf(Items.COBBLESTONE, Items.STONE, Items.DIRT, Items.NETHERRACK, Items.DIORITE, Items.ANDESITE, Items.GRANITE, Items.GRAVEL, Items.ROTTEN_FLESH, Items.BONE))
+//    val throwawayBlocks = setting(
+//        inventory,
+//        "Throwaway Blocks",
+//        "Blocks that can be thrown away if needed. For example, when moving a piece of armor to your inventory to save it from being broken",
+//        listOf(Items.COBBLESTONE, Items.STONE, Items.DIRT, Items.NETHERRACK, Items.DIORITE, Items.ANDESITE, Items.GRANITE, Items.GRAVEL, Items.ROTTEN_FLESH, Items.BONE))
 }

@@ -79,8 +79,7 @@ class BreakingHandler2 : IHandler, IHandlerController{
             }
 
             queue.removeIf {
-                it.state != it.pos.state
-                || !canReach(player.eyePos, it.pos, CoreConfig.breakRadius)
+                 !canReach(player.eyePos, it.pos, CoreConfig.breakRadius)
             }
 
             queue.forEach {
