@@ -29,7 +29,6 @@ import net.minecraft.block.BlockState
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
 import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
-import net.minecraft.network.packet.s2c.play.InventoryS2CPacket
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.Direction
@@ -168,6 +167,12 @@ class BreakingHandler2 : IHandler, IHandlerController{
             val isToolReady = inventoryHandler.hotBarController.canUse(this@BreakingHandler2)
 
             if (isToolReady && startType == StartBreakType.Insta) {
+                if (primaryBreakContext != null || doubleBreakContext != null) {
+                    if (queueIfNeeded && !fromQueue) {
+                        queue.add(breakingContext)
+                    }
+                    return@runInGame
+                }
                 if (fromQueue) {
                     queue.removeIf { it.pos == block.blockPos }
                 }

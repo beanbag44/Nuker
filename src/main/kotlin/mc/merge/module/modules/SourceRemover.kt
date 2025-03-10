@@ -54,7 +54,7 @@ class SourceRemover : Module("Source Remover", "Places blocks in water sources t
 
             inventoryHandler.hotBarController.trySelectingSlot(blockSlot, this@SourceRemover)
             if (inventoryHandler.hotBarController.canUse(this@SourceRemover)) {
-                airPlace(placeBlock.blockPos, Direction.UP, CoreConfig.swingOnPlace, CoreConfig.validatePlace)
+                airPlace(placeBlock.blockPos, Direction.DOWN, CoreConfig.swingOnPlace, CoreConfig.validatePlace)
             }
         }
     }

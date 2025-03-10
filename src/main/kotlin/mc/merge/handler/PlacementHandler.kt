@@ -125,11 +125,11 @@ object PlacementHandler : IHandler {
             )
         }
 
+        inventoryHandler.offhandDoohickey()
+
         if (swing) {
             player.swingHand(Hand.MAIN_HAND)
         }
-
-        inventoryHandler.offhandDoohickey()
 
         usedThisTick = true
         blockPlaceTimeouts.put(pos)

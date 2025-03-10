@@ -4,7 +4,7 @@ interface IHandlerController {
     fun getPriority(): HandlerPriority
 }
 
-class HandlerPriority(val priority: Int, val isLifeSupport:Boolean) {
+class HandlerPriority(val priority: Int, val isLifeSupport:Boolean, val isExternal: Boolean = false) {
 
     companion object {
         fun lowest() : HandlerPriority = HandlerPriority(-100, false)
@@ -13,10 +13,14 @@ class HandlerPriority(val priority: Int, val isLifeSupport:Boolean) {
     }
 
     operator fun compareTo(other: HandlerPriority): Int {
-        return if (isLifeSupport == other.isLifeSupport) {
-            priority.compareTo(other.priority)
+        val chooseThis = 1
+        val chooseOther = -1
+        return if (isExternal != other.isExternal) {
+            if (isExternal) chooseThis else chooseOther
+        } else if (isLifeSupport != other.isLifeSupport) {
+            if (isLifeSupport) chooseThis else chooseOther
         } else {
-            if (isLifeSupport) -1 else 1
+            priority.compareTo(other.priority)
         }
     }
 }

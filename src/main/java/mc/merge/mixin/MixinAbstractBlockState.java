@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+@SuppressWarnings("public-target")
 @Mixin(targets = "net.minecraft.block.AbstractBlock$AbstractBlockState")
 public class MixinAbstractBlockState {
     @Inject(method = "onUse", at = @At("HEAD"))

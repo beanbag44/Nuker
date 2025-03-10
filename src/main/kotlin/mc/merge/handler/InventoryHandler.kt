@@ -13,6 +13,7 @@ import net.minecraft.screen.slot.Slot
 import net.minecraft.screen.slot.SlotActionType
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Direction
+import java.util.concurrent.CopyOnWriteArrayList
 
 class InventoryHandler : IHandler {
     override var currentlyBeingUsedBy: IHandlerController?
@@ -21,6 +22,7 @@ class InventoryHandler : IHandler {
 
     private val packetTracker = InventoryPacketTracker()
     val hotBarController = HotBarController(packetTracker)
+    val externalController = ExternalInventoryController(this, packetTracker)
     private val actionableInventory = ActionableInventory(packetTracker)
 
     private val slotActionQueue = mutableListOf<QueuedSlotActionController>()
@@ -84,7 +86,7 @@ class InventoryHandler : IHandler {
         actionableInventory.sendPacket(
             PlayerActionC2SPacket(
                 PlayerActionC2SPacket.Action.SWAP_ITEM_WITH_OFFHAND,
-                BlockPos(420, 69, 420),
+                BlockPos.ORIGIN,
                 Direction.DOWN
             )
         )
@@ -108,7 +110,7 @@ class HotBarController(val packetTracker: InventoryPacketTracker) : IHandler {
         get() = queue.firstOrNull()?.controller
         set(value) {  }
 
-    private val queue = mutableListOf<QueuedSelectHotbarController>()
+    private val queue = CopyOnWriteArrayList<QueuedSelectHotbarController>()
     private var swapBackToSlot: Int? = null
     private var swapCooldown = 0
     private var useCooldown = 0
@@ -181,6 +183,7 @@ class HotBarController(val packetTracker: InventoryPacketTracker) : IHandler {
             }
 
             player.inventory.selectedSlot = index
+            interactionManager.lastSelectedSlot = index
             packetTracker.sendPacket(UpdateSelectedSlotC2SPacket(index))
             swapCooldown = CoreConfig.swapHotbarCooldown.getValue()
             useCooldown = CoreConfig.useHotbarCooldown.getValue()
