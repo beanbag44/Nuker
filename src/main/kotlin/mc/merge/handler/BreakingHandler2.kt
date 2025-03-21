@@ -4,6 +4,7 @@ import mc.merge.ModCore.breakingHandler
 import mc.merge.ModCore.inventoryHandler
 import mc.merge.ModCore.mc
 import mc.merge.event.EventBus
+import mc.merge.event.events.BlockUpdateEvent
 import mc.merge.event.events.PacketEvent
 import mc.merge.event.events.RenderEvent
 import mc.merge.event.events.TickEvent
@@ -27,8 +28,6 @@ import mc.merge.util.InventoryUtils.getBestTool
 import mc.merge.util.InventoryUtils.percentDamagePerTick
 import net.minecraft.block.BlockState
 import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket
-import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket
-import net.minecraft.network.packet.s2c.play.ChunkDeltaUpdateS2CPacket
 import net.minecraft.util.math.BlockPos
 import net.minecraft.util.math.Box
 import net.minecraft.util.math.Direction
@@ -46,6 +45,8 @@ class BreakingHandler2 : IHandler, IHandlerController{
     val blockBreakTimeouts = TimeoutSet<BlockPos> { CoreConfig.blockBreakTimeout }
     private val queue: CopyOnWriteArrayList<BreakingContext> = CopyOnWriteArrayList()
     private var packetCounter = 0
+
+    var reBreakPos: BlockPos? = null
 
     var primaryBreakContext:BreakingContext? = null
     var doubleBreakContext: BreakingContext? = null
@@ -86,15 +87,16 @@ class BreakingHandler2 : IHandler, IHandlerController{
             }
         }
 
-        onEvent<PacketEvent.Receive.Pre>{ event ->
-            val packet = event.packet
-            if (packet is BlockUpdateS2CPacket) {
-                onBlockUpdate(packet.pos, packet.state)
-            } else if (packet is ChunkDeltaUpdateS2CPacket) {
-                packet.visitUpdates { pos, state ->
-                    onBlockUpdate(pos, state)
-                }
-            }
+        onEvent<BlockUpdateEvent>{ event ->
+            onBlockUpdate(event.pos, event.state)
+//            val packet = event.packet
+//            if (packet is BlockUpdateS2CPacket) {
+//                onBlockUpdate(packet.pos, packet.state)
+//            } else if (packet is ChunkDeltaUpdateS2CPacket) {
+//                packet.visitUpdates { pos, state ->
+//                    onBlockUpdate(pos, state)
+//                }
+//            }
         }
 
         onInGameEvent<PacketEvent.Send.Pre> {
@@ -166,6 +168,16 @@ class BreakingHandler2 : IHandler, IHandlerController{
             inventoryHandler.hotBarController.trySelectingSlot(bestToolSlot, this@BreakingHandler2)
             val isToolReady = inventoryHandler.hotBarController.canUse(this@BreakingHandler2)
 
+            val canReBreak = reBreakPos == block.blockPos && primaryBreakContext == null
+
+            if (canReBreak && startType != StartBreakType.Insta) {
+                stopBreakPacket(block.blockPos)
+                if (fromQueue) {
+                    queue.removeIf { it.pos == block.blockPos }
+                }
+                return@runInGame
+            }
+
             if (isToolReady && startType == StartBreakType.Insta) {
                 if (primaryBreakContext != null || doubleBreakContext != null) {
                     if (queueIfNeeded && !fromQueue) {
@@ -235,9 +247,9 @@ class BreakingHandler2 : IHandler, IHandlerController{
     //
     private fun canAddContexts(): Boolean {
         if (CoreConfig.doubleBreak) {
-            return primaryBreakContext == null
+            return primaryBreakContext == null || doubleBreakContext == null
         }
-        return primaryBreakContext == null || doubleBreakContext == null
+        return primaryBreakContext == null
     }
 
     fun startBreakType(percentBreakPerTick: Float) :StartBreakType = when {
@@ -274,6 +286,7 @@ class BreakingHandler2 : IHandler, IHandlerController{
 
     fun onBlockBreak(breakingContext: BreakingContext?) {
         if (breakingContext?.breakType == BreakType.Primary && breakingContext.startBreakType() != StartBreakType.Insta) {
+            reBreakPos = breakingContext.pos
             betweenBreakTicks = if(CoreConfig.ticksBetweenBreaks > 0) CoreConfig.ticksBetweenBreaks else 0
         }
         breakingContext?.apply {
@@ -382,8 +395,10 @@ class BreakingContext(
         if (miningProgress >= threshold) {
             if (breakType.isPrimary()) {
                 breakingHandler.stopBreakPacket(pos)
+                breakingHandler.onBlockBreak(this@BreakingContext)
+            } else if (!breakType.isPrimary() && (currentBreakDelta - 1) * currentBreakDelta > threshold) {
+                breakingHandler.onBlockBreak(this@BreakingContext)
             }
-            breakingHandler.onBlockBreak(this@BreakingContext)
         }
         if (!inventoryHandler.hotBarController.canUse(breakingHandler)) return@runInGame
 

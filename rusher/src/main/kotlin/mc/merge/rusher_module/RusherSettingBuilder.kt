@@ -4,6 +4,7 @@ import mc.merge.ModCore
 import mc.merge.module.settings.*
 import mc.merge.module.settings.BlockListSetting
 import net.minecraft.block.Block
+import net.minecraft.block.Blocks
 import net.minecraft.entity.EntityType
 import net.minecraft.item.Item
 import net.minecraft.item.Items
@@ -74,6 +75,47 @@ class RusherSettingBuilder {
                 rhSetting.addSubSettings(xSetting)
                 rhSetting.addSubSettings(ySetting)
                 rhSetting.addSubSettings(zSetting)
+
+                return rhSetting
+            }
+
+            is BlockSetting -> {
+                val rhSetting = NullSetting(setting.getName(), setting.getDescription())
+                val searchSetting = StringSetting("Search", "Search for blocks", "")
+                rhSetting.addSubSettings(searchSetting)
+                val blockValue = setting.valueToString()
+
+                setting.possibleValues().forEach { block ->
+                    BooleanSetting(block, blockValue == block).apply{
+                        setVisibility {
+                            setting.isVisible() && (
+                                    searchSetting.value.isEmpty() ||
+                                            block.contains(searchSetting.value, ignoreCase = true) ||
+                                            searchSetting.value.lowercase() == "enabled" && this.value
+                                    )
+                        }
+                        onChange { value ->
+                            if (value) {
+                                setting.setValue(setting.valueFromString(block))
+                            } else {
+                                setting.setValue(Blocks.AIR)
+                            }
+                        }
+
+                        setting.getOnChange().add(Consumer { value: Block ->
+                            this.value = Registries.BLOCK.getId(value).toString()
+                                .apply { replace("minecraft:", "", true) } == this.name
+                        })
+                    }.also { rhSetting.addSubSettings(it) }
+                }
+                rhSetting.subSettings.sortWith{ a, b ->
+                    if (a is StringSetting) {
+                        return@sortWith -1
+                    } else if (b is StringSetting) {
+                        return@sortWith 1
+                    }
+                    a.name.compareTo(b.name)
+                }
 
                 return rhSetting
             }

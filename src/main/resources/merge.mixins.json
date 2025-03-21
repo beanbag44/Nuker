@@ -16,6 +16,7 @@
     "MixinChatInputSuggester",
     "MixinClientPlayInteractionHandler",
     "MixinClientPlayNetworkHandler",
+    "MixinClientWorld",
     "MixinGameRenderer",
     "MixinInGameHud",
     "MixinMinecraftClient",

@@ -1,22 +1,42 @@
 package mc.merge.external.meteor
 
 import mc.merge.ModCore
+import mc.merge.ModCore.getModuleByClass
 import mc.merge.module.Module
 import mc.merge.module.modules.*
 import mc.merge.module.modules.nuker.Nuker
 import java.util.function.Consumer
+import kotlin.reflect.KClass
 
 
 abstract class MeteorModule(var module: Module) : meteordevelopment.meteorclient.systems.modules.Module(MeteorLoader.CATEGORY, module.name, module.description) {
     companion object {
-        val modules = listOf(
-            NukerMeteorImplementation(ModCore.getModuleByClass(Nuker::class.java)!!),
-            CoreConfigMeteorImplementation(ModCore.getModuleByClass(CoreConfig::class.java)!!),
-            SourceRemoverMeteorImplementation(ModCore.getModuleByClass(SourceRemover::class.java)!!),
-            EquipmentSaverMeteorImplementation(ModCore.getModuleByClass(EquipmentSaver::class.java)!!),
-            FastBreakMeteorImplementation(ModCore.getModuleByClass(FastBreak::class.java)!!),
-            SafeWalkMeteorImplementation(ModCore.getModuleByClass(SafeWalk::class.java)!!),
-        )
+        val meteorModules :MutableList<MeteorModule> = mutableListOf()
+
+        private fun MutableList<MeteorModule>.addIfPresent(moduleKlass: KClass<out Module>) {
+            val module = getModuleByClass(moduleKlass.java)
+            if (module != null) {
+                add(generateModule(module))
+            }
+        }
+
+        private fun generateModule(module: Module): MeteorModule {
+            return when (module) {
+                is Nuker -> NukerMeteorImplementation(module)
+                is CoreConfig -> CoreConfigMeteorImplementation(module)
+                is EquipmentSaver -> EquipmentSaverMeteorImplementation(module)
+                is FastBreak -> FastBreakMeteorImplementation(module)
+                is SafeWalk -> SafeWalkMeteorImplementation(module)
+                is SourceRemover -> SourceRemoverMeteorImplementation(module)
+
+                else -> throw IllegalArgumentException("Unknown module type: ${module::class.java}")
+            }
+        }
+        init {
+            ModCore.modules.forEach { module ->
+                meteorModules.addIfPresent(module::class)
+            }
+        }
     }
     init {
         val settingBuilder = MeteorSettingBuilder()
@@ -36,15 +56,10 @@ abstract class MeteorModule(var module: Module) : meteordevelopment.meteorclient
     }
 }
 
-
+//nuker modules
 class NukerMeteorImplementation(module: Module) : MeteorModule(module)
-
 class CoreConfigMeteorImplementation(module: Module) : MeteorModule(module)
-
 class EquipmentSaverMeteorImplementation(module: Module) : MeteorModule(module)
-
 class FastBreakMeteorImplementation(module: Module) : MeteorModule(module)
-
 class SafeWalkMeteorImplementation(module:Module) : MeteorModule(module)
-
 class SourceRemoverMeteorImplementation(module: Module) : MeteorModule(module)

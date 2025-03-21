@@ -35,7 +35,7 @@ class CanalSpecs {
         const val WEST_WALL_X: Int = -14
         const val EAST_WALL_X: Int = 13
 
-        const val CEILING_Y: Int = 356
+        const val CEILING_Y: Int = 319
 
 
         fun isInBounds(x: Int, y: Int): Boolean {
@@ -108,24 +108,34 @@ class CanalSpecs {
             }
 
             if (y == CEILING_Y) {
-                val canFreeze = world.getBiome(pos.withY(WALKWAY_Y + 1))
-                    .value().temperature < FREEZING_TEMPERATURE
+                val canFreeze: Boolean = canFreeze(pos)
                 return if (canFreeze) {
-                    if (x == MIN_X || x == MAX_X) {
+                    if (x == MIN_X || x == MAX_X || adjacentCantFreeze(pos) || x in (WEST_WALL_X + 1)..<EAST_WALL_X && (x + z) % 4 == 0 && z % 5 == 0) {
                         Blocks.CRYING_OBSIDIAN.defaultState
                     } else if (x <= WEST_WALL_X || x >= EAST_WALL_X || (x + z) % 2 == 0) {
                         Blocks.OBSIDIAN.defaultState
                     } else {
-                        Blocks.GLASS.defaultState
+                        Blocks.BLACK_STAINED_GLASS.defaultState
                     }
                 } else {
-                    world.getBlockState(pos)
+                    Blocks.AIR.defaultState
                 }
             }
             val isRiver = world.getBiome(pos).isIn(BiomeTags.IS_RIVER)
             val isFloor = isFloor(x, y)
             val isLightSource = x == WEST_WALKWAY_MIN_X || x == EAST_WALKWAY_MAX_X
             return if (isRiver && isFloor || isLightSource) Blocks.CRYING_OBSIDIAN.defaultState else Blocks.OBSIDIAN.defaultState
+        }
+
+        private fun adjacentCantFreeze(pos: BlockPos): Boolean {
+            return !canFreeze(pos.north()) || !canFreeze(pos.east()) || !canFreeze(pos.south()) || !canFreeze(pos.west()) || !canFreeze(
+                pos.north().west()
+            ) || !canFreeze(pos.north().east()) || !canFreeze(pos.south().west()) || !canFreeze(pos.south().east())
+        }
+
+        private fun canFreeze(pos: BlockPos): Boolean {
+            return MinecraftClient.getInstance().world!!.getBiome(pos.withY(WALKWAY_Y + 1))
+                .value().temperature < FREEZING_TEMPERATURE
         }
 
         fun InGame.canIgnoreForBreak(pos: BlockPos?): Boolean {

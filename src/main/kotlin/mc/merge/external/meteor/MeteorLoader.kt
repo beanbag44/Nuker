@@ -15,7 +15,7 @@ class MeteorLoader : MeteorAddon() {
     override fun onInitialize() {
         LogUtils.getLogger().info("Initializing $modName Addon")
 
-        for (module in MeteorModule.modules) {
+        for (module in MeteorModule.meteorModules) {
             Modules.get().add(module)
         }
         MeteorEventSubscriber().subscribe()

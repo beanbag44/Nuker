@@ -41,6 +41,20 @@ class MeteorSettingBuilder {
                 meteorSetting
             }
 
+            is BlockSetting -> {
+                val builder = meteordevelopment.meteorclient.settings.BlockSetting.Builder()
+                    .name(setting.getName())
+                    .description(setting.getDescription())
+                    .defaultValue(setting.getDefaultValue())
+                    .onChanged { value: Block -> setting.setValue(value) }
+                    .visible { setting.isVisible() }
+
+                val meteorSetting = builder.build()
+                setting.getOnChange().add(Consumer { value -> meteorSetting.set(value) })
+
+                meteorSetting
+            }
+
             is BoolSetting -> {
                 val builder = meteordevelopment.meteorclient.settings.BoolSetting.Builder()
                     .name(setting.getName())
@@ -116,7 +130,7 @@ class MeteorSettingBuilder {
 
                 meteorSetting
             }
-            is mc.merge.module.settings.EnumSetting<*> -> {
+            is EnumSetting<*> -> {
                 setting.toMeteorSetting()
             }
             is FloatSetting -> {

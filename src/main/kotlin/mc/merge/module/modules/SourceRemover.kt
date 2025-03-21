@@ -12,6 +12,7 @@ import mc.merge.types.VolumeSort
 import mc.merge.util.BlockUtils
 import mc.merge.util.BlockUtils.getBlockSphere
 import mc.merge.util.BlockUtils.isSource
+import mc.merge.util.BlockUtils.isWithinABaritoneSelection
 import mc.merge.util.InventoryUtils.getInHotbar
 import net.minecraft.block.Blocks
 import net.minecraft.util.math.Direction
@@ -26,6 +27,10 @@ class SourceRemover : Module("Source Remover", "Places blocks in water sources t
         "Whitelisted Blocks",
         "Sets what blocks can be used to fill the source blocks",
         arrayListOf(Blocks.STONE, Blocks.DIRT))
+    private val baritoneSelection by setting(generalGroup,
+        "Baritone Selection",
+        "Only places blocks within a baritone selection",
+        false)
 
     init {
         onInGameEvent<TickEvent.Pre>(MAX_PRIORITY) {
@@ -33,6 +38,7 @@ class SourceRemover : Module("Source Remover", "Places blocks in water sources t
                 blockPlaceTimeouts.values().contains(pos)
                         || !isSource(state)
                         || !state.isReplaceable
+                        || baritoneSelection && !isWithinABaritoneSelection(pos)
             }
             if (blockVolume.isEmpty()) {
                 return@onInGameEvent

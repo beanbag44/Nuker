@@ -4,7 +4,6 @@ import mc.merge.module.Module
 import mc.merge.module.modules.nuker.enumsettings.ColourMode
 import mc.merge.module.modules.nuker.enumsettings.RenderAnimation
 import mc.merge.module.modules.nuker.enumsettings.RenderType
-import net.minecraft.item.Items
 import java.awt.Color
 
 object CoreConfig : Module("Core Configs", "General configs") {
@@ -19,7 +18,7 @@ object CoreConfig : Module("Core Configs", "General configs") {
         breaking,
         "Double Break",
         "Breaks two blocks at once",
-        true, null) { true }
+        false, null) { true }
     val validateBreak by setting(
         breaking,
         "Validate Break",

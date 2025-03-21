@@ -62,7 +62,7 @@ object BlockUtils {
 
     fun InGame.canReach(from: Vec3d, pos: BlockPos, reach: Double): Boolean {
         var closestPoint: Vec3d? = null
-        (if (pos.getState(world).block is FluidBlock) FluidBlock.COLLISION_SHAPE else pos.getState(world)
+        (if (pos.getState(world).block is FluidBlock || pos.getState(world).isAir) FluidBlock.COLLISION_SHAPE else pos.getState(world)
             .getOutlineShape(world, pos)).boundingBoxes.forEach { box ->
             if (box == null) return@forEach
             val x = MathHelper.clamp(
@@ -141,9 +141,9 @@ object BlockUtils {
                 isFlowing(PosAndState(pos.down(), stateBelow))) {
                 return@filter false
             }
-            return@filter canWalkThrough(stateAbove) && canWalkThrough(state) && stateBelow.isFullCube(world, pos)
-                    || canWalkThrough(stateAbove) && state.block == Blocks.WATER && stateBelow.block == Blocks.WATER
-                    || canWalkThrough(stateAbove) && state.block == Blocks.WATER && stateBelow.isFullCube(world, pos)
+            return@filter canWalkThrough(stateAbove, pos.up()) && canWalkThrough(state, pos) && stateBelow.isFullCube(world, pos)
+                    || canWalkThrough(stateAbove, pos.up()) && state.block == Blocks.WATER && stateBelow.block == Blocks.WATER
+                    || canWalkThrough(stateAbove, pos.up()) && state.block == Blocks.WATER && stateBelow.isFullCube(world, pos)
         }
 
     fun isSource(state: BlockState): Boolean {
@@ -164,13 +164,9 @@ object BlockUtils {
                 || !isSource(world.getBlockState(pos.west()))
     }
 
-    fun canWalkThrough(state: BlockState): Boolean {
-        if (state.isAir) return true
-        if (state.block is FlowerBlock) return true
-        if (state.block is TallPlantBlock) return true
-        if (state.block is ShortPlantBlock) return true
-        if (state.block is MushroomPlantBlock) return true
-        return false
+    fun canWalkThrough(state: BlockState, pos:BlockPos): Boolean {
+        val world = mc.world ?: return false
+        return state.getCollisionShape(world, pos).isEmpty
     }
 
     fun InGame.isBlockInFlatten(pos: BlockPos, crouchLowersFlatten: Boolean, flattenMode: FlattenMode, baritoneSelection: Boolean): Boolean {

@@ -1,12 +1,12 @@
 package mc.merge.handler
 
+import mc.merge.ModCore.mc
 import mc.merge.ModCore.rusherIsPresent
 import mc.merge.event.EventBus.MIN_PRIORITY
 import mc.merge.event.events.TickEvent
 import mc.merge.event.onInGameEvent
-import mc.merge.util.InGame
-import mc.merge.ModCore.mc
 import mc.merge.handler.RotationHandler.InputDirections.Companion.getCurrentInput
+import mc.merge.util.InGame
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper.getBoundKeyOf
 import net.minecraft.client.option.KeyBinding
 import net.minecraft.client.util.InputUtil
@@ -104,8 +104,8 @@ object RotationHandler: IHandler {
         NONE(-1f);
 
         companion object {
-            fun getDirection(yaw: Float): InputDirections? {
-                var yaw = yaw
+            fun getDirection(startingYaw: Float): InputDirections? {
+                var yaw = startingYaw
                 while (yaw < 0) yaw += 360f
                 yaw %= 360
                 return when {

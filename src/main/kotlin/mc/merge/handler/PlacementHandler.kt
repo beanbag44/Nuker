@@ -132,10 +132,11 @@ object PlacementHandler : IHandler {
         }
 
         usedThisTick = true
-        blockPlaceTimeouts.put(pos)
+        if (awaitServerResponse) {
+            blockPlaceTimeouts.put(pos)
+        }
         return true
     }
-
 
     class PlacementPreference(
         val direction: Direction,
