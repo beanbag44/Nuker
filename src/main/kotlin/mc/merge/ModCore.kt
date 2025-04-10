@@ -50,10 +50,10 @@ object ModCore {
     var modules: List<Module> = listOf(
         CoreConfig,
         Nuker(),
-        SourceRemover(),
+        SourceFiller(),
         FastBreak(),
         EquipmentSaver(),
-        SafeWalk(),
+        EdgeWalk(),
     )
 
     init {

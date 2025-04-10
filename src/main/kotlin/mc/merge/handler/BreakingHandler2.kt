@@ -121,6 +121,9 @@ class BreakingHandler2 : IHandler, IHandlerController{
     // Public - API
     //
     fun breakBlocks(blocks: List<PosAndState>, controller: IHandlerController, queueIfNeeded: Boolean = true) {
+        queue.removeIf{
+            it.owner == controller
+        }
         blocks.forEach {
             breakBlock(it, controller, queueIfNeeded)
         }
@@ -396,8 +399,9 @@ class BreakingContext(
             if (breakType.isPrimary()) {
                 breakingHandler.stopBreakPacket(pos)
                 breakingHandler.onBlockBreak(this@BreakingContext)
-            } else if (!breakType.isPrimary() && (currentBreakDelta - 1) * currentBreakDelta > threshold) {
-                breakingHandler.onBlockBreak(this@BreakingContext)
+            } else if (!breakType.isPrimary() && (mineTicks - 1) * currentBreakDelta > threshold) {
+                breakingHandler.nullifyBreakingContext(this@BreakingContext)
+                breakingHandler.blockBreakTimeouts.put(pos)
             }
         }
         if (!inventoryHandler.hotBarController.canUse(breakingHandler)) return@runInGame

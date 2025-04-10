@@ -17,8 +17,8 @@ import mc.merge.util.InventoryUtils.getInHotbar
 import net.minecraft.block.Blocks
 import net.minecraft.util.math.Direction
 
-class SourceRemover : Module("Source Remover", "Places blocks in water sources to remove them") {
-    val generalGroup = addGroup(SettingGroup("General", "General settings for source remover"))
+class SourceFiller : Module("Source Filler", "Places blocks in liquid sources") {
+    val generalGroup = addGroup(SettingGroup("General", "General settings for source filler"))
     private val sortMode by setting(generalGroup,
         "Sort Mode",
         "The order in which sources are removed",
@@ -29,7 +29,7 @@ class SourceRemover : Module("Source Remover", "Places blocks in water sources t
         arrayListOf(Blocks.STONE, Blocks.DIRT))
     private val baritoneSelection by setting(generalGroup,
         "Baritone Selection",
-        "Only places blocks within a baritone selection",
+        "Only fills blocks within a baritone selection",
         false)
 
     init {
@@ -58,8 +58,8 @@ class SourceRemover : Module("Source Remover", "Places blocks in water sources t
                 return@onInGameEvent
             }
 
-            inventoryHandler.hotBarController.trySelectingSlot(blockSlot, this@SourceRemover)
-            if (inventoryHandler.hotBarController.canUse(this@SourceRemover)) {
+            inventoryHandler.hotBarController.trySelectingSlot(blockSlot, this@SourceFiller)
+            if (inventoryHandler.hotBarController.canUse(this@SourceFiller)) {
                 airPlace(placeBlock.blockPos, Direction.DOWN, CoreConfig.swingOnPlace, CoreConfig.validatePlace)
             }
         }
