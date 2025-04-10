@@ -28,4 +28,8 @@ class RusherModule(name: String?, description: String?, var module: Module) :
     override fun onDisable() {
         module.enabled = false
     }
+
+    override fun getBindReference(): String {
+        return "epic_" + super.getBindReference()
+    }
 }

@@ -26,7 +26,7 @@ abstract class MeteorModule(var module: Module) : meteordevelopment.meteorclient
                 is CoreConfig -> CoreConfigMeteorImplementation(module)
                 is EquipmentSaver -> EquipmentSaverMeteorImplementation(module)
                 is FastBreak -> FastBreakMeteorImplementation(module)
-                is EdgeWalk -> SafeWalkMeteorImplementation(module)
+                is SafeWalk -> SafeWalkMeteorImplementation(module)
                 is SourceFiller -> SourceRemoverMeteorImplementation(module)
 
                 else -> throw IllegalArgumentException("Unknown module type: ${module::class.java}")

@@ -5,7 +5,7 @@ import mc.merge.event.onInGameEvent
 import mc.merge.module.Module
 import mc.merge.util.Versioned.setSneaking
 
-class EdgeWalk : Module("Edge Walk", "Prevents you from falling off blocks") {
+class SafeWalk : Module("Safe Walk", "Prevents you from falling off blocks") {
     val generalGroup = group("General", "General settings")
 
     val range by setting(generalGroup, "Range", "The range at which you start crouching",0.25)

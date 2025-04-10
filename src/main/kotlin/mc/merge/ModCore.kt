@@ -53,7 +53,7 @@ object ModCore {
         SourceFiller(),
         FastBreak(),
         EquipmentSaver(),
-        EdgeWalk(),
+        SafeWalk(),
     )
 
     init {
