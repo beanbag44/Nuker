@@ -1,6 +1,5 @@
 package mc.merge.module.modules.nuker
 
-import fi.dy.masa.litematica.world.SchematicWorldHandler
 import mc.merge.ModCore.breakingHandler
 import mc.merge.event.events.TickEvent
 import mc.merge.event.onInGameEvent
@@ -25,8 +24,6 @@ import mc.merge.util.BlockUtils.willReleaseLiquids
 import mc.merge.util.InGame
 import mc.merge.util.LitematicaUtils
 import mc.merge.util.LitematicaUtils.checkSchematicState
-import mc.merge.util.LitematicaUtils.updateSchematicMismatches
-import meteordevelopment.meteorclient.utils.player.ChatUtils
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.util.math.BlockPos

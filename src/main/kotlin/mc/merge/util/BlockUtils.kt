@@ -131,30 +131,34 @@ object BlockUtils {
             && state.block.hardness != 600f
             && !isStateEmpty(state)
 
-    fun InGame.getValidStandingSpots(min: BlockPos, max: BlockPos): List<BlockPos> =
-        allPosInBounds(min, max).filter { pos ->
+    fun getValidStandingSpots(min: BlockPos, max: BlockPos): List<BlockPos> {
+        val world = mc.world ?: return emptyList()
+        return allPosInBounds(min, max).filter { pos ->
             val stateAbove = world.getBlockState(pos.up())
             val state = world.getBlockState(pos)
             val stateBelow = world.getBlockState(pos.down())
             if (isFlowing(PosAndState(pos.up(), stateAbove)) ||
                 isFlowing(PosAndState(pos, state)) ||
-                isFlowing(PosAndState(pos.down(), stateBelow))) {
+                isFlowing(PosAndState(pos.down(), stateBelow))
+            ) {
                 return@filter false
             }
-            return@filter canWalkThrough(stateAbove, pos.up()) && canWalkThrough(state, pos) && stateBelow.isFullCube(world, pos)
-                    || canWalkThrough(stateAbove, pos.up()) && state.block == Blocks.WATER && stateBelow.block == Blocks.WATER
-                    || canWalkThrough(stateAbove, pos.up()) && state.block == Blocks.WATER && stateBelow.isFullCube(world, pos)
+            return@filter canWalkThrough(stateAbove, pos.up()) && stateAbove.fluidState.isEmpty && canWalkThrough(state, pos) && stateBelow.isSideSolidFullSquare(world, pos.down(), Direction.UP)
+                    || canWalkThrough(stateAbove, pos.up()) && stateAbove.fluidState.isEmpty && state.block == Blocks.WATER && stateBelow.block == Blocks.WATER
+                    || canWalkThrough(stateAbove, pos.up()) && stateAbove.fluidState.isEmpty && state.block == Blocks.WATER && stateBelow.isSideSolidFullSquare(world, pos.down(), Direction.UP)
         }
+    }
 
     fun isSource(state: BlockState): Boolean {
         return state.fluidState.fluid is FlowableFluid
                 && state.fluidState.isStill
     }
 
-    fun InGame.isFlowing(block: PosAndState): Boolean =
+    fun isFlowing(block: PosAndState): Boolean =
         isFlowing(block.blockPos, block.blockState)
 
-    fun InGame.isFlowing(pos: BlockPos, state: BlockState): Boolean {
+    fun isFlowing(pos: BlockPos, state: BlockState): Boolean {
+        val world = mc.world ?: return false
         if (state.fluidState.fluid !is FlowableFluid) {
             return false
         }
@@ -177,7 +181,7 @@ object BlockUtils {
                 || (!isStateEmpty(up.south().getState(world)) && (!baritoneSelection || isWithinABaritoneSelection(up.south())))
                 || (!isStateEmpty(up.west().getState(world)) && (!baritoneSelection || isWithinABaritoneSelection(up.west())))
                 || (!isStateEmpty(up.north().getState(world)) && (!baritoneSelection || isWithinABaritoneSelection(up.north())))
-                ) {
+            ) {
                 return false
             }
         }
@@ -239,7 +243,7 @@ object BlockUtils {
                 || (
                 !newState.fluidState.isEmpty
                         && !currentState.fluidState.isEmpty
-                        )
+                )
     }
 
     fun isStateEmpty(state: BlockState) =
@@ -320,7 +324,7 @@ object BlockUtils {
                 }
             }
         }
-       return false
+        return false
     }
 
     fun InGame.blocksThatWillUpdate(pos: BlockPos): List<PosAndState> {

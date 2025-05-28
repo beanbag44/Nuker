@@ -95,6 +95,11 @@ object FileManager {
         isLoadingSettings = true
 
         val rootObject = Gson().fromJson(configFile.readText(), JsonObject::class.java)
+        if (rootObject == null) {
+            LOGGER.warn("Failed to load config file: ${configFile.name}")
+            isLoadingSettings = false
+            return
+        }
         val modulesObject = rootObject.getAsJsonObject("modules")
         for (module in modules) {
             val moduleObject = modulesObject.getAsJsonObject(module.name)
