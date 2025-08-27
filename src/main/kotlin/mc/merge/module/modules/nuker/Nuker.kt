@@ -10,9 +10,12 @@ import mc.merge.module.modules.nuker.enumsettings.DigDirection
 import mc.merge.module.modules.nuker.enumsettings.FlattenMode
 import mc.merge.module.modules.nuker.enumsettings.VolumeShape
 import mc.merge.module.modules.nuker.enumsettings.WhitelistMode
+import mc.merge.module.settings.BlockListSetting
+import mc.merge.module.settings.BlockPresetSetting
 import mc.merge.module.settings.SettingGroup
 import mc.merge.types.VolumeSort
 import mc.merge.util.BlockUtils.getBlockCube
+import mc.merge.util.BlockUtils.getBlockCuboid
 import mc.merge.util.BlockUtils.getBlockSphere
 import mc.merge.util.BlockUtils.isBlockBreakable
 import mc.merge.util.BlockUtils.isBlockInFlatten
@@ -24,9 +27,11 @@ import mc.merge.util.BlockUtils.willReleaseLiquids
 import mc.merge.util.InGame
 import mc.merge.util.LitematicaUtils
 import mc.merge.util.LitematicaUtils.checkSchematicState
+import mc.merge.util.MiniHudUtils.isWithinMiniHudShape
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.util.math.BlockPos
+import net.fabricmc.loader.api.FabricLoader.getInstance
 
 class Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
 
@@ -34,11 +39,43 @@ class Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
     settings
      */
 
+    val isMeteor = getInstance().isModLoaded("meteor-client") //&& !getInstance().isModLoaded("rusherhack")
+
     val generalGroup = addGroup(SettingGroup("General", "General settings for nuker"))
     private val shape by setting(generalGroup,
         "Shape",
         "The shape used to select the blocks to break",
         VolumeShape.Sphere)
+    private val north by setting(generalGroup,
+        "North",
+        "The north blocks to break",
+        CoreConfig.breakRadius,
+        visible = {shape == VolumeShape.Cuboid})
+    private val south by setting(generalGroup,
+        "South",
+        "The south blocks to break",
+        CoreConfig.breakRadius,
+        visible = {shape == VolumeShape.Cuboid})
+    private val west by setting(generalGroup,
+        "West",
+        "The west blocks to break",
+        CoreConfig.breakRadius,
+        visible = {shape == VolumeShape.Cuboid})
+    private val east by setting(generalGroup,
+        "East",
+        "The east blocks to break",
+        CoreConfig.breakRadius,
+        visible = {shape == VolumeShape.Cuboid})
+    private val up by setting(generalGroup,
+        "Up",
+        "The blocks to break upwards",
+        CoreConfig.breakRadius,
+        visible = {shape == VolumeShape.Cuboid})
+    private val down by setting(generalGroup,
+        "Down",
+        "The blocks to break below",
+        CoreConfig.breakRadius,
+        visible = {shape == VolumeShape.Cuboid})
     private val mineStyle by setting(generalGroup,
         "Mine Style",
         "The order which blocks are broken in",
@@ -84,21 +121,34 @@ class Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         "Incorrect States",
         "Allows nuker to break incorrect schematic block states",
         true) { litematicaMode }
+    private val miniHudShape by setting(generalGroup,
+        "Mini Hud Shape",
+        "Only breaks blocks in the Mini hud shape renderer",
+        false)
+    private val outlineOnly by setting(generalGroup,
+        "Outline Only",
+        "Only breaks blocks in the shape outlines",
+        false,
+        visible = { miniHudShape })
     private val whitelistMode by setting(generalGroup,
         "Whitelist Mode",
         "What Type of List wil be used for filtering which blocks get broken",
         WhitelistMode.None)
+    private val presetSetting by setting(generalGroup,
+        "Presets",
+        "Select and or create block presets to use",
+        BlockPresetSetting.defaultPreset(),
+        visible = { whitelistMode != WhitelistMode.None && isMeteor })
     private val whitelist by setting(generalGroup,
         "Whitelist",
         "List of blocks that will be broken",
         mutableListOf<Block>(),
-        visible =  { whitelistMode == WhitelistMode.Whitelist })
+        visible =  { whitelistMode == WhitelistMode.Whitelist && !isMeteor })
     private val blackList by setting(generalGroup,
         "Blacklist",
         "List of blocks that won't be broken",
         mutableListOf<Block>(),
-        visible =  { whitelistMode == WhitelistMode.Blacklist })
-
+        visible =  { whitelistMode == WhitelistMode.Blacklist && !isMeteor })
 
     init {
         onInGameEvent<TickEvent.Pre> {
@@ -129,10 +179,27 @@ class Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
                         return@getBlockVolume true
                     }
                 }
-                when (whitelistMode) {
-                    WhitelistMode.Blacklist -> if (blackList.contains(state.block)) return@getBlockVolume true
-                    WhitelistMode.Whitelist -> if (!whitelist.contains(state.block)) return@getBlockVolume true
-                    else -> {}
+
+                if (miniHudShape && getInstance().isModLoaded("minihud")) {
+                    if (!isWithinMiniHudShape(pos,outlineOnly)) return@getBlockVolume true
+                }
+
+                if (isMeteor) {
+                    (presetSetting.getEntry(presetSetting.selected) as? BlockListSetting)?.let { blockListSetting ->
+                        if (WhitelistMode.Blacklist == whitelistMode && blockListSetting.getValue().contains(state.block)) {
+                            return@getBlockVolume true
+                        }
+                        if (WhitelistMode.Whitelist == whitelistMode && !blockListSetting.getValue().contains(state.block)) {
+                            return@getBlockVolume true
+                        }
+                    }
+                } else {
+                    when (whitelistMode) {
+                        WhitelistMode.Blacklist -> if (blackList.contains(state.block)) return@getBlockVolume true
+                        WhitelistMode.Whitelist -> if (!whitelist.contains(state.block)) return@getBlockVolume true
+
+                        else -> {}
+                    }
                 }
 
                 if (canalMode && isValidCanalBlock(pos)) return@getBlockVolume true
@@ -183,8 +250,10 @@ class Nuker : Module("Epic Nuker", "Epic nuker for nuking terrain") {
         player.run {
             if (shape == VolumeShape.Sphere) {
                 getBlockSphere(this.eyePos, CoreConfig.breakRadius, removeIf)
-            } else {
+            } else if (shape == VolumeShape.Cube) {
                 getBlockCube(this.eyePos, CoreConfig.breakRadius, removeIf)
+            } else {
+                getBlockCuboid(this.eyePos, north, south, east, west, up, down, removeIf)
             }
         }
 

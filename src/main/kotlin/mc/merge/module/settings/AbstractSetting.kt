@@ -28,7 +28,7 @@ abstract class AbstractSetting<T : Any>(
         setValue(value)
     }
 
-    fun setValue(value: T) {
+    open fun setValue(value: T) {
         if (this.value != value) {
             this.value = value
             onChange.forEach { it.accept(value) }
@@ -39,7 +39,7 @@ abstract class AbstractSetting<T : Any>(
     fun getName() = name
     fun getDescription() = description
     fun getDefaultValue() = defaultValue
-    fun getValue() = value
+    open fun getValue() = value
     fun getOnChange() = onChange
     fun isVisible() = visible.get()
 

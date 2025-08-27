@@ -20,6 +20,7 @@ val malilibVersion = project.property("malilib_version") as String
 val litematicaVersion = project.property("litematica_version") as String
 val netherPathfinderVersion = project.property("nether_pathfinder_version") as String
 val baritoneVersion = if(stonecutter.current.project == "1.21.2") "1.21.3" else stonecutter.current.project
+val miniHudVersion = project.property("minihud_version") as String
 
 version = project.property("mod_version") as String
 group = project.property("maven_group") as String
@@ -75,6 +76,8 @@ dependencies {
 
     modImplementation("maven.modrinth:malilib:$malilibVersion")
     modImplementation("maven.modrinth:litematica:$litematicaVersion")
+    modImplementation("maven.modrinth:minihud:$miniHudVersion")
+
     modRuntimeOnly("dev.babbaj:nether-pathfinder:$netherPathfinderVersion")
 }
 

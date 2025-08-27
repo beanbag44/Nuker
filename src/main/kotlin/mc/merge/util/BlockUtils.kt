@@ -60,6 +60,27 @@ object BlockUtils {
         return posList
     }
 
+    fun InGame.getBlockCuboid(center: Vec3d, north: Double, south: Double, east: Double, west: Double, up: Double, down: Double, removeIf: ((BlockPos, BlockState) -> Boolean)?): ArrayList<PosAndState> {
+        val posList = arrayListOf<PosAndState>()
+        val min = BlockPos(
+            (center.x - west).toInt() - NEGATIVE_AXIS_FIX,
+            (center.y - down).toInt() - NEGATIVE_AXIS_FIX,
+            (center.z - north).toInt()- NEGATIVE_AXIS_FIX
+        )
+        val max = BlockPos(
+            (center.x + east).toInt(),
+            (center.y + up).toInt(),
+            (center.z + south).toInt()
+        )
+        allPosInBounds(min, max).forEach { pos ->
+            val blockState = pos.getState(world)
+            if (removeIf?.invoke(pos, blockState) != true) {
+                posList.add(PosAndState(pos, blockState))
+            }
+        }
+        return posList
+    }
+
     fun InGame.canReach(from: Vec3d, pos: BlockPos, reach: Double): Boolean {
         var closestPoint: Vec3d? = null
         (if (pos.getState(world).block is FluidBlock || pos.getState(world).isAir) FluidBlock.COLLISION_SHAPE else pos.getState(world)
@@ -443,12 +464,13 @@ object BlockUtils {
 
         return breakingSpeed
     }
+
+    fun BlockPos.closestCorner(toPos: Vec3d) : Vec3d {
+        val x = if (toPos.x > x) x.toDouble() + 0.001 else x.toDouble() + 0.999
+        val y = if (toPos.y > y) y.toDouble() + 0.001 else y.toDouble() + 0.999
+        val z = if (toPos.z > z) z.toDouble() + 0.001 else z.toDouble() + 0.999
+
+        return Vec3d(x, y, z)
+    }
 }
 
-fun BlockPos.closestCorner(toPos: Vec3d) : Vec3d {
-    val x = if (toPos.x > x) x.toDouble() + 0.001 else x.toDouble() + 0.999
-    val y = if (toPos.y > y) y.toDouble() + 0.001 else y.toDouble() + 0.999
-    val z = if (toPos.z > z) z.toDouble() + 0.001 else z.toDouble() + 0.999
-
-    return Vec3d(x, y, z)
-}

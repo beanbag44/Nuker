@@ -7,6 +7,7 @@
     "MixinAbstractBlockState",
     "MixinClientConnection",
     "MixinEntity",
+    "MixinRayTracerMiniHud",
     "litematica.ISchematicVerifierAccessor",
     "meteor.MixinMeteorClient"
   ],

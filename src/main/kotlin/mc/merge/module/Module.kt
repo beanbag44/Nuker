@@ -87,6 +87,16 @@ abstract class Module(var name: String, var description: String, private var alw
         group: SettingGroup,
         name: String,
         description: String,
+        defaultValue: NukerPreset<Block>,
+        onChange: MutableList<Consumer<NukerPreset<Block>>>? = null,
+        visible: () -> Boolean = { true },
+        filter: (Block) -> Boolean = { true },
+    ) = group.add(BlockPresetSetting(name, description, defaultValue, onChange, visible, filter))
+
+    fun setting(
+        group: SettingGroup,
+        name: String,
+        description: String,
         defaultValue: List<Block>,
         onChange: MutableList<Consumer<List<Block>>>? = null,
         visible: () -> Boolean = { true },
@@ -218,6 +228,7 @@ abstract class Module(var name: String, var description: String, private var alw
         onChanged: MutableList<Consumer<String>>? = null,
         visible: () -> Boolean = { true },
     ) = group.add(StringInputSetting(name, description, defaultValue, onChanged, visible))
+
 
     // To support Java
     fun setting(

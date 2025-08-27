@@ -13,6 +13,66 @@ import java.util.function.Consumer
 class MeteorSettingBuilder {
     fun toMeteorSetting(setting: AbstractSetting<*>) : Setting<*> {
         return when (setting) {
+
+            is BlockPresetSetting -> {
+                val defaultPreset = setting.getDefaultValue()
+                var syncing = false
+                val meteorBuilder = MeteorBlockPresetSetting.Builder()
+                    .name(setting.getName())
+                    .description(setting.getDescription())
+                    .defaultValue(
+                        defaultPreset.entries.mapValues { (_, entry) ->
+                            meteordevelopment.meteorclient.settings.BlockListSetting.Builder()
+                                .defaultValue(entry.getValue())
+                                .build()
+                        }
+                    )
+                    .visible { setting.isVisible() }
+                    .filter(setting.filter)
+                    .onChanged { meteorPreset ->
+                        // Meteor → Nuker
+                        if (syncing) return@onChanged
+                        syncing = true
+                        val nukerPreset = NukerPreset<Block>(meteorPreset.selected, mutableMapOf())
+                        meteorPreset.entries.forEach { (key, listSetting) ->
+                            nukerPreset.addEntry(
+                                key,
+                                BlockListSetting(
+                                    name = key,
+                                    description = "Preset for $key",
+                                    defaultValue = listSetting.get(),
+                                    onChanged = mutableListOf(),
+                                    visible = { true },
+                                    filter = setting.filter
+                                )
+                            )
+                        }
+                        setting.setValue(nukerPreset)
+                        syncing = false
+                    }
+
+                val meteorSetting = meteorBuilder.build()
+
+                // Nuker → Meteor
+                setting.getOnChange().add(Consumer { nukerPreset ->
+                    if (syncing) return@Consumer
+                    syncing = true
+                    val meteorPreset = MeteorPreset<Block>(nukerPreset.selected, mutableMapOf())
+                    nukerPreset.entries.forEach { (key, entry) ->
+                        meteorPreset.addEntry(
+                            key,
+                            meteordevelopment.meteorclient.settings.BlockListSetting.Builder()
+                                .defaultValue(entry.getValue())
+                                .build()
+                        )
+                    }
+                    meteorSetting.set(meteorPreset)
+                    syncing = false
+                })
+
+                meteorSetting
+            }
+
             is BlockListSetting -> {
                 val builder = meteordevelopment.meteorclient.settings.BlockListSetting.Builder()
                     .name(setting.getName())
