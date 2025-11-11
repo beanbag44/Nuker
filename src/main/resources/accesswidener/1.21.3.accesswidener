@@ -3,3 +3,5 @@ accessWidener v2 named
 accessible method net/minecraft/block/entity/BlockEntity writeNbt (Lnet/minecraft/nbt/NbtCompound;Lnet/minecraft/registry/RegistryWrapper$WrapperLookup;)V
 accessible field net/minecraft/client/network/ClientPlayerInteractionManager lastSelectedSlot I
 accessible method net/minecraft/client/MinecraftClient doItemUse ()V
+
+accessible method net/minecraft/client/network/ClientPlayerInteractionManager sendSequencedPacket (Lnet/minecraft/client/world/ClientWorld;Lnet/minecraft/client/network/SequencedPacketCreator;)V

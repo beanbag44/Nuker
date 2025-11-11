@@ -226,23 +226,53 @@ class BreakingHandler2 : IHandler, IHandlerController{
 
     fun startBreakPacket(pos: BlockPos) = runInGame {
         packetCounter++
-        networkHandler.sendPacket(
-            PlayerActionC2SPacket(PlayerActionC2SPacket.Action.START_DESTROY_BLOCK, pos, Direction.UP)
-        )
+        mc.interactionManager?.sendSequencedPacket(
+            world
+        ) { sequence ->
+            PlayerActionC2SPacket(
+                PlayerActionC2SPacket.Action.START_DESTROY_BLOCK,
+                pos,
+                Direction.DOWN,
+                sequence
+            )
+        }
+//        networkHandler.sendPacket(
+//            PlayerActionC2SPacket(PlayerActionC2SPacket.Action.START_DESTROY_BLOCK, pos, Direction.UP)
+//        )
     }
 
     fun abortBreakPacket(pos: BlockPos) = runInGame {
         packetCounter++
-        networkHandler.sendPacket(
-            PlayerActionC2SPacket(PlayerActionC2SPacket.Action.ABORT_DESTROY_BLOCK, pos, Direction.UP)
-        )
+        mc.interactionManager?.sendSequencedPacket(
+            world
+        ) { sequence ->
+            PlayerActionC2SPacket(
+                PlayerActionC2SPacket.Action.ABORT_DESTROY_BLOCK,
+                pos,
+                Direction.DOWN,
+                sequence
+            )
+        }
+//        networkHandler.sendPacket(
+//            PlayerActionC2SPacket(PlayerActionC2SPacket.Action.ABORT_DESTROY_BLOCK, pos, Direction.UP)
+//        )
     }
 
     fun stopBreakPacket(pos: BlockPos) = runInGame {
         packetCounter++
-        networkHandler.sendPacket(
-            PlayerActionC2SPacket(PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK, pos, Direction.UP)
-        )
+        mc.interactionManager?.sendSequencedPacket(
+            world
+        ) { sequence ->
+            PlayerActionC2SPacket(
+                PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK,
+                pos,
+                Direction.DOWN,
+                sequence
+            )
+        }
+//        networkHandler.sendPacket(
+//            PlayerActionC2SPacket(PlayerActionC2SPacket.Action.STOP_DESTROY_BLOCK, pos, Direction.UP)
+//        )
     }
 
     //
