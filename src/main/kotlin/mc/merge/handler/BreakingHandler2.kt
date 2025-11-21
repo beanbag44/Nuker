@@ -323,7 +323,7 @@ class BreakingHandler2 : IHandler, IHandlerController{
             betweenBreakTicks = if(CoreConfig.ticksBetweenBreaks > 0) CoreConfig.ticksBetweenBreaks else 0
         }
         breakingContext?.apply {
-            BrokenBlockHandler.putBrokenBlock(pos, state, CoreConfig.validateBreak)
+            BrokenBlockHandler.putBrokenBlock(pos, state, !CoreConfig.validateBreak)
             blockBreakTimeouts.put(pos)
 
             if (!CoreConfig.validateBreak) {
